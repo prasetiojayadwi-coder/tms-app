@@ -2198,7 +2198,7 @@
                     options = '<option value="" disabled selected>-- Pilih Penerima --</option>';
                 }
                 Object.values(db.users).forEach(u => { 
-                    if (u.status === 'pending_approval') return;
+                    if (u.status === 'pending_approval' || u.status === 'suspended' || u.status === 'disabled' || u.status === 'rejected') return;
                     if (currentUser && u.id === currentUser.id) return; // Mencegah transfer ke diri sendiri
                     
                     if (currentUser && currentUser.role === 'ts') {
@@ -3544,7 +3544,16 @@
             
             saveDB(); updateData(); closeModal('handoverModal');
             showToast("Serah Terima Sukses", "Fisik alat sah Anda terima.", "success");
-            sendProfessionalNotification('receive', r, t, tech);
+            let targetUser;
+            if (isReturn) {
+                targetUser = tech;
+            } else {
+                targetUser = Object.values(db.users).find(usr => usr.name === r.shippedBy || usr.name === r.approvedBy);
+                if (!targetUser) {
+                    targetUser = Object.values(db.users).find(usr => usr.role === 'tsf') || Object.values(db.users).find(usr => usr.role === 'spv');
+                }
+            }
+            sendProfessionalNotification('receive', r, t, targetUser);
         }
 
         function openDistributeModal(id, type) {
@@ -3646,7 +3655,11 @@
             closeModal('distributeModal');
             showToast(toastTitle, toastMsg, "success");
             const latestReq = db.requests[db.requests.length - 1];
-            sendProfessionalNotification('send', latestReq, t, recipient);
+            let targetUser = recipient;
+            if (!targetUser && recipientId === 0) {
+                targetUser = Object.values(db.users).find(usr => usr.role === 'tsf') || Object.values(db.users).find(usr => usr.role === 'spv');
+            }
+            sendProfessionalNotification('send', latestReq, t, targetUser);
         }
 
         function submitReport(e) {
@@ -3816,12 +3829,19 @@
                     }
                 } else if (r.reqType === 'verify_tool') {
                     r.status = 'completed';
-                    if(isApproved) { t.status = 'good'; addToHistory(`${authRole} (${currentUser.name}) memverifikasi alat baru ${t.noInv} (Dari ${u.name}).`, t.id); showToast("Diverifikasi", "Aset Aktif dalam sistem.", "success"); } 
+                    if(isApproved) { 
+                        if (t) t.status = 'good'; 
+                        addToHistory(`${authRole} (${currentUser.name}) memverifikasi alat baru ${t ? t.noInv : '-'} (Dari ${u ? u.name : 'Teknisi'}).`, r.toolId); 
+                        showToast("Diverifikasi", "Aset Aktif dalam sistem.", "success"); 
+                    } 
                     else { 
                         r.status = 'rejected';
-                        if (r.toolType === 'demo') db.demoUnits = db.demoUnits.filter(x => x.id !== t.id);
-                        else db.tools = db.tools.filter(x => x.id !== t.id);
-                        addToHistory(`${authRole} (${currentUser.name}) menolak registrasi alat baru ${t.noInv} (Dari ${u.name}). Aset dihapus.`, t.id);
+                        if (t) {
+                            if (r.toolType === 'demo') db.demoUnits = db.demoUnits.filter(x => x.id !== t.id);
+                            else db.tools = db.tools.filter(x => x.id !== t.id);
+                            db.requests = db.requests.filter(req => !(req.toolId === t.id && req.toolType === r.toolType));
+                            addToHistory(`${authRole} (${currentUser.name}) menolak registrasi alat baru ${t.noInv} (Dari ${u ? u.name : 'Teknisi'}). Aset dihapus.`, t.id);
+                        }
                         showToast("Ditolak", "Aset baru dihapus dari sistem.", "error");
                     }
                 } else if (r.reqType === 'verify_user') {
@@ -4078,8 +4098,24 @@
                 updateOwnerDropdown(); 
                 showToast("Terhapus", "Personel dihapus.", "success"); 
             }
-            else if(type === 'tool') { const t = db.tools.find(x=>x.id===id); addToHistory(`${currentUser.role.toUpperCase()} menghapus permanen alat: ${t.noInv}.`); db.tools = db.tools.filter(t => t.id !== id); showToast("Terhapus", "Alat dihapus.", "success"); }
-            else if(type === 'demo') { const t = db.demoUnits.find(x=>x.id===id); addToHistory(`${currentUser.role.toUpperCase()} menghapus permanen unit demo: ${t.noInv}.`); db.demoUnits = db.demoUnits.filter(d => d.id !== id); showToast("Terhapus", "Unit Backup dihapus.", "success"); }
+            else if(type === 'tool') { 
+                const t = db.tools.find(x=>x.id===id); 
+                if (t) {
+                    addToHistory(`${currentUser.role.toUpperCase()} menghapus permanen alat: ${t.noInv}.`); 
+                    db.tools = db.tools.filter(t => t.id !== id); 
+                    db.requests = db.requests.filter(r => !(r.toolId === id && r.toolType === 'tool'));
+                }
+                showToast("Terhapus", "Alat dihapus.", "success"); 
+            }
+            else if(type === 'demo') { 
+                const t = db.demoUnits.find(x=>x.id===id); 
+                if (t) {
+                    addToHistory(`${currentUser.role.toUpperCase()} menghapus permanen unit demo: ${t.noInv}.`); 
+                    db.demoUnits = db.demoUnits.filter(d => d.id !== id); 
+                    db.requests = db.requests.filter(r => !(r.toolId === id && r.toolType === 'demo'));
+                }
+                showToast("Terhapus", "Unit Backup dihapus.", "success"); 
+            }
             saveDB(); updateData();
         }
 
@@ -5018,8 +5054,10 @@
             const ticketCode = `TKT-${new Date(r.id).getFullYear()}${String(new Date(r.id).getMonth()+1).padStart(2,'0')}-${r.id.toString().slice(-4)}`;
             const assetName = t.desc;
             const noInv = t.noInv;
-            const senderName = r.shippedBy || currentUser.name;
-            const recipientName = u ? u.name : 'Gudang/Pool';
+            const isReturn = r.reqType === 'return';
+            const tech = db.users[r.requesterId];
+            const senderName = isReturn ? (tech ? tech.name : 'Teknisi') : (r.shippedBy || 'Gudang/Pool');
+            const recipientName = isReturn ? (r.receivedBy || 'Gudang/Pool') : (tech ? tech.name : 'Teknisi');
             const timeStr = formatDateTime(r.shippedAt || r.id);
             const note = r.note || '-';
             const condition = t.condition || 'Baik';
@@ -5066,7 +5104,8 @@
                           `• *Kode Transaksi:* ${ticketCode}\n` +
                           `• *Nama Aset:* ${assetName}\n` +
                           `• *No. Inventaris:* ${noInv}\n` +
-                          `• *Penerima (Teknisi):* ${recipientName}\n` +
+                          `• *Pengirim:* ${senderName}\n` +
+                          `• *Penerima:* ${recipientName}\n` +
                           `• *Kondisi Alat:* *${condition}*\n` +
                           `• *Waktu Sah:* ${formatDateTime(r.completedAt || new Date())}\n\n` +
                           `*Status:* BAST Sah & Fisik Aset Diterima.\n\n` +
@@ -5078,7 +5117,8 @@
                             `- Kode Transaksi: ${ticketCode}\n` +
                             `- Nama Aset: ${assetName}\n` +
                             `- No. Inventaris: ${noInv}\n` +
-                            `- Penerima (Teknisi): ${recipientName}\n` +
+                            `- Pengirim: ${senderName}\n` +
+                            `- Penerima: ${recipientName}\n` +
                             `- Kondisi Alat: ${condition}\n` +
                             `- Waktu Sah: ${formatDateTime(r.completedAt || new Date())}\n\n` +
                             `Status: BAST Sah & Fisik Aset Diterima.\n\n` +
