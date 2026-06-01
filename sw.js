@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tms-cache-v33';
+const CACHE_NAME = 'tms-cache-v37';
 const ASSETS = [
   'index.html',
   'manifest.json',

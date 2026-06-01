@@ -380,9 +380,15 @@
                     <p class="text-gold-600 dark:text-gold-500 text-[10px] font-extrabold uppercase tracking-[0.3em]">Tools Manajemen System</p>
                 </div>
                 
-                <div class="mb-10 text-center lg:text-left">
-                    <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-widest uppercase mb-2">Portal Otentikasi</h2>
-                    <p class="text-xs text-gray-500 dark:text-lux-400">Silakan masuk menggunakan kredensial perusahaan Anda.</p>
+                <div class="mb-10 flex flex-col items-center lg:items-start">
+                    <div class="flex items-center gap-3.5 mb-4">
+                        <div class="w-12 h-12 rounded-[0.875rem] bg-gradient-to-br from-gold-400 to-gold-600 text-white dark:text-lux-950 flex items-center justify-center text-xl shadow-[0_0_20px_rgba(234,179,8,0.3)]"><i class="fa-solid fa-layer-group"></i></div>
+                        <div>
+                            <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-[0.15em] leading-tight">WELCOME</h2>
+                            <p class="text-[9px] text-gold-600 dark:text-gold-500 font-extrabold uppercase tracking-[0.25em]">Tools Manajemen System</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-lux-400 font-medium text-center lg:text-left leading-relaxed">Silakan masuk menggunakan kredensial resmi perusahaan Anda.</p>
                 </div>
 
                 <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
@@ -631,6 +637,12 @@
                         <h2 class="text-xl font-black uppercase tracking-[0.1em] text-gray-900 dark:text-white"><i class="fa-solid fa-shield-halved text-gold-500 mr-3"></i> Pintu Otorisasi</h2>
                         <p class="text-[12px] font-medium text-gray-500 dark:text-lux-300 mt-2">Tinjau permohonan peminjaman atau verifikasi pendaftaran alat baru dari Teknisi.</p>
                     </div>
+                    <div class="relative z-10 -mt-2 mb-6">
+                        <div class="relative">
+                            <input type="text" id="search-spv-approvals" onkeyup="renderSpvApprovals()" class="input-field w-full pr-12 focus:border-gold-500" placeholder="Smart Search: Cari nama teknisi, nama alat, SN, tipe, NIK...">
+                            <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-lux-500"><i class="fa-solid fa-magnifying-glass text-md"></i></div>
+                        </div>
+                    </div>
                     <div id="spv-requests-container" class="relative z-10 flex flex-col gap-5"></div>
                 </div>
             </section>
@@ -655,6 +667,13 @@
                     <button onclick="openFormModal('tool')" class="bg-gold-500 text-white dark:text-black font-black px-6 py-3.5 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] shrink-0 w-full md:w-auto hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Spesial Tools</button>
                 </div>
                 
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm dark:shadow-xl -mt-2">
+                    <div class="flex-1 w-full relative">
+                        <input type="text" id="search-ts-toolbox" onkeyup="renderTsToolbox()" class="input-field w-full pr-12" placeholder="Smart Search: Cari Nama Alat, SN, Merk, Tipe, Kategori saya...">
+                        <button onclick="startQrScanner('ts-search')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gold-600 dark:text-gold-500 hover:text-gold-700 transition" title="Scan QR Aset"><i class="fa-solid fa-qrcode text-lg"></i></button>
+                    </div>
+                </div>
+                
                 <div>
                     <h3 class="text-[11px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-[0.15em] mb-3 pl-3 border-l-2 border-gold-500">Spesial Tools (Alat Kerja)</h3>
                     <div class="flex gap-2 w-full overflow-x-auto pb-3 custom-scrollbar">
@@ -675,7 +694,7 @@
 
             <section id="view-ts-radar" class="app-view hidden flex-col gap-6 animate-fade-in">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm dark:shadow-xl">
-                    <div class="flex-1 w-full min-w-0"><h2 class="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white truncate">Radar Alat Global</h2><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium truncate">Transparansi: Lacak keberadaan seluruh alat perusahaan.</p></div>
+                    <div class="flex-1 w-full min-w-0"><h2 class="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white truncate">Direktori Aset Global</h2><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium truncate">Transparansi: Lacak keberadaan seluruh alat perusahaan.</p></div>
                     <div class="flex gap-3 w-full md:w-auto relative md:w-[280px]">
                         <input type="text" id="search-ts-radar" onkeyup="renderTsRadar()" class="input-field w-full pr-12" placeholder="Cari Aset...">
                         <button onclick="startQrScanner('ts-radar')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gold-600 dark:text-gold-500 hover:text-gold-700 transition" title="Scan QR Aset"><i class="fa-solid fa-qrcode text-lg"></i></button>
@@ -683,7 +702,7 @@
                 </div>
                 
                 <div>
-                    <h3 class="text-[11px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-[0.15em] mb-3 pl-3 border-l-2 border-gold-500">Radar Spesial Tools</h3>
+                    <h3 class="text-[11px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-[0.15em] mb-3 pl-3 border-l-2 border-gold-500">Direktori Spesial Tools</h3>
                     <div class="flex gap-2 w-full overflow-x-auto pb-3 custom-scrollbar">
                         <button onclick="setTsRadarFilter('all')" id="flt-tsradar-all" class="ts-radar-filter-btn px-5 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition whitespace-nowrap shadow-md">Semua</button>
                         <button onclick="setTsRadarFilter('Avitum')" id="flt-tsradar-Avitum" class="ts-radar-filter-btn px-5 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition whitespace-nowrap hover:bg-gray-200 dark:hover:bg-lux-700">Avitum</button>
@@ -706,13 +725,13 @@
                 </div>
 
                 <div class="mt-4">
-                    <h3 class="text-[11px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-[0.15em] mb-3 pl-3 border-l-2 border-emerald-500">Radar Unit Backup / Demo</h3>
+                    <h3 class="text-[11px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-[0.15em] mb-3 pl-3 border-l-2 border-emerald-500">Direktori Unit Backup / Demo</h3>
                     <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
                         <div class="overflow-x-auto custom-scrollbar pb-4">
                             <table class="w-full text-left text-sm border-collapse min-w-[1000px]">
                                 <thead>
                                     <tr class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest border-b border-gray-200 dark:border-lux-700 bg-gray-50 dark:bg-lux-950 whitespace-nowrap">
-                                        <th class="p-5">No Inventaris</th><th class="p-5">Deskripsi Unit</th><th class="p-5">No Seri / Tipe</th><th class="p-5">Lokasi & Tujuan</th><th class="p-5">Kondisi & Kalibrasi</th><th class="p-5 text-right">Tindakan Khusus</th>
+                                        <th class="p-5">No Inv / Art No</th><th class="p-5">Deskripsi Unit</th><th class="p-5">No Seri / Tipe</th><th class="p-5">Lokasi & Tujuan</th><th class="p-5">Kondisi & Kalibrasi</th><th class="p-5 text-right">Tindakan Khusus</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ts-radar-demo-container" class="divide-y divide-gray-100 dark:divide-lux-800/60 text-gray-900 dark:text-white"></tbody>
@@ -2117,7 +2136,7 @@
                 menu.innerHTML = `<a href="#" onclick="switchTab('ts-dash')" id="nav-ts-dash" class="nav-link active flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-chart-line w-4 text-center text-sm"></i> Dashboard</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Data Inventaris</div>
                     <a href="#" onclick="switchTab('ts-toolbox')" id="nav-ts-toolbox" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-toolbox w-4 text-center text-sm"></i> Inventaris Saya</a>
-                    <a href="#" onclick="switchTab('ts-radar')" id="nav-ts-radar" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-globe w-4 text-center text-sm"></i> Radar Global</a>
+                    <a href="#" onclick="switchTab('ts-radar')" id="nav-ts-radar" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-globe w-4 text-center text-sm"></i> Direktori Aset</a>
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Buku Tiket</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Validasi</div>
                     <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Tanda Terima Fisik</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
@@ -2142,7 +2161,7 @@
             else { document.getElementById('prof-name').value = currentUser.name; document.getElementById('prof-user').value = currentUser.user; document.getElementById('prof-pass').value = currentUser.pass; document.getElementById('prof-nik').value = currentUser.nik || ''; document.getElementById('prof-jabatan').value = currentUser.jabatan || ''; document.getElementById('prof-email').value = currentUser.email || ''; document.getElementById('prof-phone').value = currentUser.phone || ''; }
             if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); }
             
-            const titles = {'profile': 'Profil Eksekutif', 'spv-dash':'Dashboard', 'spv-assets':'Inventaris Spesial Tools', 'demo-inventory':'Unit Backup / Demo', 'spv-personnel':'Data Personel', 'spv-approvals':'Pintu Otorisasi', 'spv-maintenance':'Modul Maintenance', 'ts-dash':'Tinjauan Global', 'ts-toolbox':'Inventaris Aset Saya', 'ts-radar':'Radar Alat Global', 'ts-handover':'Form Serah Terima', 'tickets-log': 'Buku Tiket'};
+            const titles = {'profile': 'Profil Eksekutif', 'spv-dash':'Dashboard', 'spv-assets':'Inventaris Spesial Tools', 'demo-inventory':'Unit Backup / Demo', 'spv-personnel':'Data Personel', 'spv-approvals':'Pintu Otorisasi', 'spv-maintenance':'Modul Maintenance', 'ts-dash':'Tinjauan Global', 'ts-toolbox':'Inventaris Aset Saya', 'ts-radar':'Direktori Aset Global', 'ts-handover':'Form Serah Terima', 'tickets-log': 'Buku Tiket'};
             document.getElementById('topbar-title').innerText = titles[tabId]; updateData();
         }
 
@@ -2539,26 +2558,38 @@
             document.getElementById('ts-stat-active').innerText = myT.filter(t => t.status === 'good').length;
             document.getElementById('ts-stat-pending').innerText = myT.filter(t => t.status === 'pending_auth').length;
             document.getElementById('ts-stat-global').innerText = db.tools.length + db.demoUnits.length;
-            
             const hc = document.getElementById('ts-history-log'); hc.innerHTML = '';
             db.historyLog.slice(0, 10).forEach(l => {
                 const date = new Date(l.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short'});
                 hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${l.action}</p></div>`;
             });
         }
-
         function renderTsToolbox() {
             const mcTools = document.getElementById('ts-tools-container'); 
             const mcDemo = document.getElementById('ts-demo-container'); 
             
+            const searchInput = document.getElementById('search-ts-toolbox');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
             const myTools = db.tools.filter(t => t.ownerId === currentUser.id);
             const myDemos = db.demoUnits.filter(t => t.ownerId === currentUser.id);
             
             mcTools.innerHTML = '';
-            const filteredTools = myTools.filter(t => currentTsToolboxFilter === 'all' || t.subCategory === currentTsToolboxFilter);
+            const filteredTools = myTools.filter(t => {
+                const matchesTab = currentTsToolboxFilter === 'all' || t.subCategory === currentTsToolboxFilter;
+                if (!matchesTab) return false;
+                if (query === '') return true;
+                return (
+                    (t.desc && t.desc.toLowerCase().includes(query)) ||
+                    (t.noInv && t.noInv.toLowerCase().includes(query)) ||
+                    (t.sn && t.sn.toLowerCase().includes(query)) ||
+                    (t.merk && t.merk.toLowerCase().includes(query)) ||
+                    (t.tipe && t.tipe.toLowerCase().includes(query))
+                );
+            });
             
             if(filteredTools.length === 0) {
-                mcTools.innerHTML = `<div class="col-span-full border border-dashed border-gray-300 dark:border-lux-700 rounded-2xl p-8 text-center text-gray-500 dark:text-lux-500 font-bold uppercase tracking-widest text-[11px] bg-white dark:bg-[#18181b]">Tidak Ada Alat Master</div>`;
+                mcTools.innerHTML = `<div class="col-span-full border border-dashed border-gray-300 dark:border-lux-700 rounded-2xl p-8 text-center text-gray-500 dark:text-lux-500 font-bold uppercase tracking-widest text-[11px] bg-white dark:bg-[#18181b]">Tidak Ada Spesial Tools</div>`;
             }
             
             filteredTools.forEach(t => {
@@ -2576,30 +2607,30 @@
                 const hasPendingReturn = db.requests.some(r => r.toolId === t.id && r.reqType === 'return' && (r.status === 'pending_spv' || r.status === 'pending_tsf'));
                 const isInProcess = hasActiveRequest(t.id);
                 
-                const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5rem] bg-gray-50 dark:bg-lux-900 hover:bg-gray-100 dark:hover:bg-lux-850 text-gray-600 dark:text-lux-300 border border-gray-200 dark:border-lux-700 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
+                const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-zinc-700/50 hover:text-white border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500/50 hover:shadow-[0_0_15px_rgba(234,179,8,0.15)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
                 
                 let sendBtn;
                 if (isInProcess) {
-                    sendBtn = `<button disabled class="flex-1 min-w-[5rem] bg-gray-100 dark:bg-lux-800 text-gray-400 dark:text-lux-600 border border-gray-200 dark:border-lux-800 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
+                    sendBtn = `<button disabled class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center gap-1 opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
                 } else if (t.condition !== 'Rusak') {
-                    sendBtn = `<button onclick="openDistributeModal(${t.id}, 'tool')" class="flex-1 min-w-[5rem] bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-black py-2.5 rounded-xl uppercase tracking-widest hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105 transition flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
+                    sendBtn = `<button onclick="openDistributeModal(${t.id}, 'tool')" class="flex-1 min-w-[5.2rem] bg-emerald-500/10 border border-emerald-500/30 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-650 hover:text-black text-emerald-600 dark:text-emerald-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
                 } else {
                     sendBtn = '';
                 }
                 
                 let returnBtn;
                 if (isInProcess) {
-                    returnBtn = `<span class="flex-1 min-w-[5rem] bg-gray-100 dark:bg-lux-800 text-gray-400 dark:text-lux-600 border border-gray-200 dark:border-lux-800 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest flex items-center justify-center text-center leading-none opacity-50 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
+                    returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center text-center leading-none opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
                 } else if (hasPendingReturn) {
-                    returnBtn = `<span class="flex-1 min-w-[5rem] bg-gray-50 dark:bg-lux-900 text-gray-400 dark:text-lux-500 border border-gray-200 dark:border-lux-800 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu Gudang</span>`;
+                    returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-900/60 text-[8.5px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.08em] flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>SPV/TSF</span>`;
                 } else {
-                    returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5rem] bg-gold-500/10 hover:bg-gold-500 text-gold-600 dark:text-gold-400 hover:text-black border border-gold-500/20 hover:border-gold-500 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan alat ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
+                    returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5.2rem] bg-amber-500/10 border border-amber-500/30 hover:bg-gradient-to-r hover:from-amber-500 hover:to-gold-600 hover:text-black text-amber-600 dark:text-amber-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan alat ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
                 }
                 
                 const reportBtn = t.condition !== 'Rusak' 
-                    ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5rem] bg-red-50 dark:bg-red-950/20 hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white border border-red-200 dark:border-red-900/40 hover:border-red-600 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
+                    ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5.2rem] bg-rose-500/10 border border-rose-500/30 hover:bg-gradient-to-r hover:from-rose-500 hover:to-red-650 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(244,63,94,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
                     : '';
-
+                
                 mcTools.innerHTML += `
                 <div class="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-lux-800/80 rounded-[1.5rem] p-6 hover:shadow-[0_4px_25px_-5px_rgba(234,179,8,0.15)] hover:border-gold-500/40 hover:-translate-y-1 transition-all duration-300 flex flex-col relative group overflow-hidden shadow-sm">
                     <div class="absolute -top-16 -right-16 w-32 h-32 bg-gold-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-gold-500/10 transition-all duration-500"></div>
@@ -2651,11 +2682,22 @@
  
             if(mcDemo) {
                 mcDemo.innerHTML = '';
-                if(myDemos.length === 0) {
+                const filteredDemos = myDemos.filter(t => {
+                    if (query === '') return true;
+                    return (
+                        (t.desc && t.desc.toLowerCase().includes(query)) ||
+                        (t.noInv && t.noInv.toLowerCase().includes(query)) ||
+                        (t.sn && t.sn.toLowerCase().includes(query)) ||
+                        (t.merk && t.merk.toLowerCase().includes(query)) ||
+                        (t.tipe && t.tipe.toLowerCase().includes(query))
+                    );
+                });
+                
+                if(filteredDemos.length === 0) {
                     mcDemo.innerHTML = `<div class="col-span-full border border-dashed border-gray-300 dark:border-lux-700 rounded-2xl p-8 text-center text-gray-500 dark:text-lux-500 font-bold uppercase tracking-widest text-[11px] bg-white dark:bg-[#18181b]">Tidak Ada Unit Backup / Demo</div>`;
                 }
                 
-                myDemos.forEach(t => {
+                filteredDemos.forEach(t => {
                     const calStat = getCalibrationStatus(t.calDate);
                     let condUI = '';
                     if(t.status === 'pending_auth') {
@@ -2669,29 +2711,28 @@
                     const descStr = t.desc || "Unit Tanpa Nama";
                     const hasPendingReturn = db.requests.some(r => r.toolId === t.id && r.reqType === 'return' && r.status === 'pending_tsf');
                     const isInProcess = hasActiveRequest(t.id);
-                    
-                    const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5rem] bg-gray-50 dark:bg-lux-900 hover:bg-gray-100 dark:hover:bg-lux-850 text-gray-600 dark:text-lux-300 border border-gray-200 dark:border-lux-700 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
+                    const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-zinc-700/50 hover:text-white border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
                     
                     let sendBtn;
                     if (isInProcess) {
-                        sendBtn = `<button disabled class="flex-1 min-w-[5rem] bg-gray-100 dark:bg-lux-800 text-gray-400 dark:text-lux-600 border border-gray-200 dark:border-lux-800 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest flex items-center justify-center gap-1.5 opacity-50 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
+                        sendBtn = `<button disabled class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center gap-1 opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
                     } else if (t.condition !== 'Rusak') {
-                        sendBtn = `<button onclick="openDistributeModal(${t.id}, 'demo')" class="flex-1 min-w-[5rem] bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-black py-2.5 rounded-xl uppercase tracking-widest hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:scale-105 transition flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
+                        sendBtn = `<button onclick="openDistributeModal(${t.id}, 'demo')" class="flex-1 min-w-[5.2rem] bg-emerald-500/10 border border-emerald-500/30 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-650 hover:text-black text-emerald-600 dark:text-emerald-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
                     } else {
                         sendBtn = '';
                     }
                     
                     let returnBtn;
                     if (isInProcess) {
-                        returnBtn = `<span class="flex-1 min-w-[5rem] bg-gray-100 dark:bg-lux-800 text-gray-400 dark:text-lux-600 border border-gray-200 dark:border-lux-800 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest flex items-center justify-center text-center leading-none opacity-50 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
+                        returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center text-center leading-none opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
                     } else if (hasPendingReturn) {
-                        returnBtn = `<span class="flex-1 min-w-[5rem] bg-gray-50 dark:bg-lux-900 text-gray-400 dark:text-lux-500 border border-gray-200 dark:border-lux-800 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu Gudang</span>`;
+                        returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-900/60 text-[8.5px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.08em] flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>SPV/TSF</span>`;
                     } else {
-                        returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5rem] bg-emerald-500/10 hover:bg-emerald-600 text-emerald-600 dark:text-emerald-400 hover:text-white border border-emerald-500/20 hover:border-emerald-600 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan unit ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
+                        returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5.2rem] bg-emerald-500/10 border border-emerald-500/30 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 hover:text-white border border-emerald-500/20 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan unit ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
                     }
                     
                     const reportBtn = t.condition !== 'Rusak' 
-                        ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5rem] bg-red-50 dark:bg-red-950/20 hover:bg-red-600 text-red-600 dark:text-red-400 hover:text-white border border-red-200 dark:border-red-900/40 hover:border-red-600 text-[10px] font-black py-2.5 rounded-xl uppercase tracking-widest transition flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
+                        ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5.2rem] bg-rose-500/10 border border-rose-500/30 hover:bg-gradient-to-r hover:from-rose-500 hover:to-red-650 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(244,63,94,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
                         : '';
  
                     mcDemo.innerHTML += `
@@ -2710,7 +2751,7 @@
                             <div class="grid grid-cols-2 gap-y-3 gap-x-2 py-4 my-2 border-t border-b border-gray-100 dark:border-lux-800/60 text-[11px]">
                                 <div>
                                     <span class="text-gray-400 dark:text-lux-500 block uppercase text-[8px] font-black tracking-wider leading-none mb-1">No. Inventaris</span>
-                                    <span class="font-bold text-emerald-600 dark:text-emerald-500 font-mono text-[11.5px]">${t.noInv}</span>
+                                    <span class="font-bold text-gray-900 dark:text-white font-mono text-[11.5px]">${t.noInv}</span>
                                 </div>
                                 <div>
                                     <span class="text-gray-400 dark:text-lux-500 block uppercase text-[8px] font-black tracking-wider leading-none mb-1">No. Seri (SN)</span>
@@ -2746,18 +2787,44 @@
         }
 
         function renderTsRadar() {
-            const q = document.getElementById('search-ts-radar') ? document.getElementById('search-ts-radar').value.toLowerCase() : '';
             const scTools = document.getElementById('ts-radar-tools-container'); 
             const scDemo = document.getElementById('ts-radar-demo-container'); 
 
             scTools.innerHTML = ''; scDemo.innerHTML = '';
             
-            const allTools = db.tools.filter(a => (a.desc&&a.desc.toLowerCase().includes(q)) || (a.sn&&a.sn.toLowerCase().includes(q)) || a.noInv.toLowerCase().includes(q) || (a.merk&&a.merk.toLowerCase().includes(q)));
+            const searchInput = document.getElementById('search-ts-radar');
+            const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            
+            const allTools = db.tools.filter(t => {
+                const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
+                const ownerName = ownerUser ? ownerUser.name.toLowerCase() : 'gudang (pool)';
+                return (
+                    (t.desc && t.desc.toLowerCase().includes(q)) ||
+                    (t.sn && t.sn.toLowerCase().includes(q)) ||
+                    (t.noInv && t.noInv.toLowerCase().includes(q)) ||
+                    (t.merk && t.merk.toLowerCase().includes(q)) ||
+                    (t.tipe && t.tipe.toLowerCase().includes(q)) ||
+                    (t.artNo && t.artNo.toLowerCase().includes(q)) ||
+                    (ownerName.includes(q))
+                );
+            });
             const filteredTools = allTools.filter(t => currentTsRadarFilter === 'all' || t.subCategory === currentTsRadarFilter);
 
-            const allDemos = db.demoUnits.filter(a => (a.desc&&a.desc.toLowerCase().includes(q)) || (a.sn&&a.sn.toLowerCase().includes(q)) || a.noInv.toLowerCase().includes(q) || (a.merk&&a.merk.toLowerCase().includes(q)));
+            const allDemos = db.demoUnits.filter(t => {
+                const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
+                const ownerName = ownerUser ? ownerUser.name.toLowerCase() : 'gudang (pool)';
+                return (
+                    (t.desc && t.desc.toLowerCase().includes(q)) ||
+                    (t.sn && t.sn.toLowerCase().includes(q)) ||
+                    (t.noInv && t.noInv.toLowerCase().includes(q)) ||
+                    (t.merk && t.merk.toLowerCase().includes(q)) ||
+                    (t.tipe && t.tipe.toLowerCase().includes(q)) ||
+                    (t.artNo && t.artNo.toLowerCase().includes(q)) ||
+                    (ownerName.includes(q))
+                );
+            });
             
-            if(filteredTools.length === 0) scTools.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">Tidak ada aset master ditemukan</td></tr>`;
+            if(filteredTools.length === 0) scTools.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">Tidak ada spesial tools ditemukan</td></tr>`;
             
             filteredTools.forEach(t => {
                 const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
@@ -2791,7 +2858,7 @@
                 }
                 else btn = `<button onclick="initRequest(${t.id})" class="px-5 py-2.5 border border-gray-300 dark:border-lux-600 hover:border-gold-500 text-gray-900 dark:text-white hover:text-gold-600 dark:hover:text-gold-500 rounded-lg text-[10px] uppercase tracking-[0.15em] font-black transition shadow-sm whitespace-nowrap">Pinjam Alat</button>`;
                 
-                scTools.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block text-gold-600 dark:text-gold-500">${t.noInv}</span></td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${t.desc||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1">${t.merk||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.tipe||'-'}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
+                scTools.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block text-gold-600 dark:text-gold-500 font-bold">${t.noInv}</span><span class="block text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-wider font-semibold bg-gray-100 dark:bg-lux-850 px-2 py-0.5 rounded w-max border border-gray-200 dark:border-lux-800" title="Artikel No">${t.artNo || '-'}</span></td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${t.desc||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1">${t.merk||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.tipe||'-'}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
             });
 
             if(allDemos.length === 0) scDemo.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">Tidak ada unit backup ditemukan</td></tr>`;
@@ -2819,7 +2886,7 @@
                 }
                 else btn = `<button onclick="initRequest(${t.id})" class="px-5 py-2.5 border border-gray-300 dark:border-lux-600 hover:border-gold-500 text-gray-900 dark:text-white hover:text-gold-600 dark:hover:text-gold-500 rounded-lg text-[10px] uppercase tracking-[0.15em] font-black transition shadow-sm whitespace-nowrap">Pinjam Alat</button>`;
                 
-                scDemo.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[12px] whitespace-nowrap">${t.noInv}</td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${t.desc||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1">${t.artNo||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||''} ${t.tipe||''}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
+                scDemo.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[12px]"><span class="block">${t.noInv}</span><span class="block text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-wider font-semibold bg-gray-100 dark:bg-lux-850 px-2 py-0.5 rounded w-max border border-gray-200 dark:border-lux-800" title="Artikel No">${t.artNo || '-'}</span></td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${t.desc||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||''} ${t.tipe||''}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
             });
         }
 
@@ -3056,6 +3123,10 @@
             const isOwner = currentUser.role === 'owner';
             const targetStatus = currentUser.role === 'tsf' ? 'pending_tsf' : 'pending_spv';
             const isSpv = currentUser.role === 'spv';
+            
+            const searchInput = document.getElementById('search-spv-approvals');
+            const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
             const pending = db.requests.filter(r => {
                 if (r.reqType === 'verify_user') {
                     return isOwner && (r.status === 'pending_spv' || r.status === 'pending_tsf');
@@ -3069,9 +3140,51 @@
                 return true;
             });
             
-            if(pending.length === 0) rc.innerHTML = '<p class="text-[11px] font-bold text-gray-500 dark:text-lux-500 tracking-widest uppercase border border-dashed border-gray-300 dark:border-lux-700 p-8 rounded-2xl bg-gray-50 dark:bg-[#09090b] text-center">Tidak ada permohonan tertunda</p>';
+            let filteredPending = pending;
+            if (q !== '') {
+                filteredPending = pending.filter(r => {
+                    const u = db.users[r.requesterId];
+                    const requesterName = u ? u.name.toLowerCase() : '';
+                    const requesterNik = u ? (u.nik || '').toLowerCase() : '';
+                    
+                    let toolName = '';
+                    let toolInv = '';
+                    let toolSn = '';
+                    let toolTipe = '';
+                    
+                    if (r.reqType === 'verify_user') {
+                        const newUser = db.users[r.toolId];
+                        if (newUser) {
+                            toolName = newUser.name.toLowerCase();
+                            toolInv = newUser.user.toLowerCase();
+                            toolSn = newUser.jabatan.toLowerCase();
+                        }
+                    } else {
+                        const arr = r.toolType === 'demo' ? db.demoUnits : db.tools;
+                        const t = arr.find(x => x.id === r.toolId);
+                        if (t) {
+                            toolName = (t.desc || '').toLowerCase();
+                            toolInv = (t.noInv || '').toLowerCase();
+                            toolSn = (t.sn || '').toLowerCase();
+                            toolTipe = (t.tipe || '').toLowerCase();
+                        }
+                    }
+                    
+                    return requesterName.includes(q) || 
+                           requesterNik.includes(q) || 
+                           toolName.includes(q) || 
+                           toolInv.includes(q) || 
+                           toolSn.includes(q) || 
+                           toolTipe.includes(q);
+                });
+            }
             
-            pending.forEach(r => {
+            if(filteredPending.length === 0) {
+                rc.innerHTML = '<p class="text-[11px] font-bold text-gray-500 dark:text-lux-500 tracking-widest uppercase border border-dashed border-gray-300 dark:border-lux-700 p-8 rounded-2xl bg-gray-50 dark:bg-[#09090b] text-center">Tidak ada permohonan tertunda</p>';
+                return;
+            }
+            
+            filteredPending.forEach(r => {
                 if (r.reqType === 'verify_user') {
                     const u = db.users[r.toolId];
                     const requester = db.users[r.requesterId];
@@ -3088,8 +3201,8 @@
                             <p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Didaftarkan oleh SPV: <span class="font-bold text-gray-900 dark:text-white">${requester.name}</span></p>
                         </div>
                         <div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0">
-                            <button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-500 hover:text-red-700 dark:hover:text-white transition whitespace-nowrap">Tolak</button>
-                            <button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-700 transition whitespace-nowrap">Setujui Aktif</button>
+                            <button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button>
+                            <button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(59,130,246,0.25)] transition whitespace-nowrap">Setujui Aktif</button>
                         </div>
                     </div>`;
                     return;
@@ -3100,11 +3213,11 @@
                 if(!t || !u) return;
 
                 if(r.reqType === 'borrow') {
-                    rc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase tracking-widest mb-1.5">Permohonan Peminjaman</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-gray-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 mb-2 truncate">Pemohon: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p><p class="text-[11px] text-gray-500 dark:text-lux-500 italic border-l-2 border-gray-300 dark:border-lux-700 pl-3 break-words">"${r.note}"</p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-500 hover:text-red-700 dark:hover:text-white transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-gold-500 text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition whitespace-nowrap">Izinkan</button></div></div>`;
+                    rc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase tracking-widest mb-1.5">Permohonan Peminjaman</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-gray-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 mb-2 truncate">Pemohon: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p><p class="text-[11px] text-gray-500 dark:text-lux-500 italic border-l-2 border-gray-300 dark:border-lux-700 pl-3 break-words">"${r.note}"</p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/10 border border-gold-500/30 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition whitespace-nowrap">Izinkan</button></div></div>`;
                 } else if(r.reqType === 'return') {
-                    rc.innerHTML += `<div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1.5">Pengembalian ke Gudang</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-emerald-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Oleh: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-500 hover:text-red-700 dark:hover:text-white transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(5,150,105,0.3)] hover:bg-emerald-700 transition whitespace-nowrap">Terima ke Gudang</button></div></div>`;
+                    rc.innerHTML += `<div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1.5">Pengembalian ke Gudang</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-emerald-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Oleh: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition whitespace-nowrap">Terima ke Gudang</button></div></div>`;
                 } else if (r.reqType === 'verify_tool') {
-                    rc.innerHTML += `<div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-1.5">Verifikasi Pendaftaran Aset Baru</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-blue-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Didaftarkan oleh TS: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-50 dark:hover:bg-red-500 hover:text-red-700 dark:hover:text-white transition whitespace-nowrap">Hapus</button><button onclick="openFormModal('${r.toolType}', ${t.id})" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 border border-gold-300 dark:border-gold-500/50 text-gold-600 dark:text-gold-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gold-50 dark:hover:bg-gold-500 hover:text-gold-700 dark:hover:text-black transition whitespace-nowrap bg-white dark:bg-transparent">Revisi Data</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-3.5 sm:px-6 py-2.5 sm:py-3.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(37,99,235,0.3)] hover:bg-blue-700 transition whitespace-nowrap">Verifikasi Aktif</button></div></div>`;
+                    rc.innerHTML += `<div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-1.5">Verifikasi Pendaftaran Aset Baru</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-blue-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Didaftarkan oleh TS: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Hapus</button><button onclick="openFormModal('${r.toolType}', ${t.id})" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/5 border border-gold-500/20 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] transition whitespace-nowrap bg-white dark:bg-transparent">Revisi Data</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(59,130,246,0.25)] transition whitespace-nowrap">Verifikasi Aktif</button></div></div>`;
                 }
             });
         }
@@ -3780,7 +3893,7 @@
             } 
             else if (type === 'tool' || type === 'demo') {
                 document.getElementById('tool-type').value = type;
-                document.getElementById('tool-modal-title').innerHTML = editMode ? `<i class="fa-solid fa-pen text-gold-500 mr-2"></i> Edit ${type==='demo'?'Unit Backup':'Alat Master'}` : `<i class="fa-solid fa-plus text-gold-500 mr-2"></i> Registrasi ${type==='demo'?'Unit Backup':'Alat Master'}`;
+                document.getElementById('tool-modal-title').innerHTML = editMode ? `<i class="fa-solid fa-pen text-gold-500 mr-2"></i> Edit ${type==='demo'?'Unit Backup':'Spesial Tools'}` : `<i class="fa-solid fa-plus text-gold-500 mr-2"></i> Registrasi ${type==='demo'?'Unit Backup':'Spesial Tools'}`;
                 
                 const lblOwner = document.getElementById('lbl-owner'); const selOwner = document.getElementById('add-owner');
                 const btn = document.getElementById('btn-add-tool'); const inpInv = document.getElementById('add-inv');
@@ -3909,7 +4022,7 @@
                     const newId = Date.now(); 
                     const data = { id: newId, noInv: document.getElementById('add-inv').value, artNo: document.getElementById('add-art').value, desc: descVal, merk: merkVal, tipe: document.getElementById('add-tipe').value, sn: snVal, ownerId: ownerIdVal, condition: document.getElementById('add-kondisi').value, buyDate: document.getElementById('add-buydate').value, price: priceVal, calDate: document.getElementById('add-caldate').value, status: statusVal, category: type==='tool' ? 'standard' : 'demo', subCategory: subCatVal, reason: type==='demo' ? 'Standby Gudang' : '', maintenanceStatus: "", history: [{t: new Date().toISOString(), m: "Alat didaftarkan ke sistem."}], photo: photoBase64 };
                     arr.push(data); 
-                    if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { addToHistory(`${currentUser.role.toUpperCase()} menambahkan Aset Master: ${data.noInv}.`, newId); showToast("Tersimpan", "Aset masuk ke Master.", "success"); } 
+                    if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { addToHistory(`${currentUser.role.toUpperCase()} menambahkan Spesial Tools: ${data.noInv}.`, newId); showToast("Tersimpan", "Aset masuk ke database Spesial Tools.", "success"); } 
                     else { db.requests.push({ id: Date.now() + 1, toolId: newId, toolType: type, requesterId: currentUser.id, reqType: 'verify_tool', status: 'pending_spv', note: 'Registrasi aset baru' }); addToHistory(`TS ${currentUser.name.split(' ')[0]} mengajukan aset ${data.noInv} untuk diverifikasi.`, newId); showToast("Terkirim", "Menunggu Verifikasi SPV.", "success"); }
                 }
                 saveDB(); updateData(); closeModal('toolModal');
@@ -4320,6 +4433,15 @@
                     renderTsRadar();
                 }
                 const found = db.tools.find(t => t.noInv === cleanText) || db.demoUnits.find(d => d.noInv === cleanText);
+                if (found) showToolDetail(found.id);
+            }
+            else if (qrScanMode === 'ts-search') {
+                const inp = document.getElementById('search-ts-toolbox');
+                if (inp) {
+                    inp.value = cleanText;
+                    renderTsToolbox();
+                }
+                const found = db.tools.find(t => t.noInv === cleanText && t.ownerId === currentUser.id) || db.demoUnits.find(d => d.noInv === cleanText && d.ownerId === currentUser.id);
                 if (found) showToolDetail(found.id);
             }
         }
