@@ -1415,8 +1415,29 @@
             // Register PWA Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker registered', reg))
+                    .then(reg => {
+                        console.log('Service Worker registered', reg);
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            if (newWorker) {
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        console.log('New version installed, reloading...');
+                                        window.location.reload();
+                                    }
+                                });
+                            }
+                        });
+                    })
                     .catch(err => console.error('Service Worker registration failed', err));
+
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        refreshing = true;
+                        window.location.reload();
+                    }
+                });
             }
             
             // Show PWA installation buttons if not already running in standalone mode (installed)
