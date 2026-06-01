@@ -374,11 +374,7 @@
         <!-- Kanan -->
         <div class="w-full lg:w-[45%] flex flex-col justify-center items-center p-6 sm:p-12 relative">
             <div class="w-full max-w-[28rem] relative z-10">
-                <div class="text-center mb-10 lg:hidden">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-600 text-white dark:text-lux-950 mb-4 shadow-[0_0_35px_rgba(234,179,8,0.35)]"><i class="fa-solid fa-layer-group text-3xl"></i></div>
-                    <h1 class="text-2xl font-black text-gray-900 dark:text-white tracking-[0.1em] uppercase mb-1">TMS</h1>
-                    <p class="text-gold-600 dark:text-gold-500 text-[10px] font-extrabold uppercase tracking-[0.3em]">Tools Manajemen System</p>
-                </div>
+
                 
                 <div class="mb-10 flex flex-col items-center lg:items-start">
                     <div class="flex items-center gap-3.5 mb-4">
@@ -1437,17 +1433,13 @@
             // Check protocol for PWA installability
             const isLocalProtocol = window.location.protocol !== 'http:' && window.location.protocol !== 'https:';
             if (isLocalProtocol) {
-                // Create banner element
+                // Create elegant floating banner element at top-center
                 const banner = document.createElement('div');
-                banner.className = "w-full bg-red-600/95 backdrop-blur text-white text-[11px] font-black uppercase tracking-wider py-3.5 px-6 text-center z-[1000] relative flex items-center justify-center gap-3 border-b border-red-700 shadow-md no-print";
-                banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base animate-pulse"></i> <span>Perhatian: Dibuka sebagai File Lokal. Agar bisa diinstal di HP, silakan buka aplikasi melalui URL Server Web HTTPS!</span>`;
+                banner.className = "fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-red-650/90 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider py-3.5 px-6 rounded-2xl z-[10000] flex items-center justify-center gap-3 border border-red-500/20 shadow-[0_10px_35px_rgba(239,68,68,0.25)] no-print transition-all duration-500";
+                banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base animate-pulse text-red-200"></i> <span class="leading-relaxed text-center">Perhatian: Dibuka sebagai File Lokal. Agar bisa diinstal di HP, silakan buka aplikasi melalui URL Server Web HTTPS!</span>`;
                 
-                // Prepend to screens
-                const loginScreen = document.getElementById('login-screen');
-                if (loginScreen) loginScreen.prepend(banner.cloneNode(true));
-                
-                const appWrapper = document.getElementById('app-wrapper');
-                if (appWrapper) appWrapper.prepend(banner);
+                // Append directly to body so it floats beautifully on top without breaking layout flows
+                document.body.appendChild(banner);
             }
         });
 
