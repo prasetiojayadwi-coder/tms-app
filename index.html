@@ -62,21 +62,45 @@
         .nav-link.active { @apply bg-gradient-to-r from-gold-500/10 to-transparent border-l-4 border-gold-500 text-gold-600 dark:text-gold-400; }
         .nav-link { border-left: 4px solid transparent; }
         
-        .toast, .chat-toast, .ticket-toast { pointer-events: none; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity: 0; z-index: 9999;}
-        .toast, .ticket-toast { transform: translateY(150%) scale(0.9); }
-        .chat-toast { transform: translateY(-150%) scale(0.9); }
+        .toast, .chat-toast, .ticket-toast { pointer-events: none; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; z-index: 99999;}
+        .toast { transform: translateY(150%) scale(0.9); }
+        .chat-toast, .ticket-toast { transform: translateY(-150%) scale(0.9); }
         .toast.show, .chat-toast.show, .ticket-toast.show { pointer-events: auto; transform: translateY(0) scale(1); opacity: 1; }
         @media (max-width: 640px) {
             .toast, .chat-toast, .ticket-toast {
                 left: 1rem !important;
                 right: 1rem !important;
+                top: 1rem !important;
+                bottom: auto !important;
                 min-width: 0 !important;
                 width: calc(100% - 2rem) !important;
+            }
+            .toast {
+                bottom: 1rem !important;
+                top: auto !important;
+                transform: translateY(150%) scale(0.9);
+            }
+            .toast.show {
+                transform: translateY(0) scale(1);
             }
         }
         
         .hero-pattern { background-image: radial-gradient(#eab308 1px, transparent 1px); background-size: 32px 32px; opacity: 0.05; }
         td { word-break: break-word; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            15% { transform: translateX(-8px); }
+            30% { transform: translateX(7px); }
+            45% { transform: translateX(-6px); }
+            60% { transform: translateX(5px); }
+            75% { transform: translateX(-3px); }
+            90% { transform: translateX(2px); }
+        }
+        @keyframes animate-fade-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         @media print {
             /* Override html/body styles to prevent blank pages and flex layouts */
@@ -387,32 +411,36 @@
                     <p class="text-xs text-gray-500 dark:text-lux-400 font-medium text-center lg:text-left leading-relaxed">Silakan masuk menggunakan kredensial resmi perusahaan Anda.</p>
                 </div>
 
-                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
-                    <div>
-                        <label class="input-label">Identitas / Peran</label>
-                        <div class="relative"><i class="fa-solid fa-id-badge absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-lux-400 pointer-events-none z-10"></i>
-                            <select id="login-role" class="input-field pl-12">
-                                <option value="ts">Technical Service (Teknisi)</option>
-                                <option value="tsf">Technical TSF (Gudang/Demo)</option>
-                                <option value="spv">Technical Supervisor (SPV)</option>
-                                <option value="owner">Executive Owner (Auditor)</option>
-                            </select>
-                        </div>
-                    </div>
+                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
                     <div>
                         <label class="input-label">ID Akses (Username)</label>
                         <div class="relative"><i class="fa-solid fa-user absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-lux-400 pointer-events-none z-10"></i>
-                            <input type="text" id="login-user" required class="input-field pl-12" placeholder="Masukkan Username" autocomplete="off">
+                            <input type="text" id="login-user" required class="input-field pl-12" placeholder="Masukkan Username" autocomplete="username">
                         </div>
                     </div>
                     <div>
                         <label class="input-label">Sandi Keamanan</label>
-                        <div class="relative"><i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-lux-400 pointer-events-none z-10"></i>
-                            <input type="password" id="login-pass" required class="input-field pl-12" placeholder="••••••••">
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-lux-400 pointer-events-none z-10"></i>
+                            <input type="password" id="login-pass" required class="input-field pl-12 pr-12" placeholder="••••••••" autocomplete="current-password">
+                            <button type="button" id="toggle-pass-btn" onclick="toggleLoginPassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-lux-400 hover:text-gold-500 transition-colors z-10" tabindex="-1">
+                                <i id="toggle-pass-icon" class="fa-solid fa-eye text-sm"></i>
+                            </button>
                         </div>
                     </div>
-                    <button type="submit" class="w-full mt-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black py-4 rounded-xl hover:shadow-[0_0_25px_rgba(234,179,8,0.4)] hover:-translate-y-1 transition-all uppercase tracking-widest text-[12px]">Autentikasi Masuk</button>
+                    <div id="login-error-box" class="hidden items-center gap-3 p-3.5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50">
+                        <i class="fa-solid fa-circle-exclamation text-red-500 text-base shrink-0"></i>
+                        <p id="login-error-text" class="text-[11px] font-bold text-red-600 dark:text-red-400"></p>
+                    </div>
+                    <button type="submit" id="login-submit-btn" class="w-full mt-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black py-4 rounded-xl hover:shadow-[0_0_25px_rgba(234,179,8,0.4)] hover:-translate-y-1 transition-all uppercase tracking-widest text-[12px] flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none">
+                        <i class="fa-solid fa-shield-halved"></i> Autentikasi Masuk
+                    </button>
                 </form>
+
+                <button type="button" onclick="resetLocalDatabase()" class="w-full mt-3 flex items-center justify-center gap-2 py-3 border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-500 hover:text-white transition text-[10px] font-black uppercase tracking-[0.15em]">
+                    <i class="fa-solid fa-arrows-rotate"></i> Reset Database (Jika Tidak Bisa Login)
+                </button>
+
                 <button id="pwa-install-btn-login" onclick="triggerPwaInstall()" class="w-full hidden flex items-center justify-center gap-2 py-3.5 mt-4 border border-gold-400/50 dark:border-gold-500/30 bg-gold-50/20 dark:bg-gold-500/10 rounded-xl text-gold-600 dark:text-gold-400 hover:bg-gold-500 hover:text-white dark:hover:text-black transition text-[11px] font-black uppercase tracking-[0.15em]"><i class="fa-solid fa-mobile-screen-button"></i> Instal Aplikasi HP</button>
             </div>
             <button onclick="toggleTheme()" class="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 text-gray-600 dark:text-gold-400 hover:bg-gray-100 transition shadow-sm"><i id="theme-icon-login" class="fa-solid fa-moon"></i></button>
@@ -492,6 +520,75 @@
                             </div>
                         </div>
                     </form>
+                </div>
+            </section>
+
+            <!-- DASBOR TECHNICAL SPECIALIST -->
+            <section id="view-spec-dash" class="app-view hidden flex-col gap-6 animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl min-w-0">
+                        <p class="text-[10px] sm:text-[11px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-widest mb-2 truncate">Total Spesial Tools</p>
+                        <p class="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white" id="spec-stat-total">0</p>
+                        <span class="text-[9px] text-gold-600 dark:text-gold-500 font-bold uppercase tracking-wider block mt-1">Avitum, AIS, Aesculap</span>
+                    </div>
+                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl min-w-0">
+                        <p class="text-[10px] sm:text-[11px] text-gold-600 dark:text-gold-500 font-black uppercase tracking-widest mb-2 truncate">Tersebar di Teknisi</p>
+                        <p class="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white" id="spec-stat-distributed">0</p>
+                        <span class="text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider block mt-1">Dalam Pengawasan Aktif</span>
+                    </div>
+                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl min-w-0">
+                        <p class="text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-2 truncate">Dalam Kalibrasi (Vendor)</p>
+                        <p class="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white" id="spec-stat-calibration">0</p>
+                        <span class="text-[9px] text-emerald-500/80 font-bold uppercase tracking-wider block mt-1">Vendor Kalibrasi Eksternal</span>
+                    </div>
+                    <div class="bg-white dark:bg-lux-900 border border-red-200 dark:border-red-900/50 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl min-w-0">
+                        <p class="text-[10px] sm:text-[11px] text-red-600 dark:text-red-500 font-black uppercase tracking-widest mb-2 truncate">Dalam Perbaikan</p>
+                        <p class="text-3xl sm:text-4xl font-light text-gray-900 dark:text-white" id="spec-stat-repair">0</p>
+                        <span class="text-[9px] text-red-500/80 font-bold uppercase tracking-wider block mt-1">Internal / Vendor Pihak ke-3</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Sebaran Kategori Spesial Tools -->
+                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl flex flex-col justify-between min-w-0">
+                        <div>
+                            <h3 class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-[0.15em] border-b border-gray-150 dark:border-lux-800 pb-3 mb-4"><i class="fa-solid fa-chart-pie text-gold-500 mr-2"></i> Kategori Spesial Tools</h3>
+                            <div class="space-y-4">
+                                <div id="spec-cat-avitum-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-200">Avitum Special Tools</span>
+                                    </div>
+                                    <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-avitum">0 Unit</span>
+                                </div>
+                                <div id="spec-cat-ais-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-200">AIS Special Tools</span>
+                                    </div>
+                                    <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-ais">0 Unit</span>
+                                </div>
+                                <div id="spec-cat-aesculap-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-200">Aesculap Special Tools</span>
+                                    </div>
+                                    <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-aesculap">0 Unit</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-gray-150 dark:border-lux-800 flex justify-center">
+                            <button onclick="switchTab('spv-assets')" class="w-full py-3 bg-gold-500 text-white dark:text-black font-black text-[11px] uppercase tracking-widest rounded-xl hover:bg-gold-600 transition shadow-md shadow-gold-500/10"><i class="fa-solid fa-list mr-1.5"></i> Kelola Spesial Tools</button>
+                        </div>
+                    </div>
+
+                    <!-- Log Pergerakan Spesial Tools -->
+                    <div class="lg:col-span-2 bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl">
+                        <h3 class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-[0.15em] border-b border-gray-150 dark:border-lux-800 pb-3 mb-6"><i class="fa-solid fa-clock-rotate-left text-gold-500 mr-2"></i> Log Riwayat Spesial Tools</h3>
+                        <div class="relative border-l-2 border-gray-200 dark:border-lux-700 ml-3 space-y-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2" id="spec-history-log">
+                            <!-- Riwayat khusus ditabulasikan disini -->
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -908,7 +1005,13 @@
                     </div>
                     <div><label class="input-label">Kata Sandi <span class="text-gold-500">*</span></label><input type="text" id="add-tech-pass" required class="input-field" value="123456"></div>
                     <div><label class="input-label">Peran (Role) <span class="text-gold-500">*</span></label>
-                        <select id="add-tech-role" class="input-field" onchange="syncRoleAndGroupOptions()"><option value="ts">Technical Service (Teknisi)</option><option value="tsf">Technical TSF (Gudang)</option><option value="spv">Technical Supervisor</option><option value="owner">Executive Owner (Direktur)</option></select>
+                        <select id="add-tech-role" class="input-field" onchange="syncRoleAndGroupOptions()">
+                            <option value="ts">Technical Service</option>
+                            <option value="tsf">Technical TSF</option>
+                            <option value="spv">Technical Supervisor</option>
+                            <option value="ts_spec">Technical Specialist</option>
+                            <option value="owner">Executive Owner</option>
+                        </select>
                     </div>
                     <div><label class="input-label">Grup Wilayah <span class="text-gold-500">*</span></label>
                         <select id="add-tech-group" class="input-field">
@@ -923,6 +1026,23 @@
                     <div><label class="input-label">Posisi / Jabatan</label><input type="text" id="add-tech-jabatan" class="input-field"></div>
                     <div><label class="input-label">Alamat Email</label><input type="email" id="add-tech-email" class="input-field"></div>
                     <div><label class="input-label">Nomor HP</label><input type="text" id="add-tech-hp" class="input-field"></div>
+                    <div class="md:col-span-2">
+                        <label class="input-label">Tanggung Jawab Produk (Akses Aset/Repair) <span class="text-gold-500">*</span></label>
+                        <div class="flex flex-wrap gap-5 mt-2 p-3 bg-gray-50 dark:bg-[#131316] rounded-xl border border-gray-200 dark:border-lux-850">
+                            <label class="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-lux-200 cursor-pointer">
+                                <input type="checkbox" id="add-prod-avitum" checked class="w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer">
+                                Avitum
+                            </label>
+                            <label class="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-lux-200 cursor-pointer">
+                                <input type="checkbox" id="add-prod-ais" checked class="w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer">
+                                AIS
+                            </label>
+                            <label class="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-lux-200 cursor-pointer">
+                                <input type="checkbox" id="add-prod-aesculap" checked class="w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer">
+                                Aesculap
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-lux-800">
                     <button type="submit" id="btn-save-tech" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Simpan Personel</button>
@@ -1096,8 +1216,9 @@
                     <select id="maint-status-select" class="input-field font-bold text-gold-600 dark:text-gold-500">
                         <option value="Menunggu Tindakan">Menunggu Tindakan</option>
                         <option value="Dikirim ke Vendor">Dikirim ke Vendor</option>
-                        <option value="Sedang Diperbaiki">Sedang Diperbaiki</option>
-                        <option value="Sedang Dikalibrasi">Sedang Dikalibrasi</option>
+                        <option value="Sedang Diperbaiki (Internal/Sendiri)">Sedang Diperbaiki (Internal/Sendiri)</option>
+                        <option value="Sedang Diperbaiki (Vendor Pihak Ketiga)">Sedang Diperbaiki (Vendor Pihak Ketiga)</option>
+                        <option value="Sedang Dikalibrasi (Vendor Kalibrasi)">Sedang Dikalibrasi (Vendor Kalibrasi)</option>
                         <option value="Selesai">Selesai (Kembali ke Gudang/Operasional)</option>
                     </select>
                 </div>
@@ -1562,11 +1683,6 @@
         </div>
     </div>
 
-                <button type="button" onclick="closeModal('iosInstallModal')" class="w-full py-3.5 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black rounded-xl text-[11px] uppercase tracking-widest hover:shadow-lg transition">Saya Mengerti</button>
-            </div>
-        </div>
-    </div>
-
     <!-- FLOATING CHAT WIDGET -->
     <button onclick="toggleChat()" class="fixed bottom-6 right-6 w-14 h-14 bg-gold-500 rounded-full flex items-center justify-center text-white dark:text-black text-2xl shadow-[0_0_20px_rgba(234,179,8,0.4)] z-[400] hover:scale-110 transition cursor-pointer">
         <i class="fa-solid fa-comment-dots mt-0.5"></i>
@@ -1606,25 +1722,110 @@
         <div class="min-w-0"><h4 id="toast-title" class="font-black text-[13px] tracking-widest uppercase mb-1">Berhasil</h4><p id="toast-msg" class="text-[12px] text-gray-500 dark:text-lux-300 font-medium truncate">Operasi selesai.</p></div>
     </div>
 
-    <!-- Chat Toast Notification -->
-    <div id="chat-toast" class="chat-toast fixed top-8 right-8 lg:top-10 lg:right-10 bg-white dark:bg-lux-950 border-2 border-gold-500/50 text-gray-900 dark:text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center gap-5 z-[500] min-w-[320px] cursor-pointer" onclick="toggleChat(); this.classList.remove('show');">
-        <div class="text-gold-500 text-2xl"><i class="fa-solid fa-comment-dots animate-pulse"></i></div>
-        <div class="min-w-0">
-            <h4 class="font-black text-[13px] tracking-widest uppercase mb-1">Pesan dari <span id="chat-toast-name">Seseorang</span></h4>
-            <p id="chat-toast-msg" class="text-[12px] text-gray-500 dark:text-lux-300 font-medium truncate">Isi pesan...</p>
+    <!-- Chat Toast Notification (WhatsApp Style) -->
+    <div id="chat-toast" class="chat-toast fixed top-4 left-4 right-4 sm:left-auto sm:right-8 lg:top-8 lg:right-8 bg-white/95 dark:bg-[#1c1c20]/95 backdrop-blur-md border-l-4 border-emerald-500 text-gray-900 dark:text-white p-4 rounded-2xl shadow-2xl flex gap-4 z-[99999] sm:max-w-md sm:min-w-[360px] cursor-pointer transition-all duration-300 active:scale-95" onclick="toggleChat(); this.classList.remove('show');">
+        <div class="relative shrink-0">
+            <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center font-black text-lg" id="chat-toast-avatar">C</div>
+            <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white dark:border-[#1c1c20] bg-emerald-500 animate-pulse"></span>
         </div>
+        <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-2 mb-0.5">
+                <span class="text-[10px] font-extrabold uppercase text-emerald-600 dark:text-emerald-400 tracking-wider">WhatsApp • TMS Chat</span>
+                <span class="text-[9px] font-bold text-gray-400 dark:text-lux-500">Sekarang</span>
+            </div>
+            <h4 class="font-extrabold text-[13px] text-gray-900 dark:text-white truncate">Pesan dari <span id="chat-toast-name" class="text-emerald-600 dark:text-emerald-500 font-extrabold">Seseorang</span></h4>
+            <p id="chat-toast-msg" class="text-[12px] text-gray-500 dark:text-lux-400 font-semibold truncate mt-0.5">Isi pesan...</p>
+        </div>
+        <div class="flex items-center text-gray-400 dark:text-lux-500 shrink-0"><i class="fa-solid fa-chevron-right text-xs"></i></div>
     </div>
 
-    <!-- Ticket Toast Notification -->
-    <div id="ticket-toast" class="ticket-toast fixed bottom-8 right-8 lg:bottom-10 lg:right-10 bg-white dark:bg-lux-950 border-2 border-gold-500/50 text-gray-900 dark:text-white px-6 py-5 rounded-2xl shadow-2xl flex items-center gap-5 z-[9999] min-w-[320px] cursor-pointer" onclick="switchTab('tickets-log'); this.classList.remove('show');">
-        <div class="text-gold-500 text-2xl"><i class="fa-solid fa-bell animate-bounce"></i></div>
-        <div class="min-w-0">
-            <h4 id="ticket-toast-title" class="font-black text-[13px] tracking-widest uppercase mb-1 text-gold-600 dark:text-gold-500">Tiket Baru</h4>
-            <p id="ticket-toast-msg" class="text-[12px] text-gray-500 dark:text-lux-300 font-medium truncate">Isi tiket...</p>
+    <!-- Ticket Toast Notification (WhatsApp Style) -->
+    <div id="ticket-toast" class="ticket-toast fixed top-4 left-4 right-4 sm:left-auto sm:right-8 lg:top-8 lg:right-8 bg-white/95 dark:bg-[#1c1c20]/95 backdrop-blur-md border-l-4 border-gold-500 text-gray-900 dark:text-white p-4 rounded-2xl shadow-2xl flex gap-4 z-[99999] sm:max-w-md sm:min-w-[360px] cursor-pointer transition-all duration-300 active:scale-95" onclick="switchTab('tickets-log'); this.classList.remove('show');">
+        <div class="relative shrink-0">
+            <div class="w-12 h-12 rounded-full bg-gold-500/10 text-gold-600 dark:text-gold-400 border border-gold-500/20 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-bell animate-bounce"></i></div>
         </div>
+        <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-2 mb-0.5">
+                <span class="text-[10px] font-extrabold uppercase text-gold-600 dark:text-gold-500 tracking-wider">Notifikasi TMS • Sistem</span>
+                <span class="text-[9px] font-bold text-gray-400 dark:text-lux-500">Sekarang</span>
+            </div>
+            <h4 id="ticket-toast-title" class="font-extrabold text-[13px] text-gray-900 dark:text-white truncate text-gold-600 dark:text-gold-500">Notifikasi Baru</h4>
+            <p id="ticket-toast-msg" class="text-[12px] text-gray-500 dark:text-lux-400 font-semibold truncate mt-0.5">Isi notifikasi...</p>
+        </div>
+        <div class="flex items-center text-gray-400 dark:text-lux-500 shrink-0"><i class="fa-solid fa-chevron-right text-xs"></i></div>
     </div>
 
     <script>
+        // Safe Storage API Proxy (Prevents security crashes in file:// protocol sandboxes)
+        let storageAvailable = true;
+        try {
+            const testKey = "__storage_test__";
+            window.localStorage.setItem(testKey, testKey);
+            window.localStorage.removeItem(testKey);
+        } catch (e) {
+            storageAvailable = false;
+            console.warn("Storage API (localStorage) is restricted or blocked in this environment (file:// protocol sandbox). Falling back to virtual secure memory database.");
+        }
+
+        const virtualLocalStorage = {};
+        const safeLocalStorage = {
+            getItem: function(key) {
+                if (storageAvailable) {
+                    try { return window.localStorage.getItem(key); } catch(e) {}
+                }
+                return virtualLocalStorage[key] !== undefined ? virtualLocalStorage[key] : null;
+            },
+            setItem: function(key, val) {
+                if (storageAvailable) {
+                    try { window.localStorage.setItem(key, val); return; } catch(e) {}
+                }
+                virtualLocalStorage[key] = String(val);
+            },
+            removeItem: function(key) {
+                if (storageAvailable) {
+                    try { window.localStorage.removeItem(key); return; } catch(e) {}
+                }
+                delete virtualLocalStorage[key];
+            },
+            clear: function() {
+                if (storageAvailable) {
+                    try { window.localStorage.clear(); return; } catch(e) {}
+                }
+                for (let key in virtualLocalStorage) delete virtualLocalStorage[key];
+            }
+        };
+
+        const virtualSessionStorage = {};
+        const safeSessionStorage = {
+            getItem: function(key) {
+                if (storageAvailable) {
+                    try { return window.sessionStorage.getItem(key); } catch(e) {}
+                }
+                return virtualSessionStorage[key] !== undefined ? virtualSessionStorage[key] : null;
+            },
+            setItem: function(key, val) {
+                if (storageAvailable) {
+                    try { window.sessionStorage.setItem(key, val); return; } catch(e) {}
+                }
+                virtualSessionStorage[key] = String(val);
+            },
+            removeItem: function(key) {
+                if (storageAvailable) {
+                    try { window.sessionStorage.removeItem(key); return; } catch(e) {}
+                }
+                delete virtualSessionStorage[key];
+            },
+            clear: function() {
+                if (storageAvailable) {
+                    try { window.sessionStorage.clear(); return; } catch(e) {}
+                }
+                for (let key in virtualSessionStorage) delete virtualSessionStorage[key];
+            }
+        };
+
+        const localStorage = safeLocalStorage;
+        const sessionStorage = safeSessionStorage;
+
         // --- FULLSCREEN TOGGLE ---
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
@@ -1745,6 +1946,31 @@
             }
         }
 
+        // --- SYSTEM UPDATE NOTIFICATION BANNER ---
+        function showSystemUpdateBanner() {
+            if (document.getElementById('system-update-banner')) return;
+            
+            const banner = document.createElement('div');
+            banner.id = 'system-update-banner';
+            banner.className = 'fixed top-5 left-1/2 -translate-x-1/2 z-[99999] w-[90%] max-w-md bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-md border border-gold-500/50 rounded-2xl p-5 shadow-[0_10px_30px_rgba(234,179,8,0.2)] dark:shadow-[0_10px_40px_rgba(234,179,8,0.3)] animate-fade-in flex flex-col gap-4';
+            
+            banner.innerHTML = `
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-gold-500/10 text-gold-600 dark:text-gold-400 flex items-center justify-center text-xl shrink-0"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-black uppercase tracking-widest text-gold-600 dark:text-gold-500">Pembaruan Sistem Tersedia</h4>
+                        <p class="text-[12px] text-gray-600 dark:text-lux-400 font-semibold mt-1 leading-relaxed">Versi aplikasi terbaru telah berhasil diinstal untuk meningkatkan kinerja dan perbaikan fitur. Silakan muat ulang halaman Anda.</p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 pt-2 border-t border-gray-150 dark:border-lux-850">
+                    <button onclick="document.getElementById('system-update-banner').remove()" class="px-4 py-2 border border-gray-200 dark:border-lux-700 hover:bg-gray-50 dark:hover:bg-lux-800 text-gray-500 dark:text-lux-400 text-[10px] font-black uppercase tracking-wider rounded-lg transition">Nanti</button>
+                    <button onclick="window.location.reload()" class="px-5 py-2 bg-gold-500 hover:bg-gold-600 text-white dark:text-black text-[10px] font-black uppercase tracking-wider rounded-lg shadow-md shadow-gold-500/10 transition">Muat Ulang</button>
+                </div>
+            `;
+            
+            document.body.appendChild(banner);
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const isDark = document.documentElement.classList.contains('dark');
             if(document.getElementById('theme-icon-dash')) document.getElementById('theme-icon-dash').className = isDark ? 'fa-solid fa-moon text-xl' : 'fa-solid fa-sun text-xl';
@@ -1760,12 +1986,17 @@
                             if (newWorker) {
                                 newWorker.addEventListener('statechange', () => {
                                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                        console.log('New version installed, reloading...');
-                                        window.location.reload();
+                                        console.log('New version installed, showing update banner...');
+                                        showSystemUpdateBanner();
                                     }
                                 });
                             }
                         });
+                        
+                        // Check if an updated worker is already waiting
+                        if (reg.waiting && navigator.serviceWorker.controller) {
+                            showSystemUpdateBanner();
+                        }
                     })
                     .catch(err => console.error('Service Worker registration failed', err));
 
@@ -1773,7 +2004,7 @@
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (!refreshing) {
                         refreshing = true;
-                        window.location.reload();
+                        showSystemUpdateBanner();
                     }
                 });
             }
@@ -1804,6 +2035,15 @@
 
         // --- 1. LOCAL STORAGE DATABASE & SUPABASE CONFIGURATION (HYBRID CLOUD SYNC) ---
         const DB_KEY = 'tms_enterprise_db_v23'; 
+        
+        function resetLocalDatabase() {
+            if(confirm("Apakah Anda yakin ingin menyetel ulang database lokal ke pengaturan bawaan? Semua data lokal Anda akan dikembalikan ke kondisi awal.")) {
+                localStorage.removeItem('tms_enterprise_db_v23');
+                sessionStorage.clear();
+                alert("Database lokal telah berhasil disetel ulang! Halaman akan dimuat ulang.");
+                location.reload();
+            }
+        }
         
         // KREDENSIAL CLOUD SYNC SUPABASE
         const SUPABASE_URL = "https://mezuatmcjqjxfsvepizv.supabase.co"; // Silakan masukkan URL proyek Supabase Anda di sini
@@ -1864,12 +2104,18 @@
             }
         }
 
-        if (SUPABASE_URL && SUPABASE_KEY && typeof supabase !== 'undefined') {
+        // Skip Supabase jika dibuka via file:// (tidak ada origin, CORS akan selalu gagal)
+        const isFileProtocol = window.location.protocol === 'file:';
+
+        if (!isFileProtocol && SUPABASE_URL && SUPABASE_KEY && typeof supabase !== 'undefined') {
             try {
                 setTimeout(() => updateCloudStatusUI('connecting'), 100);
                 supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             } catch(e) {
                 console.error("Gagal inisialisasi Supabase Client:", e);
+                supabaseClient = null;
+                setTimeout(() => updateCloudStatusUI('local'), 100);
+            }
         } else {
             setTimeout(() => updateCloudStatusUI('local'), 100);
         }
@@ -2025,6 +2271,7 @@
                             db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
 
                             localStorage.setItem(DB_KEY, JSON.stringify(db));
+                            loadDB(); // Enforce database migrations immediately on downloaded cloud database!
                             lastMsgCount = db.messages ? db.messages.length : 0;
                             
                             if (currentUser) {
@@ -2105,6 +2352,7 @@
                                     db = cloudData.db_data;
                                     db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
                                     localStorage.setItem(DB_KEY, JSON.stringify(db));
+                                    loadDB(); // Enforce database migrations immediately on real-time downloaded cloud database!
                                     lastMsgCount = db.messages ? db.messages.length : 0;
                                 }
 
@@ -2173,6 +2421,11 @@
                                     user_id: currentUser.id,
                                     online_at: new Date().toISOString()
                                 });
+                                // Update lastOnline status locally and save
+                                if (db.users && db.users[currentUser.id]) {
+                                    db.users[currentUser.id].lastOnline = new Date().toISOString();
+                                    saveDB();
+                                }
                             } catch (e) {
                                 console.error("Gagal melakukan track presence:", e);
                             }
@@ -2199,14 +2452,17 @@
             if (!db || typeof db !== 'object') db = {};
             if (!db.users || typeof db.users !== 'object' || Object.keys(db.users).length === 0) {
                 db.users = {
-                    1: { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1" },
-                    2: { id: 2, user: "teknisi2", pass: "123", role: "ts", name: "Benny (Tech)", nik: "1002", jabatan: "Technical Service", email: "benny@rs.com", phone: "08999999", group: "Barat 2" },
-                    3: { id: 3, user: "tsf1", pass: "123", role: "tsf", name: "Gudang (TSF)", nik: "2001", jabatan: "Technical TSF", email: "tsf@rs.com", phone: "0888888", group: "TSF/Gudang" },
-                    4: { id: 4, user: "teknisi3", pass: "123", role: "ts", name: "Candra (Tech)", nik: "1003", jabatan: "Technical Service", email: "candra@rs.com", phone: "08777777", group: "Timur/Tengah" },
-                    97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1" },
-                    98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2" },
-                    99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah" },
-                    100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang" }
+                    1: { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1", products: ["Avitum", "AIS", "Aesculap"] },
+                    2: { id: 2, user: "teknisi2", pass: "123", role: "ts", name: "Benny (Tech)", nik: "1002", jabatan: "Technical Service", email: "benny@rs.com", phone: "08999999", group: "Barat 2", products: ["Avitum", "AIS", "Aesculap"] },
+                    3: { id: 3, user: "tsf1", pass: "123", role: "tsf", name: "Gudang (TSF)", nik: "2001", jabatan: "Technical TSF", email: "tsf@rs.com", phone: "0888888", group: "TSF/Gudang", products: ["Avitum", "AIS", "Aesculap"] },
+                    4: { id: 4, user: "teknisi3", pass: "123", role: "ts", name: "Candra (Tech)", nik: "1003", jabatan: "Technical Service", email: "candra@rs.com", phone: "08777777", group: "Timur/Tengah", products: ["Avitum", "AIS", "Aesculap"] },
+                    97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1", products: ["Avitum", "AIS", "Aesculap"] },
+                    98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2", products: ["Avitum", "AIS", "Aesculap"] },
+                    99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah", products: ["Avitum", "AIS", "Aesculap"] },
+                    100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang", products: ["Avitum", "AIS", "Aesculap"] },
+                    101: { id: 101, user: "spesialis1", pass: "123", role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum", email: "heri@rs.com", phone: "083333333", group: "TSF/Gudang", status: "active", products: ["Avitum"] },
+                    102: { id: 102, user: "spesialis2", pass: "123", role: "ts_spec", name: "Deni AIS Specialist", nik: "3002", jabatan: "Technical Specialist AIS/Aesculap", email: "deni@rs.com", phone: "084444444", group: "TSF/Gudang", status: "active", products: ["AIS", "Aesculap"] },
+                    103: { id: 103, user: "spesialis", pass: "123", role: "ts_spec", name: "Budi All Specialist", nik: "3003", jabatan: "Technical Specialist", email: "budi@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] }
                 };
             }
             if (!db.tools || !Array.isArray(db.tools)) db.tools = [];
@@ -2220,6 +2476,21 @@
             localStorage.setItem(DB_KEY, JSON.stringify(db));
 
             let updated = false;
+
+            // Enforce specialist accounts roles and products migration
+            if (!db.users[101] || db.users[101].user !== 'spesialis1' || db.users[101].role !== 'ts_spec') {
+                db.users[101] = { id: 101, user: "spesialis1", pass: "123", role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum", email: "heri@rs.com", phone: "083333333", group: "TSF/Gudang", status: "active", products: ["Avitum"] };
+                updated = true;
+            }
+            if (!db.users[102] || db.users[102].user !== 'spesialis2' || db.users[102].role !== 'ts_spec') {
+                db.users[102] = { id: 102, user: "spesialis2", pass: "123", role: "ts_spec", name: "Deni AIS Specialist", nik: "3002", jabatan: "Technical Specialist AIS/Aesculap", email: "deni@rs.com", phone: "084444444", group: "TSF/Gudang", status: "active", products: ["AIS", "Aesculap"] };
+                updated = true;
+            }
+            if (!db.users[103] || db.users[103].user !== 'spesialis' || db.users[103].role !== 'ts_spec') {
+                db.users[103] = { id: 103, user: "spesialis", pass: "123", role: "ts_spec", name: "Budi All Specialist", nik: "3003", jabatan: "Technical Specialist", email: "budi@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] };
+                updated = true;
+            }
+
             Object.values(db.users).forEach(u => {
                 if (u.group === 'Global') {
                     u.group = 'TSF/Gudang';
@@ -2229,8 +2500,13 @@
                     u.status = 'active';
                     updated = true;
                 }
+                if (!u.products || !Array.isArray(u.products)) {
+                    u.products = ["Avitum", "AIS", "Aesculap"];
+                    updated = true;
+                }
             });
             if (updated) {
+                db.version = Date.now();
                 localStorage.setItem(DB_KEY, JSON.stringify(db));
             }
 
@@ -2281,6 +2557,13 @@
         const sessionUser = sessionStorage.getItem('tms_current_user');
         if(sessionUser) {
             currentUser = JSON.parse(sessionUser);
+            if (currentUser && currentUser.role === 'ts_spec') {
+                if (currentUser.products && currentUser.products.includes('Avitum') && !currentUser.products.includes('AIS') && !currentUser.products.includes('Aesculap')) {
+                    currentUser.role = 'ts_spec_avitum';
+                } else if (currentUser.products && !currentUser.products.includes('Avitum') && (currentUser.products.includes('AIS') || currentUser.products.includes('Aesculap'))) {
+                    currentUser.role = 'ts_spec_ais';
+                }
+            }
             document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-wrapper').classList.remove('hidden');
@@ -2307,7 +2590,7 @@
             const groupEl = document.getElementById('add-tech-group');
             if (!roleEl || !groupEl) return;
             const selectedRole = roleEl.value;
-            if (selectedRole === 'tsf' || selectedRole === 'owner') {
+            if (selectedRole === 'tsf' || selectedRole === 'owner' || selectedRole === 'ts_spec') {
                 groupEl.value = 'TSF/Gudang';
                 groupEl.disabled = true;
             } else {
@@ -2338,119 +2621,176 @@
             } else if (!found) { lastFoundArt = ""; }
         }
 
+        // --- HELPER: Toggle show/hide password ---
+        function toggleLoginPassword() {
+            const passInput = document.getElementById('login-pass');
+            const icon = document.getElementById('toggle-pass-icon');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash text-sm';
+            } else {
+                passInput.type = 'password';
+                icon.className = 'fa-solid fa-eye text-sm';
+            }
+        }
+
+        function showLoginError(msg) {
+            const box = document.getElementById('login-error-box');
+            const txt = document.getElementById('login-error-text');
+            if (box && txt) {
+                txt.textContent = msg;
+                box.classList.remove('hidden');
+                box.classList.add('flex');
+                // Shake animation
+                box.style.animation = 'none';
+                box.offsetHeight; // reflow
+                box.style.animation = 'shake 0.4s ease';
+            }
+        }
+
+        function hideLoginError() {
+            const box = document.getElementById('login-error-box');
+            if (box) { box.classList.add('hidden'); box.classList.remove('flex'); }
+        }
+
         // --- 2. AUTHENTICATION & UI ---
         async function handleLogin(e) {
             e.preventDefault();
-            const btn = document.querySelector('#loginForm button[type="submit"]');
-            const originalText = btn ? btn.innerHTML : 'Autentikasi Masuk';
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-2"></i> Menghubungkan...';
-            }
+            hideLoginError();
 
-            loadDB();
+            const btn = document.getElementById('login-submit-btn');
+            const originalHTML = btn ? btn.innerHTML : '';
 
-            if (supabaseClient) {
-                try {
-                    // Safe native Promise conversion from custom postgrest thenable
-                    const fetchPromise = Promise.resolve(
-                        supabaseClient
-                            .from('tms_sync')
-                            .select('db_data, db_version')
-                            .eq('id', 1)
-                            .single()
-                    );
+            try {
+                // Ambil input (trim keduanya untuk menghindari spasi tersembunyi)
+                const u = (document.getElementById('login-user').value || '').trim().toLowerCase();
+                const p = (document.getElementById('login-pass').value || '').trim();
 
-                    const timeoutPromise = new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error("Timeout koneksi")), 3000)
-                    );
+                if (!u || !p) {
+                    showLoginError('Username dan sandi tidak boleh kosong.');
+                    return;
+                }
 
-                    const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+                // Loading state
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Memverifikasi...';
+                }
 
-                    if (!error && data && data.db_data && data.db_data.users) {
-                        const cloudVersion = parseInt(data.db_version);
-                        const localVersion = parseInt(db.version || 0);
-                        if (cloudVersion >= localVersion) {
-                            // Ensure downloaded database has default lists so it doesn't crash on init
-                            const newDb = data.db_data;
-                            if (!newDb.users || typeof newDb.users !== 'object') newDb.users = {};
-                            if (!newDb.tools || !Array.isArray(newDb.tools)) newDb.tools = [];
-                            if (!newDb.demoUnits || !Array.isArray(newDb.demoUnits)) newDb.demoUnits = [];
-                            if (!newDb.requests || !Array.isArray(newDb.requests)) newDb.requests = [];
-                            if (!newDb.historyLog || !Array.isArray(newDb.historyLog)) newDb.historyLog = [];
-                            if (!newDb.messages || !Array.isArray(newDb.messages)) newDb.messages = [];
-                            
-                            db = newDb;
-                            localStorage.setItem(DB_KEY, JSON.stringify(db));
-                            lastMsgCount = db.messages ? db.messages.length : 0;
-                            console.log("Login: Berhasil menyinkronkan database pengguna dari awan.");
+                // Pastikan DB lokal sudah dimuat
+                loadDB();
+
+                // Coba sinkronisasi cloud (non-blocking, dengan timeout pendek)
+                if (supabaseClient) {
+                    try {
+                        const { data, error } = await Promise.race([
+                            Promise.resolve(supabaseClient.from('tms_sync').select('db_data, db_version').eq('id', 1).single()),
+                            new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
+                        ]);
+                        if (!error && data && data.db_data) {
+                            const cloudVersion = parseInt(data.db_version || 0);
+                            const localVersion = parseInt(db.version || 0);
+                            if (cloudVersion >= localVersion) {
+                                const nd = data.db_data;
+                                const localUsers = db.users; // JAGA users lokal
+                                db = nd;
+                                db.users = localUsers;
+                                if (!db.tools) db.tools = [];
+                                if (!db.requests) db.requests = [];
+                                if (!db.historyLog) db.historyLog = [];
+                                if (!db.messages) db.messages = [];
+                                if (!db.serviceTickets) db.serviceTickets = [];
+                                localStorage.setItem(DB_KEY, JSON.stringify(db));
+                                loadDB();
+                                lastMsgCount = (db.messages || []).length;
+                            }
                         }
-                    } else if (error) {
-                        console.error("Login: Supabase query error:", error);
+                    } catch(syncErr) {
+                        console.warn('Sinkronisasi cloud dilewati:', syncErr.message);
                     }
-                } catch(err) {
-                    console.warn("Login: Gagal sinkronisasi awan sebelum autentikasi, menggunakan data lokal:", err.message || err);
                 }
-            }
 
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
+                // === CARI USER: username + password saja (tanpa cek role) ===
+                const allUsers = Object.values(db.users || {});
+                let f = allUsers.find(usr =>
+                    usr.user && usr.user.toLowerCase() === u && String(usr.pass).trim() === p
+                );
 
-            const r = document.getElementById('login-role').value;
-            const u = document.getElementById('login-user').value.trim().toLowerCase();
-            const p = document.getElementById('login-pass').value;
-
-            console.log("Mencoba login dengan username:", u, "peran:", r);
-
-            let f = Object.values(db.users || {}).find(usr => usr.user && usr.user.toLowerCase() === u && usr.pass === p && usr.role === r);
-            
-            // Fallback: If user not found in local db, check default system accounts and restore if matched
-            if (!f) {
-                const defaults = [
-                    { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1" },
-                    { id: 2, user: "teknisi2", pass: "123", role: "ts", name: "Benny (Tech)", nik: "1002", jabatan: "Technical Service", email: "benny@rs.com", phone: "08999999", group: "Barat 2" },
-                    { id: 3, user: "tsf1", pass: "123", role: "tsf", name: "Gudang (TSF)", nik: "2001", jabatan: "Technical TSF", email: "tsf@rs.com", phone: "0888888", group: "TSF/Gudang" },
-                    { id: 4, user: "teknisi3", pass: "123", role: "ts", name: "Candra (Tech)", nik: "1003", jabatan: "Technical Service", email: "candra@rs.com", phone: "08777777", group: "Timur/Tengah" },
-                    { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1" },
-                    { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2" },
-                    { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah" },
-                    { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang" }
-                ];
-                const matchedDefault = defaults.find(usr => usr.user.toLowerCase() === u && usr.pass === p && usr.role === r);
-                if (matchedDefault) {
-                    if (!db.users || typeof db.users !== 'object') {
-                        db.users = {};
+                // === FALLBACK: cek akun default sistem ===
+                if (!f) {
+                    const defaults = [
+                        { id: 1,   user: "teknisi1",   pass: "123",   role: "ts",      name: "Alex Pratama",          nik: "1001", jabatan: "Technical Service",            group: "Barat 1",     status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 2,   user: "teknisi2",   pass: "123",   role: "ts",      name: "Benny (Tech)",           nik: "1002", jabatan: "Technical Service",            group: "Barat 2",     status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 3,   user: "tsf1",       pass: "123",   role: "tsf",     name: "Gudang (TSF)",           nik: "2001", jabatan: "Technical TSF",               group: "TSF/Gudang",  status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 4,   user: "teknisi3",   pass: "123",   role: "ts",      name: "Candra (Tech)",          nik: "1003", jabatan: "Technical Service",            group: "Timur/Tengah",status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 97,  user: "spvbarat1",  pass: "123",   role: "spv",     name: "Supervisor Barat 1",     nik: "9002", jabatan: "Supervisor Barat 1",           group: "Barat 1",     status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 98,  user: "spvbarat2",  pass: "123",   role: "spv",     name: "Supervisor Barat 2",     nik: "9003", jabatan: "Supervisor Barat 2",           group: "Barat 2",     status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 99,  user: "admin",      pass: "admin", role: "spv",     name: "David Supervisor",       nik: "9001", jabatan: "Head of Tech",                 group: "Timur/Tengah",status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 100, user: "direktur",   pass: "123",   role: "owner",   name: "Pak Direktur",           nik: "1000", jabatan: "Director",                     group: "TSF/Gudang",  status: "active", products: ["Avitum","AIS","Aesculap"] },
+                        { id: 101, user: "spesialis1", pass: "123",   role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum",  group: "TSF/Gudang",  status: "active", products: ["Avitum"] },
+                        { id: 102, user: "spesialis2", pass: "123",   role: "ts_spec", name: "Deni AIS Specialist",    nik: "3002", jabatan: "Technical Specialist AIS",     group: "TSF/Gudang",  status: "active", products: ["AIS","Aesculap"] },
+                        { id: 103, user: "spesialis",  pass: "123",   role: "ts_spec", name: "Budi All Specialist",    nik: "3003", jabatan: "Technical Specialist",         group: "TSF/Gudang",  status: "active", products: ["Avitum","AIS","Aesculap"] }
+                    ];
+                    f = defaults.find(d => d.user.toLowerCase() === u && String(d.pass).trim() === p);
+                    if (f) {
+                        if (!db.users || typeof db.users !== 'object') db.users = {};
+                        db.users[f.id] = f;
+                        localStorage.setItem(DB_KEY, JSON.stringify(db));
+                        console.log('Login: akun default dipulihkan untuk', u);
                     }
-                    db.users[matchedDefault.id] = matchedDefault;
-                    localStorage.setItem(DB_KEY, JSON.stringify(db));
-                    f = matchedDefault;
-                    console.log("Login: Kredensial default berhasil dipulihkan secara lokal.");
                 }
-            }
 
-            if(f) {
-                if (f.status === 'pending_approval') {
-                    showToast("Akses Ditangguhkan", "Akun Anda sedang menunggu persetujuan Direktur.", "error");
-                    return;
+                // Reset btn sebelum memproses hasil
+                if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+
+                if (f) {
+                    if (f.status === 'pending_approval') {
+                        showLoginError('Akun Anda sedang menunggu persetujuan Direktur.');
+                        return;
+                    }
+                    if (f.status === 'suspended' || f.status === 'disabled') {
+                        showLoginError('Akun Anda dinonaktifkan. Hubungi Administrator.');
+                        return;
+                    }
+                    // Login berhasil
+                    currentUser = f;
+                    if (currentUser && currentUser.role === 'ts_spec') {
+                        if (currentUser.products && currentUser.products.includes('Avitum') && !currentUser.products.includes('AIS') && !currentUser.products.includes('Aesculap')) {
+                            currentUser.role = 'ts_spec_avitum';
+                        } else if (currentUser.products && !currentUser.products.includes('Avitum') && (currentUser.products.includes('AIS') || currentUser.products.includes('Aesculap'))) {
+                            currentUser.role = 'ts_spec_ais';
+                        }
+                    }
+                    currentUser.lastOnline = new Date().toISOString();
+                    db.users[f.id] = currentUser;
+                    saveDB();
+                    sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+                    showToast('Akses Diberikan', 'Selamat datang, ' + currentUser.name + '!', 'success');
+                    const ls = document.getElementById('login-screen');
+                    ls.style.transition = 'opacity 0.5s ease';
+                    ls.style.opacity = '0';
+                    ls.style.pointerEvents = 'none';
+                    setTimeout(function() {
+                        ls.classList.add('hidden');
+                        document.getElementById('app-wrapper').classList.remove('hidden');
+                        initAppUI();
+                    }, 500);
+                } else {
+                    // Login gagal — tampilkan pesan spesifik
+                    const usernameInDB = Object.values(db.users || {}).some(usr => usr.user && usr.user.toLowerCase() === u);
+                    if (usernameInDB) {
+                        showLoginError('Sandi salah untuk username "' + u + '". Silakan coba lagi.');
+                    } else {
+                        showLoginError('Username "' + u + '" tidak ditemukan. Periksa ejaan atau klik Reset Database.');
+                    }
+                    const form = document.getElementById('loginForm');
+                    if (form) { form.style.animation = 'none'; form.offsetHeight; form.style.animation = 'shake 0.4s ease'; }
                 }
-                if (f.status === 'suspended' || f.status === 'disabled') {
-                    showToast("Akses Ditolak", "Akun Anda sedang dinonaktifkan sementara oleh Owner.", "error");
-                    return;
-                }
-                currentUser = f;
-                sessionStorage.setItem('tms_current_user', JSON.stringify(f));
-                showToast("Akses Diberikan", `Selamat datang, ${f.name}`, "success");
-                document.getElementById('login-screen').classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-wrapper').classList.remove('hidden');
-                    initAppUI();
-                }, 500);
-            } else {
-                const totalUsers = Object.keys(db.users || {}).length;
-                showToast("Autentikasi Gagal", `Kredensial atau peran tidak valid (Total User: ${totalUsers}).`, "error");
+
+            } catch(err) {
+                console.error('handleLogin error:', err);
+                if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+                showLoginError('Terjadi error: ' + (err.message || err) + '. Coba klik Reset Database.');
             }
         }
         
@@ -2463,6 +2803,9 @@
             if(currentUser.role === 'spv') roleName = `Supervisor (${currentUser.group})`;
             else if(currentUser.role === 'tsf') roleName = 'Technical TSF';
             else if(currentUser.role === 'owner') roleName = 'Executive Owner (Auditor)';
+            else if(currentUser.role === 'ts_spec') roleName = 'Technical Specialist';
+            else if(currentUser.role === 'ts_spec_avitum') roleName = 'Technical Specialist Avitum';
+            else if(currentUser.role === 'ts_spec_ais') roleName = 'Technical Specialist AIS & Aesculap';
             document.getElementById('nav-user-role').innerText = roleName;
 
             const menu = document.getElementById('nav-menu'); menu.innerHTML = '';
@@ -2486,6 +2829,14 @@
                     ${handoverMenu}
                     ${approvalsMenu}`;
                 switchTab('spv-dash');
+            } else if (currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
+                menu.innerHTML = `<a href="#" onclick="switchTab('spec-dash')" id="nav-spec-dash" class="nav-link active flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-chart-line w-4 text-center text-sm"></i> Dashboard</a>
+                    <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Manajemen Spesial Tools</div>
+                    <a href="#" onclick="switchTab('spv-assets')" id="nav-spv-assets" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-wrench w-4 text-center text-sm"></i> Spesial Tools</a>
+                    <a href="#" onclick="switchTab('spv-maintenance')" id="nav-spv-maintenance" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Modul Maintenance</a>
+                    <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Buku Tiket</a>
+                    <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Tanda Terima Fisik</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
+                switchTab('spec-dash');
             } else if (currentUser.role === 'ts') {
                 menu.innerHTML = `<a href="#" onclick="switchTab('ts-dash')" id="nav-ts-dash" class="nav-link active flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-chart-line w-4 text-center text-sm"></i> Dashboard</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Data Inventaris</div>
@@ -2516,7 +2867,7 @@
             else { document.getElementById('prof-name').value = currentUser.name; document.getElementById('prof-user').value = currentUser.user; document.getElementById('prof-pass').value = currentUser.pass; document.getElementById('prof-nik').value = currentUser.nik || ''; document.getElementById('prof-jabatan').value = currentUser.jabatan || ''; document.getElementById('prof-email').value = currentUser.email || ''; document.getElementById('prof-phone').value = currentUser.phone || ''; }
             if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); }
             
-            const titles = {'profile': 'Profil Eksekutif', 'spv-dash':'Dashboard', 'spv-assets':'Inventaris Spesial Tools', 'demo-inventory':'Unit Backup / Demo', 'spv-personnel':'Data Personel', 'spv-approvals':'Pintu Otorisasi', 'spv-maintenance':'Modul Maintenance', 'ts-dash':'Tinjauan Global', 'ts-toolbox':'Inventaris Aset Saya', 'ts-radar':'Direktori Aset Global', 'ts-handover':'Form Serah Terima', 'tickets-log': 'Buku Tiket', 'customer-service': 'Pusat Service & Layanan Customer'};
+            const titles = {'profile': 'Profil Eksekutif', 'spv-dash':'Dashboard', 'spec-dash': 'Dashboard Technical Specialist', 'spv-assets':'Inventaris Spesial Tools', 'demo-inventory':'Unit Backup / Demo', 'spv-personnel':'Data Personel', 'spv-approvals':'Pintu Otorisasi', 'spv-maintenance':'Modul Maintenance', 'ts-dash':'Tinjauan Global', 'ts-toolbox':'Inventaris Aset Saya', 'ts-radar':'Direktori Aset Global', 'ts-handover':'Form Serah Terima', 'tickets-log': 'Buku Tiket', 'customer-service': 'Pusat Service & Layanan Customer'};
             document.getElementById('topbar-title').innerText = titles[tabId]; updateData();
         }
 
@@ -2548,10 +2899,12 @@
                         if (u.role !== 'ts') return;
                         options += `<option value="${u.id}">[TEK] ${u.name} - ${u.jabatan} (${u.group})</option>`;
                     } else {
-                        // SPV/TSF/Owner bisa ke semua TS, SPV, TSF
-                        if (u.role !== 'ts' && u.role !== 'spv' && u.role !== 'tsf') return;
+                        // SPV/TSF/Owner/Specialist bisa ke semua TS, SPV, TSF, dan Specialist
+                        if (u.role !== 'ts' && u.role !== 'spv' && u.role !== 'tsf' && u.role !== 'ts_spec' && u.role !== 'ts_spec_avitum' && u.role !== 'ts_spec_ais') return;
                         if (currentUser && currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang' && u.role !== 'tsf' && u.group !== currentUser.group) return;
-                        const rolePrefix = u.role === 'spv' ? '[SPV] ' : (u.role === 'tsf' ? '[TSF] ' : '[TEK] ');
+                        const rolePrefix = u.role === 'spv' ? '[SPV] ' : 
+                                           (u.role === 'tsf' ? '[TSF] ' : 
+                                           (u.role === 'ts_spec' || u.role === 'ts_spec_avitum' || u.role === 'ts_spec_ais' ? '[SPEC] ' : '[TEK] '));
                         options += `<option value="${u.id}">${rolePrefix}${u.name} - ${u.jabatan} (${u.group})</option>`;
                     }
                 }); 
@@ -2560,8 +2913,9 @@
         }
 
         // --- HISTORY LOGIC ---
-        function addToHistory(actionText, toolId = null, sig = null) {
-            const histObj = { id: Date.now(), time: new Date().toISOString(), action: actionText };
+        function addToHistory(actionText, toolId = null, sig = null, userId = null) {
+            const finalUserId = userId || (currentUser ? currentUser.id : null);
+            const histObj = { id: Date.now(), time: new Date().toISOString(), action: actionText, userId: finalUserId };
             db.historyLog.unshift(histObj);
             if(toolId) {
                 const t = db.tools.find(x=>x.id===toolId) || db.demoUnits.find(x=>x.id===toolId);
@@ -2874,12 +3228,17 @@
             
             if(currentUser.role === 'ts') { 
                 if(activeTab === 'ts-dash') renderTsDash(); if(activeTab === 'ts-toolbox') renderTsToolbox(); if(activeTab === 'ts-radar') renderTsRadar(); if(activeTab === 'ts-handover') renderTsHandover();
+            } else if(currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
+                if(activeTab === 'spec-dash') renderSpecDash();
+                if(activeTab === 'spv-assets') renderSpvAssets();
+                if(activeTab === 'spv-maintenance') renderSpvMaintenance();
+                if(activeTab === 'ts-handover') renderTsHandover();
             } else if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { 
                 if(activeTab === 'spv-dash') renderSpvDash(); if(activeTab === 'spv-assets') renderSpvAssets(); if(activeTab === 'demo-inventory') renderDemoInventory(); if(activeTab === 'spv-personnel') renderSpvPersonnel(); if(activeTab === 'spv-approvals') renderSpvApprovals(); if(activeTab === 'spv-maintenance') renderSpvMaintenance();
                 if((currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') && activeTab === 'ts-handover') renderTsHandover();
             }
             
-            if(currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
+            if(currentUser.role === 'ts' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
                 const ho = db.requests.filter(r => {
                     if (r.status !== 'approved') return false;
                     if (currentUser.role === 'tsf') return r.reqType === 'return' || (r.requesterId === currentUser.id && r.reqType === 'borrow');
@@ -3279,6 +3638,66 @@
             });
         }
 
+        // --- TECHNICAL SPECIALIST RENDERER ---
+        function renderSpecDash() {
+            loadDB();
+            
+            // Filter tools based on current user specialist role
+            let allowedSubCats = ['Avitum', 'AIS', 'Aesculap'];
+            if (currentUser.role === 'ts_spec_avitum') {
+                allowedSubCats = ['Avitum'];
+                if (document.getElementById('spec-cat-avitum-row')) document.getElementById('spec-cat-avitum-row').classList.remove('hidden');
+                if (document.getElementById('spec-cat-ais-row')) document.getElementById('spec-cat-ais-row').classList.add('hidden');
+                if (document.getElementById('spec-cat-aesculap-row')) document.getElementById('spec-cat-aesculap-row').classList.add('hidden');
+            } else if (currentUser.role === 'ts_spec_ais') {
+                allowedSubCats = ['AIS', 'Aesculap'];
+                if (document.getElementById('spec-cat-avitum-row')) document.getElementById('spec-cat-avitum-row').classList.add('hidden');
+                if (document.getElementById('spec-cat-ais-row')) document.getElementById('spec-cat-ais-row').classList.remove('hidden');
+                if (document.getElementById('spec-cat-aesculap-row')) document.getElementById('spec-cat-aesculap-row').classList.remove('hidden');
+            } else {
+                if (document.getElementById('spec-cat-avitum-row')) document.getElementById('spec-cat-avitum-row').classList.remove('hidden');
+                if (document.getElementById('spec-cat-ais-row')) document.getElementById('spec-cat-ais-row').classList.remove('hidden');
+                if (document.getElementById('spec-cat-aesculap-row')) document.getElementById('spec-cat-aesculap-row').classList.remove('hidden');
+            }
+
+            const specTools = db.tools.filter(t => allowedSubCats.includes(t.subCategory));
+            
+            const total = specTools.length;
+            const distributed = specTools.filter(t => t.ownerId !== 0 && t.ownerId !== undefined && t.status !== 'pending_auth').length;
+            const calibration = specTools.filter(t => t.maintenanceStatus && t.maintenanceStatus.includes('Kalibrasi')).length;
+            const repair = specTools.filter(t => t.condition === 'Rusak' || (t.maintenanceStatus && (t.maintenanceStatus.includes('Perbaiki') || t.maintenanceStatus === 'Menunggu Tindakan'))).length;
+
+            document.getElementById('spec-stat-total').innerText = total;
+            document.getElementById('spec-stat-distributed').innerText = distributed;
+            document.getElementById('spec-stat-calibration').innerText = calibration;
+            document.getElementById('spec-stat-repair').innerText = repair;
+
+            const avitumCount = specTools.filter(t => t.subCategory === 'Avitum').length;
+            const aisCount = specTools.filter(t => t.subCategory === 'AIS').length;
+            const aesculapCount = specTools.filter(t => t.subCategory === 'Aesculap').length;
+
+            if (document.getElementById('spec-cat-avitum')) document.getElementById('spec-cat-avitum').innerText = `${avitumCount} Unit`;
+            if (document.getElementById('spec-cat-ais')) document.getElementById('spec-cat-ais').innerText = `${aisCount} Unit`;
+            if (document.getElementById('spec-cat-aesculap')) document.getElementById('spec-cat-aesculap').innerText = `${aesculapCount} Unit`;
+
+            const specInvNumbers = new Set(specTools.map(t => t.noInv));
+            const specLogs = db.historyLog.filter(l => {
+                return Array.from(specInvNumbers).some(inv => l.action.includes(inv));
+            });
+
+            const hc = document.getElementById('spec-history-log');
+            hc.innerHTML = '';
+            
+            if (specLogs.length === 0) {
+                hc.innerHTML = `<div class="p-5 text-center text-gray-500 dark:text-lux-500 italic text-[11px]">Belum ada aktivitas tercatat untuk Spesial Tools.</div>`;
+            } else {
+                specLogs.slice(0, 10).forEach(l => {
+                    const date = new Date(l.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short'});
+                    hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${l.action}</p></div>`;
+                });
+            }
+        }
+
         // --- SPV / TSF RENDERERS ---
         function renderSpvDash() {
             const isRegionalSpv = currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang';
@@ -3365,6 +3784,12 @@
             const filtered = db.tools.filter(t => {
                 const matchQ = (t.desc&&t.desc.toLowerCase().includes(q)) || (t.sn&&t.sn.toLowerCase().includes(q)) || t.noInv.toLowerCase().includes(q) || (t.merk&&t.merk.toLowerCase().includes(q)) || (t.tipe&&t.tipe.toLowerCase().includes(q));
                 const matchF = currentSpvToolFilter === 'all' || (currentSpvToolFilter === 'Gudang' ? t.ownerId === 0 : t.subCategory === currentSpvToolFilter);
+                
+                // Technical Specialist filtering logic
+                if (currentUser.role === 'ts_spec_avitum' && t.subCategory !== 'Avitum') return false;
+                if (currentUser.role === 'ts_spec_ais' && !['AIS', 'Aesculap'].includes(t.subCategory)) return false;
+                if (currentUser.role === 'ts_spec' && (!currentUser.products || !currentUser.products.includes(t.subCategory))) return false;
+
                 if (isRegionalSpv && t.ownerId !== 0) {
                     const owner = db.users[t.ownerId];
                     if (!owner || owner.group !== currentUser.group) return false;
@@ -3477,7 +3902,7 @@
 
                 const presenceDotColor = isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-gray-300 dark:bg-lux-700';
                 const avatarWithDot = `<div class="relative shrink-0"><div class="w-14 h-14 rounded-full bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/30 flex items-center justify-center text-gold-600 dark:text-gold-500 font-black text-xl shadow-sm">${u.name.charAt(0)}</div><span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-gray-50 dark:border-[#131316] ${presenceDotColor}"></span></div>`;
-
+                
                 let lockBtn = '';
                 if (currentUser.role === 'owner') {
                     const isLocked = u.status === 'suspended' || u.status === 'disabled';
@@ -3486,7 +3911,50 @@
                     lockBtn = `<button onclick="toggleUserLock(${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 hover:bg-gray-100 dark:hover:bg-lux-700 transition flex items-center justify-center shadow-sm" title="${lockTitle}"><i class="fa-solid ${lockIcon} text-[9px]"></i></button>`;
                 }
 
-                container.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-2xl p-6 shadow-inner relative group flex flex-col"><div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition">${lockBtn}<button onclick="openFormModal('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-gold-600 dark:text-gold-500 hover:bg-gold-500 hover:text-white dark:hover:text-black transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteItem('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-trash text-[9px]"></i></button></div><div class="flex items-center gap-4 mb-5 min-w-0">${avatarWithDot}<div class="min-w-0"><h3 class="font-black text-gray-900 dark:text-white text-[15px] mb-1 pr-12 truncate">${u.name}</h3><span class="text-[9px] font-black text-gray-500 dark:text-lux-400 bg-white dark:bg-lux-900 px-2.5 py-0.5 rounded border border-gray-200 dark:border-lux-800 uppercase tracking-widest shadow-sm inline-block">${u.jabatan} (${u.group})</span>${onlineStatusBadge}${statusBadge}</div></div><div class="space-y-2 mb-4 border-t border-gray-200 dark:border-lux-800 pt-4"><p class="text-[11px] text-gray-600 dark:text-lux-400 font-mono truncate"><i class="fa-solid fa-id-card w-4 text-center"></i> NIK: <span class="text-gray-900 dark:text-white">${u.nik||'-'}</span></p><p class="text-[11px] text-gray-600 dark:text-lux-400 truncate"><i class="fa-solid fa-phone w-4 text-center"></i> ${u.phone||'-'}</p></div><div class="w-full pt-4 border-t border-gray-200 dark:border-lux-800 mt-auto"><p class="text-[11px] text-gray-700 dark:text-lux-300 font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-toolbox mr-1.5 text-gold-500"></i> Membawa: ${allAssigned.length} Aset</p>${toolsHtml}</div></div>`;
+                // Formatting lastOnline
+                let lastOnlineHtml = '';
+                if (currentUser.role === 'owner') {
+                    let lastOnlineText = 'Belum pernah aktif';
+                    if (u.lastOnline) {
+                        const loDate = new Date(u.lastOnline);
+                        lastOnlineText = loDate.toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }) + ' WIB';
+                    }
+                    lastOnlineHtml = isOnline 
+                        ? `<p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase mt-2 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><i class="fa-solid fa-circle-check"></i> Sedang Aktif Sekarang</p>` 
+                        : `<p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase mt-2"><i class="fa-regular fa-clock text-gold-500 mr-1"></i> Aktif Terakhir: <span class="font-mono text-gray-900 dark:text-white font-extrabold normal-case">${lastOnlineText}</span></p>`;
+                }
+
+                // Retrieving personnel actions
+                let activitiesHtml = '';
+                if (currentUser.role === 'owner') {
+                    const uNameClean = u.name.split(' ')[0].toLowerCase();
+                    const userActivities = (db.historyLog || []).filter(l => 
+                        l.userId === u.id || 
+                        (l.action && (l.action.toLowerCase().includes(uNameClean) || l.action.toLowerCase().includes(u.user.toLowerCase())))
+                    ).slice(0, 3);
+                    
+                    activitiesHtml = `<div class="mt-4 pt-3 border-t border-gray-250 dark:border-lux-800/80 w-full"><p class="text-[10px] font-black uppercase text-gold-600 dark:text-gold-500 tracking-wider mb-2.5"><i class="fa-solid fa-clock-rotate-left text-xs mr-1"></i> Aktivitas Terbaru</p>`;
+                    if (userActivities.length > 0) {
+                        activitiesHtml += `<div class="space-y-2">`;
+                        userActivities.forEach(act => {
+                            const actTime = new Date(act.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            const actDate = new Date(act.time).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'});
+                            activitiesHtml += `<div class="text-[10px] text-gray-600 dark:text-lux-400 leading-relaxed bg-white dark:bg-[#1c1c20] border border-gray-100 dark:border-lux-850/80 rounded-lg p-2.5 flex items-start justify-between gap-1.5 shadow-sm"><span class="font-medium truncate flex-1">${act.action}</span><span class="text-[9px] font-bold text-gray-400 dark:text-lux-500 whitespace-nowrap shrink-0">${actDate}, ${actTime}</span></div>`;
+                        });
+                        activitiesHtml += `</div>`;
+                    } else {
+                        activitiesHtml += `<p class="text-[10px] text-gray-400 dark:text-lux-500 italic">Belum ada catatan aktivitas.</p>`;
+                    }
+                    activitiesHtml += `</div>`;
+                }
+
+                container.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-2xl p-6 shadow-inner relative group flex flex-col"><div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition">${lockBtn}<button onclick="openFormModal('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-gold-600 dark:text-gold-500 hover:bg-gold-500 hover:text-white dark:hover:text-black transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteItem('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-trash text-[9px]"></i></button></div><div class="flex items-center gap-4 mb-5 min-w-0">${avatarWithDot}<div class="min-w-0"><h3 class="font-black text-gray-900 dark:text-white text-[15px] mb-1 pr-12 truncate">${u.name}</h3><span class="text-[9px] font-black text-gray-500 dark:text-lux-400 bg-white dark:bg-lux-900 px-2.5 py-0.5 rounded border border-gray-200 dark:border-lux-800 uppercase tracking-widest shadow-sm inline-block">${u.jabatan} (${u.group})</span>${onlineStatusBadge}${statusBadge}</div></div><div class="space-y-2 mb-4 border-t border-gray-200 dark:border-lux-800 pt-4"><p class="text-[11px] text-gray-600 dark:text-lux-400 font-mono truncate"><i class="fa-solid fa-id-card w-4 text-center"></i> NIK: <span class="text-gray-900 dark:text-white">${u.nik||'-'}</span></p><p class="text-[11px] text-gray-600 dark:text-lux-400 truncate"><i class="fa-solid fa-phone w-4 text-center"></i> ${u.phone||'-'}</p>${lastOnlineHtml}</div><div class="w-full pt-4 border-t border-gray-200 dark:border-lux-800 mt-auto"><p class="text-[11px] text-gray-700 dark:text-lux-300 font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-toolbox mr-1.5 text-gold-500"></i> Membawa: ${allAssigned.length} Aset</p>${toolsHtml}${activitiesHtml}</div></div>`;
             });
         }
 
@@ -3562,7 +4030,11 @@
                     const requester = db.users[r.requesterId];
                     if(!u || !requester) return;
                     
-                    const roleLabel = u.role === 'ts' ? 'Technical Service (Teknisi)' : (u.role === 'tsf' ? 'Technical TSF (Gudang)' : (u.role === 'spv' ? 'Supervisor' : 'Executive Owner'));
+                    const roleLabel = u.role === 'ts' ? 'Technical Service (Teknisi)' : 
+                                      (u.role === 'tsf' ? 'Technical TSF (Gudang)' : 
+                                      (u.role === 'spv' ? 'Supervisor' : 
+                                      (u.role === 'ts_spec_avitum' ? 'Technical Specialist Avitum' : 
+                                      (u.role === 'ts_spec_ais' ? 'Technical Specialist AIS & Aesculap' : 'Executive Owner'))));
                     
                     rc.innerHTML += `<div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner">
                         <div class="min-w-0">
@@ -3603,6 +4075,12 @@
             const allAssets = [...db.tools, ...db.demoUnits].filter(a => a.condition === 'Rusak' || (a.maintenanceStatus && a.maintenanceStatus !== ''));
             const filtered = allAssets.filter(t => {
                 const matchQ = (t.desc&&t.desc.toLowerCase().includes(q)) || (t.sn&&t.sn.toLowerCase().includes(q)) || t.noInv.toLowerCase().includes(q);
+                
+                // Technical Specialist filtering logic
+                if (currentUser.role === 'ts_spec_avitum' && t.subCategory !== 'Avitum') return false;
+                if (currentUser.role === 'ts_spec_ais' && !['AIS', 'Aesculap'].includes(t.subCategory)) return false;
+                if (currentUser.role === 'ts_spec' && (!currentUser.products || !currentUser.products.includes(t.subCategory))) return false;
+
                 if (isRegionalSpv && t.ownerId !== 0) {
                     const owner = db.users[t.ownerId];
                     if (!owner || owner.group !== currentUser.group) return false;
@@ -4252,6 +4730,14 @@
                     document.getElementById('add-tech-email').value = u.email||''; 
                     document.getElementById('add-tech-hp').value = u.phone||''; 
                     document.getElementById('add-tech-group').value = u.group||'Barat 1'; 
+                    
+                    const prodAvitum = u.products ? u.products.includes('Avitum') : true;
+                    const prodAis = u.products ? u.products.includes('AIS') : true;
+                    const prodAesculap = u.products ? u.products.includes('Aesculap') : true;
+                    document.getElementById('add-prod-avitum').checked = prodAvitum;
+                    document.getElementById('add-prod-ais').checked = prodAis;
+                    document.getElementById('add-prod-aesculap').checked = prodAesculap;
+
                     if (currentUser.role === 'spv') {
                         document.getElementById('add-tech-group').disabled = true;
                         document.getElementById('add-tech-role').value = 'ts';
@@ -4267,6 +4753,10 @@
                 }
                 else { 
                     document.getElementById('techModal').querySelector('form').reset(); 
+                    document.getElementById('add-prod-avitum').checked = true;
+                    document.getElementById('add-prod-ais').checked = true;
+                    document.getElementById('add-prod-aesculap').checked = true;
+
                     if (currentUser.role === 'spv') {
                         document.getElementById('add-tech-group').value = currentUser.group;
                         document.getElementById('add-tech-group').disabled = true;
@@ -4290,11 +4780,34 @@
                 const lblOwner = document.getElementById('lbl-owner'); const selOwner = document.getElementById('add-owner');
                 const btn = document.getElementById('btn-add-tool'); const inpInv = document.getElementById('add-inv');
                 
-                if(type === 'demo') { selOwner.value = 0; lblOwner.parentElement.classList.add('hidden'); document.getElementById('wrapper-subcat').classList.add('hidden'); } 
-                else { lblOwner.parentElement.classList.remove('hidden'); document.getElementById('wrapper-subcat').classList.remove('hidden'); }
+                if(type === 'demo') { selOwner.value = 0; lblOwner.parentElement.classList.add('hidden'); } 
+                else { lblOwner.parentElement.classList.remove('hidden'); }
+                document.getElementById('wrapper-subcat').classList.remove('hidden');
 
-                if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { btn.innerText = editMode ? "Update Aset" : "Simpan ke Master"; document.getElementById('add-tool-desc').innerText = "Tindakan Eksekutif: Aset akan langsung diperbarui dalam Database Utama."; selOwner.disabled = false;}
+                if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec') { btn.innerText = editMode ? "Update Aset" : "Simpan ke Master"; document.getElementById('add-tool-desc').innerText = "Tindakan Eksekutif: Aset akan langsung diperbarui dalam Database Utama."; selOwner.disabled = false;}
                 else { btn.innerText = "Ajukan Verifikasi ke SPV"; document.getElementById('add-tool-desc').innerText = "Tindakan TS: Aset baru wajib diverifikasi Supervisor sebelum aktif."; selOwner.value = currentUser.id; selOwner.disabled = true; }
+
+                // Dynamic subCategory dropdown configuration based on current user's products array
+                const subcatSel = document.getElementById('add-subcat');
+                if (subcatSel) {
+                    const userProducts = (currentUser && Array.isArray(currentUser.products)) ? currentUser.products : ["Avitum", "AIS", "Aesculap"];
+                    let subcatOptions = '';
+                    userProducts.forEach(p => {
+                        subcatOptions += `<option value="${p}">${p}</option>`;
+                    });
+                    if (userProducts.length === 0) {
+                        subcatOptions = '<option value="Lainnya">Lainnya</option>';
+                    } else {
+                        subcatOptions += '<option value="Lainnya">Lainnya</option>';
+                    }
+                    subcatSel.innerHTML = subcatOptions;
+                    subcatSel.disabled = false;
+
+                    if (userProducts.length === 1) {
+                        subcatSel.value = userProducts[0];
+                        subcatSel.disabled = true;
+                    }
+                }
 
                 const previewWrapper = document.getElementById('add-tool-photo-preview-wrapper');
                 const previewImg = document.getElementById('add-tool-photo-preview');
@@ -4302,7 +4815,15 @@
                 if(editMode) {
                     const arr = type === 'tool' ? db.tools : db.demoUnits; const t = arr.find(x => x.id === id);
                     inpInv.value = t.noInv; document.getElementById('add-art').value = t.artNo||''; document.getElementById('add-desc').value = t.desc||''; document.getElementById('add-merk').value = t.merk||''; document.getElementById('add-tipe').value = t.tipe||''; document.getElementById('add-sn').value = t.sn||''; document.getElementById('add-owner').value = t.ownerId; document.getElementById('add-kondisi').value = t.condition; document.getElementById('add-buydate').value = t.buyDate||''; document.getElementById('add-caldate').value = t.calDate||''; document.getElementById('add-price').value = t.price||'';
-                    if(type === 'tool') document.getElementById('add-subcat').value = t.subCategory || 'Avitum';
+                    
+                    // Check if the edited subCategory is not present in the select options, and add it if missing (to prevent crash)
+                    if (t.subCategory) {
+                        const exists = Array.from(subcatSel.options).some(opt => opt.value === t.subCategory);
+                        if (!exists) {
+                            subcatSel.innerHTML += `<option value="${t.subCategory}">${t.subCategory}</option>`;
+                        }
+                        subcatSel.value = t.subCategory;
+                    }
                     if(t.photo) {
                         previewImg.src = t.photo;
                         previewWrapper.classList.remove('hidden');
@@ -4332,9 +4853,9 @@
             const groupVal = document.getElementById('add-tech-group').value;
             const roleVal = document.getElementById('add-tech-role').value;
 
-            // Validasi: Technical TSF hanya bisa memilih grup TSF/Gudang
-            if (roleVal === 'tsf' && groupVal !== 'TSF/Gudang') {
-                showToast("Gagal", "Technical TSF hanya bisa ditugaskan di TSF/Gudang!", "error");
+            // Validasi: Technical TSF & Specialist hanya bisa memilih grup TSF/Gudang
+            if ((roleVal === 'tsf' || roleVal === 'ts_spec') && groupVal !== 'TSF/Gudang') {
+                showToast("Gagal", "Technical TSF & Specialist hanya bisa ditugaskan di TSF/Gudang!", "error");
                 return;
             }
 
@@ -4355,7 +4876,25 @@
             const originalStatus = editMode ? (db.users[currentEditId].status || 'active') : '';
             const statusVal = editMode ? originalStatus : ((currentUser.role === 'owner' || currentUser.role === 'tsf') ? 'active' : 'pending_approval');
             
-            const data = { id: editMode ? currentEditId : Date.now(), user: userVal, pass: document.getElementById('add-tech-pass').value, role: roleVal, name: document.getElementById('add-tech-name').value, nik: document.getElementById('add-tech-nik').value, jabatan: document.getElementById('add-tech-jabatan').value, email: document.getElementById('add-tech-email').value, phone: document.getElementById('add-tech-hp').value, group: groupVal, status: statusVal };
+            const productsVal = [];
+            if (document.getElementById('add-prod-avitum').checked) productsVal.push('Avitum');
+            if (document.getElementById('add-prod-ais').checked) productsVal.push('AIS');
+            if (document.getElementById('add-prod-aesculap').checked) productsVal.push('Aesculap');
+
+            const data = { 
+                id: editMode ? currentEditId : Date.now(), 
+                user: userVal, 
+                pass: document.getElementById('add-tech-pass').value, 
+                role: roleVal, 
+                name: document.getElementById('add-tech-name').value, 
+                nik: document.getElementById('add-tech-nik').value, 
+                jabatan: document.getElementById('add-tech-jabatan').value, 
+                email: document.getElementById('add-tech-email').value, 
+                phone: document.getElementById('add-tech-hp').value, 
+                group: groupVal, 
+                status: statusVal,
+                products: productsVal
+            };
             
             if(editMode) { 
                 db.users[currentEditId] = data; 
@@ -4388,8 +4927,8 @@
             e.preventDefault();
             loadDB(); // Sinkronisasi sebelum menyimpan
             const type = document.getElementById('tool-type').value; const arr = type === 'tool' ? db.tools : db.demoUnits;
-            const ownerIdVal = (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') ? (type === 'demo' ? 0 : parseInt(document.getElementById('add-owner').value)) : currentUser.id;
-            const statusVal = (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') ? "good" : "pending_auth";
+            const ownerIdVal = (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') ? (type === 'demo' ? 0 : parseInt(document.getElementById('add-owner').value)) : currentUser.id;
+            const statusVal = (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') ? "good" : "pending_auth";
             const descVal = document.getElementById('add-desc').value || "Alat Tanpa Nama"; const snVal = document.getElementById('add-sn').value || "-"; const merkVal = document.getElementById('add-merk').value || "-";
             const priceVal = document.getElementById('add-price').value || "";
             const subCatVal = type === 'tool' ? document.getElementById('add-subcat').value : "";
@@ -4414,7 +4953,7 @@
                     const newId = Date.now(); 
                     const data = { id: newId, noInv: document.getElementById('add-inv').value, artNo: document.getElementById('add-art').value, desc: descVal, merk: merkVal, tipe: document.getElementById('add-tipe').value, sn: snVal, ownerId: ownerIdVal, condition: document.getElementById('add-kondisi').value, buyDate: document.getElementById('add-buydate').value, price: priceVal, calDate: document.getElementById('add-caldate').value, status: statusVal, category: type==='tool' ? 'standard' : 'demo', subCategory: subCatVal, reason: type==='demo' ? 'Standby Gudang' : '', maintenanceStatus: "", history: [{t: new Date().toISOString(), m: "Alat didaftarkan ke sistem."}], photo: photoBase64 };
                     arr.push(data); 
-                    if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { addToHistory(`${currentUser.role.toUpperCase()} menambahkan Spesial Tools: ${data.noInv}.`, newId); showToast("Tersimpan", "Aset masuk ke database Spesial Tools.", "success"); } 
+                    if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') { addToHistory(`${currentUser.role.toUpperCase()} menambahkan Spesial Tools: ${data.noInv}.`, newId); showToast("Tersimpan", "Aset masuk ke database Spesial Tools.", "success"); } 
                     else { db.requests.push({ id: Date.now() + 1, toolId: newId, toolType: type, requesterId: currentUser.id, reqType: 'verify_tool', status: 'pending_spv', note: 'Registrasi aset baru' }); addToHistory(`TS ${currentUser.name.split(' ')[0]} mengajukan aset ${data.noInv} untuk diverifikasi.`, newId); showToast("Terkirim", "Menunggu Verifikasi SPV.", "success"); }
                 }
                 saveDB(); updateData(); closeModal('toolModal');
@@ -4568,7 +5107,16 @@
                 const badgeHtml = unread > 0 ? `<span class="bg-red-600 text-white text-[9px] w-4 h-4 rounded-full flex justify-center items-center font-bold">${unread}</span>` : '';
                 const activeClass = activeChatUser === u.id ? 'bg-gray-100 dark:bg-lux-800 border-l-2 border-gold-500' : 'hover:bg-gray-50 dark:hover:bg-lux-900 border-l-2 border-transparent';
                 
-                cl.innerHTML += `<div class="p-3 cursor-pointer transition ${activeClass} flex justify-between items-center" onclick="openChat(${u.id})"><div class="min-w-0"><p class="text-[11px] font-bold text-gray-900 dark:text-white truncate flex items-center">${statusDot}${u.name.split(' ')[0]}</p><p class="text-[9px] text-gray-500 dark:text-lux-500 truncate">${u.role.toUpperCase()}</p></div>${badgeHtml}</div>`;
+                let roleLabel = u.role ? u.role.toUpperCase() : 'USER';
+                if (u.role === 'ts') roleLabel = 'TEKNISI';
+                else if (u.role === 'tsf') roleLabel = 'TSF / GUDANG';
+                else if (u.role === 'spv') roleLabel = 'SUPERVISOR';
+                else if (u.role === 'owner') roleLabel = 'OWNER';
+                else if (u.role === 'ts_spec') roleLabel = 'TECHNICAL SPECIALIST';
+                else if (u.role === 'ts_spec_avitum') roleLabel = 'SPESIALIS AVITUM';
+                else if (u.role === 'ts_spec_ais') roleLabel = 'SPESIALIS AIS/AESCULAP';
+
+                cl.innerHTML += `<div class="p-3 cursor-pointer transition ${activeClass} flex justify-between items-center" onclick="openChat(${u.id})"><div class="min-w-0"><p class="text-[11px] font-bold text-gray-900 dark:text-white truncate flex items-center">${statusDot}${u.name.split(' ')[0]}</p><p class="text-[9px] text-gray-500 dark:text-lux-500 truncate">${roleLabel}</p></div>${badgeHtml}</div>`;
             });
         }
 
@@ -4723,8 +5271,14 @@
         }
 
         function showChatPopup(name, msg) {
-            document.getElementById('chat-toast-name').innerText = name.split(' ')[0]; document.getElementById('chat-toast-msg').innerText = msg;
-            const ct = document.getElementById('chat-toast'); ct.classList.add('show'); setTimeout(() => ct.classList.remove('show'), 5000);
+            document.getElementById('chat-toast-name').innerText = name; 
+            document.getElementById('chat-toast-msg').innerText = msg;
+            const avatarEl = document.getElementById('chat-toast-avatar');
+            if (avatarEl) avatarEl.innerText = name.charAt(0).toUpperCase();
+            const ct = document.getElementById('chat-toast'); 
+            ct.classList.add('show'); 
+            playNotificationSound();
+            setTimeout(() => ct.classList.remove('show'), 5000);
         }
 
         function showTicketPopup(title, msg) {
