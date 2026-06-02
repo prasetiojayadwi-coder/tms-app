@@ -470,18 +470,18 @@
 
     <!-- RUANG KERJA UTAMA -->
     <div class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden hidden" id="app-wrapper">
-        <header class="h-24 glass-panel z-[30] flex items-center justify-between px-6 lg:px-10 shrink-0 shadow-sm relative">
-            <div class="flex items-center gap-4 min-w-0">
+        <header class="h-24 glass-panel z-[30] flex items-center justify-between px-4 sm:px-6 lg:px-10 shrink-0 shadow-sm relative">
+            <div class="flex items-center gap-2 sm:gap-4 min-w-0">
                 <button onclick="toggleSidebar()" class="lg:hidden text-gray-600 dark:text-lux-300 hover:text-gold-500 transition shrink-0"><i class="fa-solid fa-bars-staggered text-2xl"></i></button>
-                <h2 id="topbar-title" class="font-black text-lg lg:text-xl text-gray-900 dark:text-white tracking-widest uppercase truncate">Dasbor</h2>
+                <h2 id="topbar-title" class="font-black text-[13px] sm:text-lg lg:text-xl text-gray-900 dark:text-white tracking-wider sm:tracking-widest uppercase truncate">Dasbor</h2>
             </div>
-            <div class="flex items-center gap-3 sm:gap-4 relative shrink-0">
+            <div class="flex items-center gap-2 sm:gap-4 relative shrink-0">
                 <!-- Cloud Status Indicator -->
-                <div id="cloud-status-badge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-500 text-[10px] font-extrabold uppercase tracking-widest transition-all duration-300 shadow-sm shrink-0">
+                <div id="cloud-status-badge" class="flex items-center justify-center gap-1.5 px-2.5 py-2.5 sm:px-3 sm:py-1.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-500 text-[10px] font-extrabold uppercase tracking-widest transition-all duration-300 shadow-sm shrink-0">
                     <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                    <span id="cloud-status-text">Local Mode</span>
+                    <span id="cloud-status-text" class="hidden sm:inline">Local Mode</span>
                 </div>
-                <button onclick="toggleFullscreen()" class="text-gray-500 dark:text-lux-300 hover:text-gold-500 transition shrink-0" title="Layar Penuh"><i id="fullscreen-icon" class="fa-solid fa-expand text-xl"></i></button>
+                <button onclick="toggleFullscreen()" class="text-gray-500 dark:text-lux-300 hover:text-gold-500 transition shrink-0 hidden sm:block" title="Layar Penuh"><i id="fullscreen-icon" class="fa-solid fa-expand text-xl"></i></button>
                 <button onclick="toggleTheme()" class="text-gray-500 dark:text-lux-300 hover:text-gold-500 transition shrink-0"><i id="theme-icon-dash" class="fa-solid fa-moon text-xl"></i></button>
                 <button onclick="toggleNotifications()" class="relative text-gray-500 dark:text-lux-300 hover:text-gold-500 transition shrink-0"><i class="fa-solid fa-bell text-xl"></i><span id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center hidden">0</span></button>
                 <div id="notif-dropdown" class="absolute top-10 right-0 lg:right-10 w-80 bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-xl shadow-2xl hidden flex-col z-50 overflow-hidden"><div class="p-4 border-b border-gray-200 dark:border-lux-800 bg-gray-50 dark:bg-lux-950"><h3 class="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest">Pusat Peringatan</h3></div><div id="notif-list" class="max-h-64 overflow-y-auto p-2 custom-scrollbar"></div></div>
@@ -612,7 +612,7 @@
                     <!-- Log Riwayat Global (2/3 width) -->
                     <div class="xl:col-span-2 bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 p-6 sm:p-10 rounded-2xl shadow-sm dark:shadow-xl">
                         <div class="flex flex-col sm:flex-row justify-between sm:items-center border-b border-gray-200 dark:border-lux-700 pb-5 mb-8 gap-4">
-                            <h2 class="text-[13px] sm:text-[14px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white truncate"><i class="fa-solid fa-satellite text-gold-500 mr-3"></i> Log Riwayat Global</h2>
+                            <h2 class="text-[13px] sm:text-[14px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white"><i class="fa-solid fa-satellite text-gold-500 mr-3"></i> Log Riwayat Global</h2>
                             <button onclick="exportHistoryCSV()" class="bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 font-bold px-4 py-2 rounded-lg text-[10px] uppercase tracking-widest hover:text-gold-500 transition"><i class="fa-solid fa-download mr-1"></i> Ekspor Log</button>
                         </div>
                         <div class="relative border-l-2 border-gray-200 dark:border-lux-700 ml-3 space-y-8" id="spv-history-log"></div>
@@ -620,7 +620,7 @@
                     
                     <!-- Pusat Peringatan / Action Center (1/3 width) -->
                     <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl flex flex-col">
-                        <h2 class="text-[13px] sm:text-[14px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white border-b border-gray-200 dark:border-lux-700 pb-5 mb-6 truncate"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-3"></i> Butuh Perhatian</h2>
+                        <h2 class="text-[13px] sm:text-[14px] font-black uppercase tracking-[0.15em] text-gray-900 dark:text-white border-b border-gray-200 dark:border-lux-700 pb-5 mb-6"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-3"></i> Butuh Perhatian</h2>
                         <div id="spv-dash-alerts" class="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar"></div>
                     </div>
                 </div>
@@ -697,7 +697,7 @@
                 <!-- Section Header -->
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm dark:shadow-xl">
                     <div class="flex-1 min-w-0">
-                        <h2 class="text-lg font-black uppercase tracking-widest text-gold-600 dark:text-gold-500 truncate"><i class="fa-solid fa-screwdriver-wrench mr-2"></i> Pusat Service & Layanan Customer</h2>
+                        <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-screwdriver-wrench mr-2"></i> Pusat Service & Layanan Customer</h2>
                         <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Alur transparan perbaikan unit customer dari pendaftaran, analisa teknisi, persetujuan PO, hingga serah terima akhir.</p>
                     </div>
                     <div class="flex gap-3 w-full sm:w-auto justify-end">
@@ -735,8 +735,8 @@
                     <div class="flex-1 min-w-0">
                         <input type="text" id="search-service" onkeyup="renderServiceTickets()" class="input-field w-full" placeholder="Cari layanan: No Tiket, Customer, Unit, SN, Teknisi...">
                     </div>
-                    <div class="flex gap-2.5">
-                        <select id="filter-service-status" onchange="renderServiceTickets()" class="input-field max-w-[180px]">
+                    <div class="w-full md:w-auto">
+                        <select id="filter-service-status" onchange="renderServiceTickets()" class="input-field w-full md:max-w-[200px]">
                             <option value="all">Semua Status</option>
                             <option value="registered">Terdaftar (Menunggu Pickup)</option>
                             <option value="picked_up">Pengambilan & Analisa Awal</option>
@@ -777,9 +777,9 @@
             <!-- MODUL MAINTENANCE -->
             <section id="view-spv-maintenance" class="app-view hidden flex-col gap-6 animate-fade-in">
                 <div class="bg-white dark:bg-lux-900 border border-blue-200 dark:border-blue-500/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm dark:shadow-xl">
-                    <div class="flex-1 w-full min-w-0">
-                        <h2 class="text-lg font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 truncate"><i class="fa-solid fa-screwdriver-wrench mr-2"></i> Modul Maintenance & Kalibrasi</h2>
-                        <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium truncate">Kelola siklus perbaikan alat yang dilaporkan rusak (e-BAP).</p>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-blue-600 dark:text-blue-400"><i class="fa-solid fa-screwdriver-wrench mr-2"></i> Modul Maintenance & Kalibrasi</h2>
+                        <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Manajemen perbaikan, kalibrasi alat ukur, dan riwayat pemeliharaan teknis.</p>
                     </div>
                     <div class="w-full md:w-auto"><input type="text" id="search-maint" onkeyup="renderSpvMaintenance()" class="input-field w-full md:w-[250px] focus:border-blue-500" placeholder="Cari Alat dalam Maintenance..."></div>
                 </div>
@@ -840,7 +840,7 @@
 
             <section id="view-ts-toolbox" class="app-view hidden flex-col gap-6 animate-fade-in">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 sm:p-8 shadow-sm dark:shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h2 class="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white truncate w-full"><i class="fa-solid fa-toolbox text-gold-500 mr-2"></i> Inventaris Aset Saya</h2>
+                    <h2 class="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white w-full"><i class="fa-solid fa-toolbox text-gold-500 mr-2"></i> Inventaris Aset Saya</h2>
                     <button onclick="openFormModal('tool')" class="bg-gold-500 text-white dark:text-black font-black px-6 py-3.5 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] shrink-0 w-full md:w-auto hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Spesial Tools</button>
                 </div>
                 
@@ -871,7 +871,7 @@
 
             <section id="view-ts-radar" class="app-view hidden flex-col gap-6 animate-fade-in">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm dark:shadow-xl">
-                    <div class="flex-1 w-full min-w-0"><h2 class="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white truncate">Direktori Aset Global</h2><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium truncate">Transparansi: Lacak keberadaan seluruh alat perusahaan.</p></div>
+                    <div class="flex-1 w-full min-w-0"><h2 class="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white">Direktori Aset Global</h2><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium truncate">Transparansi: Lacak keberadaan seluruh alat perusahaan.</p></div>
                     <div class="flex gap-3 w-full md:w-auto relative md:w-[280px]">
                         <input type="text" id="search-ts-radar" onkeyup="renderTsRadar()" class="input-field w-full pr-12" placeholder="Cari Aset...">
                         <button onclick="startQrScanner('ts-radar')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gold-600 dark:text-gold-500 hover:text-gold-700 transition" title="Scan QR Aset"><i class="fa-solid fa-qrcode text-lg"></i></button>
