@@ -2087,6 +2087,24 @@
             }
         }
 
+        function isUserOnline(u) {
+            if (!u) return false;
+            if (onlineUserIds.has(u.id)) return true;
+            if (u.lastOnline) {
+                const diff = Date.now() - new Date(u.lastOnline).getTime();
+                if (diff > 0 && diff < 5 * 60 * 1000) {
+                    return true;
+                }
+            }
+            if (!supabaseClient) {
+                const defaultUserIds = [1, 2, 3, 4, 97, 98, 99, 100, 101, 102, 103];
+                if (defaultUserIds.includes(u.id) && currentUser && u.id !== currentUser.id) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function updateCloudStatusUI(status) {
             const badge = document.getElementById('cloud-status-badge');
             if (!badge) return;
@@ -3902,7 +3920,7 @@
                 }
 
                 // Presence check
-                const isOnline = onlineUserIds.has(u.id);
+                const isOnline = isUserOnline(u);
                 const presenceText = isOnline ? 'Online' : 'Offline';
                 const presenceBadgeColor = isOnline 
                     ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-250 dark:border-emerald-500/30' 
@@ -5087,7 +5105,7 @@
             } else {
                 const u = db.users[activeChatUser];
                 if (u) {
-                    const isOnline = onlineUserIds.has(u.id);
+                    const isOnline = isUserOnline(u);
                     const statusText = isOnline ? 'online' : 'offline';
                     const statusColor = isOnline ? 'text-emerald-500' : 'text-gray-400 dark:text-lux-500';
                     headerTitle.innerHTML = `<i class="fa-solid fa-user text-gold-500 mr-2"></i> ${u.name.split(' ')[0]} <span class="text-[9px] ${statusColor} lowercase font-bold ml-1">(${statusText})</span>`;
@@ -5108,7 +5126,7 @@
                 if(u.id === currentUser.id) return;
                 if(u.status === 'pending_approval') return;
                 
-                const isOnline = onlineUserIds.has(u.id);
+                const isOnline = isUserOnline(u);
                 const dotColor = isOnline ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-lux-700';
                 const dotTitle = isOnline ? 'Online' : 'Offline';
                 const statusDot = `<span class="w-1.5 h-1.5 rounded-full ${dotColor} inline-block mr-1.5" title="${dotTitle}"></span>`;
