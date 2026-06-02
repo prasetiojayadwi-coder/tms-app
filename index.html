@@ -2795,7 +2795,7 @@
             }
         }
         
-        function handleLogout() { currentUser = null; knownRequestIds = null; sessionStorage.removeItem('tms_current_user'); localStorage.removeItem('tms_current_user'); document.getElementById('app-wrapper').classList.add('hidden'); const ls = document.getElementById('login-screen'); ls.classList.remove('hidden'); setTimeout(() => { ls.classList.remove('opacity-0', 'pointer-events-none'); }, 50); document.getElementById('loginForm').reset(); initRealtimeSync(); }
+        function handleLogout() { currentUser = null; knownRequestIds = null; sessionStorage.removeItem('tms_current_user'); localStorage.removeItem('tms_current_user'); if ("clearAppBadge" in navigator) { navigator.clearAppBadge().catch(e => {}); } document.getElementById('app-wrapper').classList.add('hidden'); const ls = document.getElementById('login-screen'); ls.classList.remove('hidden'); setTimeout(() => { ls.classList.remove('opacity-0', 'pointer-events-none'); }, 50); document.getElementById('loginForm').reset(); initRealtimeSync(); }
 
         function initAppUI() {
             document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); document.getElementById('nav-user-name').innerText = currentUser.name; 
@@ -3266,6 +3266,7 @@
                 }
             }
             checkNotifications();
+            updateAppIconBadge();
         }
 
         // --- TS RENDERERS ---
@@ -5269,6 +5270,73 @@
             const unread = unreadPrivate + unreadGlobal;
             const cb = document.getElementById('chat-badge');
             if(unread > 0 && !isChatOpen) { cb.innerText = unread; cb.classList.remove('hidden'); } else cb.classList.add('hidden');
+            updateAppIconBadge(unread);
+        }
+
+        function updateAppIconBadge(unreadChatCount = null) {
+            if (!currentUser) return;
+            let unreadChat = unreadChatCount;
+            if (unreadChat === null) {
+                const unreadPrivate = (db.messages || []).filter(m => m.to === currentUser.id && !m.read).length;
+                const unreadGlobal = (db.messages || []).filter(m => m.to === 'global' && m.from !== currentUser.id && (!m.readBy || !m.readBy.includes(currentUser.id))).length;
+                unreadChat = unreadPrivate + unreadGlobal;
+            }
+            
+            let alertCount = 0;
+            const isRegionalSpv = currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang';
+            
+            const checkItemAlert = (item) => {
+                if (currentUser.role === 'ts') {
+                    if (item.ownerId !== currentUser.id) return;
+                } else if (isRegionalSpv) {
+                    if (item.ownerId !== 0) {
+                        const owner = db.users[item.ownerId];
+                        if (!owner || owner.group !== currentUser.group) return;
+                    }
+                }
+                const calStat = getCalibrationStatus(item.calDate);
+                if (calStat.isAlert) alertCount++;
+                if (item.condition === 'Rusak' && (!item.maintenanceStatus || item.maintenanceStatus === 'Menunggu Tindakan')) alertCount++;
+            };
+            
+            if (db.tools && Array.isArray(db.tools)) {
+                db.tools.forEach(t => checkItemAlert(t));
+            }
+            
+            if (db.requests && Array.isArray(db.requests)) {
+                db.requests.forEach(r => {
+                    const u = db.users[r.requesterId];
+                    const arr = r.toolType === 'demo' ? db.demoUnits : db.tools;
+                    const t = arr.find(x => x.id === r.toolId);
+                    if (!u || !t) return;
+                    
+                    if (currentUser.role === 'ts') {
+                        if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') alertCount++;
+                    } else if (currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
+                        if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') alertCount++;
+                    } else if (currentUser.role === 'tsf') {
+                        if (r.reqType === 'return' && r.status === 'approved') alertCount++;
+                        if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') alertCount++;
+                    } else if (currentUser.role === 'spv' && !isRegionalSpv) {
+                        if (r.reqType === 'return' && r.status === 'approved') alertCount++;
+                        if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') alertCount++;
+                    } else if (isRegionalSpv) {
+                        if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') alertCount++;
+                        if (r.status === 'pending_spv' && r.reqType !== 'verify_user' && u.group === currentUser.group) alertCount++;
+                    }
+                    if (currentUser.role === 'owner' && (r.status === 'pending_spv' || r.status === 'pending_tsf')) alertCount++;
+                });
+            }
+            
+            const total = unreadChat + alertCount;
+            
+            if ("setAppBadge" in navigator) {
+                if (total > 0) {
+                    navigator.setAppBadge(total).catch(e => console.warn("Failed to set app badge:", e));
+                } else {
+                    navigator.clearAppBadge().catch(e => console.warn("Failed to clear app badge:", e));
+                }
+            }
         }
 
         function showChatPopup(name, msg) {
