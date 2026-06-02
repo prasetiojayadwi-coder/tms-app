@@ -2554,7 +2554,7 @@
         loadDB(); if(db.messages) lastMsgCount = db.messages.length;
         initRealtimeSync();
         
-        const sessionUser = sessionStorage.getItem('tms_current_user');
+        const sessionUser = localStorage.getItem('tms_current_user');
         if(sessionUser) {
             currentUser = JSON.parse(sessionUser);
             if (currentUser && currentUser.role === 'ts_spec') {
@@ -2765,6 +2765,7 @@
                     db.users[f.id] = currentUser;
                     saveDB();
                     sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+                    localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
                     showToast('Akses Diberikan', 'Selamat datang, ' + currentUser.name + '!', 'success');
                     const ls = document.getElementById('login-screen');
                     ls.style.transition = 'opacity 0.5s ease';
@@ -2794,7 +2795,7 @@
             }
         }
         
-        function handleLogout() { currentUser = null; knownRequestIds = null; sessionStorage.removeItem('tms_current_user'); document.getElementById('app-wrapper').classList.add('hidden'); const ls = document.getElementById('login-screen'); ls.classList.remove('hidden'); setTimeout(() => { ls.classList.remove('opacity-0', 'pointer-events-none'); }, 50); document.getElementById('loginForm').reset(); initRealtimeSync(); }
+        function handleLogout() { currentUser = null; knownRequestIds = null; sessionStorage.removeItem('tms_current_user'); localStorage.removeItem('tms_current_user'); document.getElementById('app-wrapper').classList.add('hidden'); const ls = document.getElementById('login-screen'); ls.classList.remove('hidden'); setTimeout(() => { ls.classList.remove('opacity-0', 'pointer-events-none'); }, 50); document.getElementById('loginForm').reset(); initRealtimeSync(); }
 
         function initAppUI() {
             document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); document.getElementById('nav-user-name').innerText = currentUser.name; 
@@ -2876,7 +2877,7 @@
         function saveProfile(e) { 
             e.preventDefault(); loadDB(); 
             currentUser.name = document.getElementById('prof-name').value; currentUser.pass = document.getElementById('prof-pass').value; currentUser.nik = document.getElementById('prof-nik').value; currentUser.jabatan = document.getElementById('prof-jabatan').value; currentUser.email = document.getElementById('prof-email').value; currentUser.phone = document.getElementById('prof-phone').value; 
-            db.users[currentUser.id] = currentUser; saveDB(); sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+            db.users[currentUser.id] = currentUser; saveDB(); sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser)); localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
             document.getElementById('nav-user-name').innerText = currentUser.name; document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); showToast("Profil Diperbarui", "Data berhasil diubah.", "success"); updateOwnerDropdown(); 
         }
 
@@ -5279,6 +5280,18 @@
             ct.classList.add('show'); 
             playNotificationSound();
             setTimeout(() => ct.classList.remove('show'), 5000);
+            
+            // Trigger browser native push notification if permission granted
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    new Notification(`Pesan Baru dari ${name}`, {
+                        body: msg,
+                        icon: 'tms_pwa_icon.png'
+                    });
+                } catch (e) {
+                    console.error("Failed to trigger push notification:", e);
+                }
+            }
         }
 
         function showTicketPopup(title, msg) {
