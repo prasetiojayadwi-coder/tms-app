@@ -2071,6 +2071,14 @@
                         onlineUserIds.add(userId);
                     }
                 });
+            } else if (!supabaseClient) {
+                // Mode Lokal: simulasikan semua user default agar online demi testing interaktif
+                const defaultUserIds = [1, 2, 3, 4, 97, 98, 99, 100, 101, 102, 103];
+                defaultUserIds.forEach(id => {
+                    if (currentUser && id !== currentUser.id) {
+                        onlineUserIds.add(id);
+                    }
+                });
             }
             if (currentUser) {
                 if (typeof renderChatUsers === 'function') renderChatUsers();
@@ -5242,6 +5250,56 @@
             
             db.messages.push(newMsg);
             saveDB(); inp.value = ''; cancelChatAttachment(); renderChatMessages();
+            
+            // Mode Lokal Auto-Reply Simulation
+            if (!supabaseClient) {
+                if (activeChatUser !== 'global') {
+                    const targetUser = db.users[activeChatUser];
+                    if (targetUser) {
+                        setTimeout(() => {
+                            const replyMsg = {
+                                id: Date.now() + 10,
+                                from: activeChatUser,
+                                to: currentUser.id,
+                                text: `Halo, saya ${targetUser.name.split(' ')[0]}. Pesan Anda telah diterima dalam mode lokal/luring.`,
+                                time: new Date().toISOString(),
+                                read: false,
+                                status: 'sent'
+                            };
+                            db.messages.push(replyMsg);
+                            saveDB();
+                            if (activeChatUser === targetUser.id) {
+                                renderChatMessages();
+                            }
+                            updateChatBadge();
+                            showChatPopup(targetUser.name, replyMsg.text);
+                        }, 1500);
+                    }
+                } else {
+                    setTimeout(() => {
+                        const randomUsers = [1, 2, 3, 4, 99];
+                        const randomId = randomUsers.filter(id => id !== currentUser.id)[Math.floor(Math.random() * (randomUsers.length - 1))];
+                        const targetUser = db.users[randomId];
+                        if (targetUser) {
+                            const replyMsg = {
+                                id: Date.now() + 15,
+                                from: randomId,
+                                to: 'global',
+                                text: `Pesan diterima di Chat Global oleh ${targetUser.name.split(' ')[0]} (Mode Lokal).`,
+                                time: new Date().toISOString(),
+                                readBy: [randomId]
+                            };
+                            db.messages.push(replyMsg);
+                            saveDB();
+                            if (activeChatUser === 'global') {
+                                renderChatMessages();
+                            }
+                            updateChatBadge();
+                            showChatPopup(targetUser.name, replyMsg.text);
+                        }
+                    }, 2000);
+                }
+            }
         }
 
         function markMessagesAsRead() {
