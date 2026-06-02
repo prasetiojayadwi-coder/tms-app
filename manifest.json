@@ -7,7 +7,8 @@
   "background_color": "#09090b",
   "theme_color": "#eab308",
   "orientation": "portrait-primary",
-  "id": "/tms-asset-control-v1",
+  "id": "tms-asset-control-v1",
+  "scope": "./",
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {

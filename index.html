@@ -5122,10 +5122,16 @@
             const badgeGlobalHtml = unreadGlobal > 0 ? `<span class="bg-red-600 text-white text-[9px] w-4 h-4 rounded-full flex justify-center items-center font-bold">${unreadGlobal}</span>` : '';
             cl.innerHTML += `<div class="p-3 cursor-pointer transition ${activeGlobalClass} flex justify-between items-center" onclick="openChat('global')"><div class="min-w-0"><p class="text-[11px] font-black text-gold-600 dark:text-gold-500 truncate flex items-center"><i class="fa-solid fa-earth-americas mr-1.5 text-gold-500"></i>Chat Global</p><p class="text-[9px] text-gray-500 dark:text-lux-500 truncate">Semua Personel</p></div>${badgeGlobalHtml}</div>`;
 
-            Object.values(db.users).forEach(u => {
-                if(u.id === currentUser.id) return;
-                if(u.status === 'pending_approval') return;
-                
+            const sortedUsers = Object.values(db.users)
+                .filter(u => u.id !== currentUser.id && u.status !== 'pending_approval')
+                .sort((a, b) => {
+                    const aOnline = isUserOnline(a) ? 1 : 0;
+                    const bOnline = isUserOnline(b) ? 1 : 0;
+                    if (aOnline !== bOnline) return bOnline - aOnline;
+                    return (a.name || '').localeCompare(b.name || '');
+                });
+
+            sortedUsers.forEach(u => {
                 const isOnline = isUserOnline(u);
                 const dotColor = isOnline ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-lux-700';
                 const dotTitle = isOnline ? 'Online' : 'Offline';
