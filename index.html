@@ -18,6 +18,7 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -62,12 +63,12 @@
         .nav-link.active { @apply bg-gradient-to-r from-gold-500/10 to-transparent border-l-4 border-gold-500 text-gold-600 dark:text-gold-400; }
         .nav-link { border-left: 4px solid transparent; }
         
-        .toast, .chat-toast, .ticket-toast { pointer-events: none; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; z-index: 99999;}
+        .toast, .chat-toast, .ticket-toast, .svc-toast { pointer-events: none; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); opacity: 0; z-index: 99999;}
         .toast { transform: translateY(150%) scale(0.9); }
-        .chat-toast, .ticket-toast { transform: translateY(-150%) scale(0.9); }
-        .toast.show, .chat-toast.show, .ticket-toast.show { pointer-events: auto; transform: translateY(0) scale(1); opacity: 1; }
+        .chat-toast, .ticket-toast, .svc-toast { transform: translateY(-150%) scale(0.9); }
+        .toast.show, .chat-toast.show, .ticket-toast.show, .svc-toast.show { pointer-events: auto; transform: translateY(0) scale(1); opacity: 1; }
         @media (max-width: 640px) {
-            .toast, .chat-toast, .ticket-toast {
+            .toast, .chat-toast, .ticket-toast, .svc-toast {
                 left: 1rem !important;
                 right: 1rem !important;
                 top: 1rem !important;
@@ -358,6 +359,98 @@
             /* Hanya berlakukan inversi filter canvas tanda tangan jika document memiliki class dark */
             html.dark canvas { filter: invert(100%); border: 1px solid #000 !important; }
             html:not(.dark) canvas { border: 1px solid #000 !important; }
+
+            /* Jika sedang mencetak tanda terima service */
+            body.print-svc-receipt > *:not(#serviceReceiptModal) {
+                display: none !important;
+            }
+            body.print-svc-receipt #serviceReceiptModal {
+                display: block !important;
+                position: static !important;
+                background: white !important;
+                opacity: 1 !important;
+                z-index: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            body.print-svc-receipt #svc-receipt-print-area {
+                display: block !important;
+                visibility: visible !important;
+                background: white !important;
+                border: 2px solid #eab308 !important;
+                border-radius: 1.5rem !important;
+                padding: 1.25rem !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                box-sizing: border-box !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            #svc-receipt-print-area {
+                background-color: #ffffff !important;
+                color: #111827 !important;
+            }
+            #svc-receipt-print-area * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #svc-receipt-print-area .grid {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                gap: 1.5rem !important;
+            }
+            #svc-receipt-print-area .grid > div {
+                flex: 1 !important;
+                min-width: 0 !important;
+            }
+            #svc-receipt-print-area .bg-gray-50, 
+            #svc-receipt-print-area .dark\:bg-\[\#131316\] {
+                background-color: #f9fafb !important;
+                border: 1px solid #e5e7eb !important;
+                border-radius: 1rem !important;
+            }
+            #svc-receipt-print-area .bg-gold-50\/20, 
+            #svc-receipt-print-area .dark\:bg-gold-950\/5 {
+                background-color: #fef9c3 !important;
+                border: 1px solid #fde047 !important;
+                border-radius: 1rem !important;
+            }
+            #svc-receipt-print-area table tr {
+                border-bottom: 1px solid #f3f4f6 !important;
+            }
+            #svc-receipt-print-area td {
+                color: #1f2937 !important;
+            }
+            #svc-receipt-print-area td.text-gray-400, 
+            #svc-receipt-print-area td.dark\:text-lux-500 {
+                color: #9ca3af !important;
+            }
+            #svc-receipt-print-area .text-gray-900,
+            #svc-receipt-print-area .dark\:text-white {
+                color: #111827 !important;
+            }
+            #svc-receipt-print-area .text-gray-700,
+            #svc-receipt-print-area .dark\:text-lux-300 {
+                color: #374151 !important;
+            }
+            #svc-receipt-print-area .text-gold-600,
+            #svc-receipt-print-area .dark\:text-gold-500 {
+                color: #d97706 !important;
+            }
+            #svc-receipt-print-area .text-emerald-600,
+            #svc-receipt-print-area .dark\:text-emerald-500 {
+                color: #059669 !important;
+            }
+            #svc-receipt-print-area .text-blue-600,
+            #svc-receipt-print-area .dark\:text-blue-500 {
+                color: #2563eb !important;
+            }
             
             /* Set margin halaman */
             @page {
@@ -624,6 +717,50 @@
                         <div id="spv-dash-alerts" class="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar"></div>
                     </div>
                 </div>
+
+                <!-- Service Customer Statistics Section -->
+                <div class="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-6">
+                    <!-- KPI Kartu Service -->
+                    <div class="xl:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-5 rounded-2xl shadow-sm text-center">
+                            <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-widest mb-1">Total Tiket</p>
+                            <p class="text-3xl font-light text-gray-900 dark:text-white" id="svc-kpi-total">0</p>
+                        </div>
+                        <div class="bg-white dark:bg-lux-900 border border-blue-200 dark:border-blue-900/50 p-5 rounded-2xl shadow-sm text-center">
+                            <p class="text-[9px] text-blue-600 dark:text-blue-500 font-black uppercase tracking-widest mb-1">Tiket Aktif</p>
+                            <p class="text-3xl font-light text-gray-900 dark:text-white" id="svc-kpi-active">0</p>
+                        </div>
+                        <div class="bg-white dark:bg-lux-900 border border-emerald-200 dark:border-emerald-900/50 p-5 rounded-2xl shadow-sm text-center">
+                            <p class="text-[9px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1">Selesai Bulan Ini</p>
+                            <p class="text-3xl font-light text-gray-900 dark:text-white" id="svc-kpi-monthly">0</p>
+                        </div>
+                        <div class="bg-white dark:bg-lux-900 border border-amber-200 dark:border-amber-900/50 p-5 rounded-2xl shadow-sm text-center">
+                            <p class="text-[9px] text-amber-600 dark:text-amber-500 font-black uppercase tracking-widest mb-1">Rata-rata Selesai</p>
+                            <p class="text-3xl font-light text-gray-900 dark:text-white" id="svc-kpi-avgdays">-</p>
+                            <p class="text-[9px] text-gray-400 dark:text-lux-500">hari</p>
+                        </div>
+                        <!-- Monthly Bar Chart -->
+                        <div class="col-span-2 sm:col-span-4 bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-5 rounded-2xl shadow-sm">
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-widest mb-4"><i class="fa-solid fa-chart-bar text-gold-500 mr-2"></i>Unit Masuk per Bulan (6 Bulan Terakhir)</p>
+                            <div class="h-36 relative">
+                                <canvas id="svc-stat-monthly-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Status Donut + Stagnant List -->
+                    <div class="flex flex-col gap-4">
+                        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-5 rounded-2xl shadow-sm flex-1">
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-widest mb-4 text-center"><i class="fa-solid fa-chart-pie text-gold-500 mr-2"></i>Distribusi Status</p>
+                            <div class="h-36 flex items-center justify-center relative">
+                                <canvas id="svc-stat-status-chart" class="max-w-[160px] max-h-[130px]"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-lux-900 border border-red-200 dark:border-red-900/40 p-5 rounded-2xl shadow-sm">
+                            <p class="text-[10px] text-red-600 dark:text-red-500 font-black uppercase tracking-widest mb-3"><i class="fa-solid fa-hourglass-half mr-2"></i>Tiket Stagnan (&gt;7 Hari)</p>
+                            <div id="svc-stagnant-list" class="flex flex-col gap-2 max-h-[140px] overflow-y-auto custom-scrollbar"></div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- ASET MASTER (TOOLS) -->
@@ -700,8 +837,9 @@
                         <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-screwdriver-wrench mr-2"></i> Pusat Service & Layanan Customer</h2>
                         <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Alur transparan perbaikan unit customer dari pendaftaran, analisa teknisi, persetujuan PO, hingga serah terima akhir.</p>
                     </div>
-                    <div class="flex gap-3 w-full sm:w-auto justify-end">
+                    <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
                         <button id="btn-bulk-delete-service" onclick="bulkDeleteServiceTickets()" class="hidden bg-red-600 hover:bg-red-700 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-2"></i> Hapus Terpilih</button>
+                        <button onclick="exportServiceTicketsCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(5,150,105,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-2"></i> Ekspor Excel</button>
                         <button id="btn-register-service" onclick="openServiceModal()" class="hidden bg-gold-500 text-white dark:text-black font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Unit Customer</button>
                     </div>
                 </div>
@@ -1434,6 +1572,39 @@
         </div>
     </div>
 
+    <!-- Modal: Cetak Tanda Terima Service Multi-Tahap -->
+    <div id="serviceReceiptModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-3xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto mt-4 mb-4">
+            <!-- Header Modal (no-print) -->
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] no-print">
+                <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-print mr-2.5"></i> Dokumen Tanda Terima Layanan</h3>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="sendWhatsAppNotification(parseInt(document.getElementById('svc-receipt-active-id').value))" class="px-4 py-2 bg-[#25D366] text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#1aa850] transition flex items-center gap-1.5 shadow-md"><i class="fa-brands fa-whatsapp"></i> Kirim WA</button>
+                    <button type="button" onclick="downloadServiceReceiptPDF()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-md"><i class="fa-solid fa-download"></i> Unduh PDF</button>
+                    <button type="button" onclick="printServiceReceipt()" class="px-4 py-2 bg-gold-500 text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gold-600 transition flex items-center gap-1.5 shadow-md"><i class="fa-solid fa-print"></i> Cetak</button>
+                    <button type="button" onclick="closeModal('serviceReceiptModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white text-lg ml-2"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            
+            <!-- Tab Selector (no-print) -->
+            <div class="flex border-b border-gray-200 dark:border-lux-800 bg-gray-50/50 dark:bg-[#0c0c0e]/50 p-3 gap-1.5 overflow-x-auto no-print">
+                <input type="hidden" id="svc-receipt-active-id">
+                <button type="button" id="tab-receipt-pickup" onclick="renderServiceReceiptTab('pickup')" class="px-3.5 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap">1. Pickup (RS &rarr; TS)</button>
+                <button type="button" id="tab-receipt-tsf" onclick="renderServiceReceiptTab('tsf')" class="px-3.5 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap">2. TSF (TS &rarr; TSF)</button>
+                <button type="button" id="tab-receipt-field" onclick="renderServiceReceiptTab('field')" class="px-3.5 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap">3. Field (TSF &rarr; TS)</button>
+                <button type="button" id="tab-receipt-completed" onclick="renderServiceReceiptTab('completed')" class="px-3.5 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all duration-150 whitespace-nowrap">4. BAST (TS &rarr; RS)</button>
+            </div>
+
+            <!-- Content Area (Printed) -->
+            <div class="p-6 sm:p-8 bg-gray-100 dark:bg-[#131316] overflow-x-auto">
+                <div id="svc-receipt-print-area" class="bg-white text-gray-900 p-8 sm:p-10 border border-gray-200 shadow-md rounded-2xl mx-auto w-full max-w-2xl relative font-sans">
+                    <!-- Dynamic Printable Receipt Content -->
+                    <div id="svc-receipt-content-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Form: Register Service Unit Customer -->
     <div id="serviceModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
         <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto mt-4 mb-4">
@@ -1445,7 +1616,17 @@
                 <input type="hidden" id="service-id">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                     <div class="md:col-span-2"><label class="input-label">Nama Rumah Sakit / Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-name" required class="input-field" placeholder="Masukkan nama RS / klinik / perusahaan..."></div>
-                    <div class="md:col-span-2"><label class="input-label">Kontak / HP Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-contact" required class="input-field" placeholder="Nomor telepon / penanggung jawab RS..."></div>
+                    <div><label class="input-label">PIC Customer/RS <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-pic" required class="input-field" placeholder="Nama PIC Penanggung Jawab..."></div>
+                    <div><label class="input-label">No HP PIC/Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-contact" required class="input-field" placeholder="Nomor telepon PIC..."></div>
+                    <div><label class="input-label">Art Number (Nomor Art)</label><input type="text" id="svc-unit-art-no" class="input-field font-mono" placeholder="Masukkan Art Number..." oninput="smartFillServiceByArtNo(this.value)"></div>
+                    <div><label class="input-label">Product <span class="text-gold-500">*</span></label>
+                        <select id="svc-unit-product" required class="input-field">
+                            <option value="" disabled selected>-- Pilih Kategori Product --</option>
+                            <option value="Avitum">Avitum</option>
+                            <option value="AIS">AIS</option>
+                            <option value="AES">AES</option>
+                        </select>
+                    </div>
                     <div><label class="input-label">Nama Alat / Deskripsi Unit <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-name" required class="input-field" placeholder="Contoh: Defibrillator, Syringe Pump..."></div>
                     <div><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Masukkan SN alat..."></div>
                     <div><label class="input-label">Merk / Brand <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-merk" required class="input-field" placeholder="Contoh: Mindray, B. Braun..."></div>
@@ -1455,6 +1636,19 @@
                         <select id="svc-assigned-ts" required class="input-field">
                             <!-- Populated with 'ts' role technicians -->
                         </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="input-label"><i class="fa-solid fa-camera mr-1.5 text-gold-500"></i> Foto Kondisi Unit (Sebelum Perbaikan)</label>
+                        <div class="mt-1">
+                            <label for="svc-unit-photo-before" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-lux-600 rounded-xl cursor-pointer hover:border-gold-500 hover:bg-gold-50/10 transition">
+                                <div id="svc-photo-before-preview" class="flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500">
+                                    <i class="fa-solid fa-image text-2xl"></i>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">Klik atau seret foto di sini</span>
+                                    <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
+                                </div>
+                            </label>
+                            <input id="svc-unit-photo-before" type="file" accept="image/*" class="hidden" onchange="previewServicePhoto(this, 'svc-photo-before-preview')">
+                        </div>
                     </div>
                 </div>
                 <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-lux-800"><button type="submit" id="btn-save-service" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Daftarkan Unit</button></div>
@@ -1582,6 +1776,19 @@
                         <label class="input-label">Catatan Pengerjaan / Tindakan Perbaikan <span class="text-gold-500">*</span></label>
                         <textarea id="svc-repair-note-text" required rows="4" class="input-field" placeholder="Tuliskan tindakan perbaikan yang dilakukan, kalibrasi internal, uji fungsi detail..."></textarea>
                     </div>
+                    <div>
+                        <label class="input-label"><i class="fa-solid fa-camera mr-1.5 text-emerald-500"></i> Foto Kondisi Unit (Sesudah Perbaikan)</label>
+                        <div class="mt-1">
+                            <label for="svc-unit-photo-after" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-lux-600 rounded-xl cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10 transition">
+                                <div id="svc-photo-after-preview" class="flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500">
+                                    <i class="fa-solid fa-image text-2xl"></i>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">Klik atau seret foto sesudah perbaikan</span>
+                                    <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
+                                </div>
+                            </label>
+                            <input id="svc-unit-photo-after" type="file" accept="image/*" class="hidden" onchange="previewServicePhoto(this, 'svc-photo-after-preview')">
+                        </div>
+                    </div>
                 </div>
                 <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
                     <button type="submit" class="w-full py-4 bg-emerald-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-emerald-500 transition shadow-md">Selesaikan & Kirim ke Teknisi Lapangan</button>
@@ -1592,7 +1799,7 @@
 
     <!-- Modal Form: Final Delivery & Digital Signature (TS) -->
     <div id="serviceDeliveryModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
-        <div class="bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/40 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/40 rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
             <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] sticky top-0 z-20">
                 <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-handshake mr-3"></i> BAST Penyerahan Unit ke Customer</h3>
                 <button type="button" onclick="closeModal('serviceDeliveryModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -1607,19 +1814,77 @@
                 <div class="border-t border-gray-200 dark:border-lux-800 pt-4">
                     <p class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4">Saya selaku perwakilan customer/RS menyatakan telah menerima kembali unit tersebut di atas dengan kondisi hasil perbaikan yang telah berfungsi normal. Serah terima ini sah secara hukum.</p>
                     
-                    <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-5 shadow-inner">
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-[11px] font-bold text-gray-500 dark:text-lux-400 uppercase tracking-widest">Tanda Tangan Representatif Customer</label>
-                            <button type="button" onclick="clearServiceSignature()" class="text-[10px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-3 py-1 rounded uppercase tracking-widest font-black hover:bg-red-200 dark:hover:bg-red-900 transition">Hapus TTD</button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Pihak Penyerah (Teknisi)</label>
+                                <button type="button" id="btn-clear-svc-giver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                            </div>
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                                <canvas id="svc-sig-canvas-giver" class="w-full h-full rounded-xl"></canvas>
+                            </div>
                         </div>
-                        <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-40 relative shadow-inner">
-                            <canvas id="svc-sig-canvas" class="w-full h-full rounded-xl"></canvas>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Pihak Penerima (Customer)</label>
+                                <button type="button" id="btn-clear-svc-receiver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                            </div>
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                                <canvas id="svc-sig-canvas-receiver" class="w-full h-full rounded-xl"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-lux-800">
                     <button type="button" onclick="closeModal('serviceDeliveryModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
                     <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan BAST</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form: Handover Digital Signature (Pickup, TSF, Field Handover) -->
+    <div id="handoverSignatureModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/40 rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] sticky top-0 z-20">
+                <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500" id="handover-sig-title"><i class="fa-solid fa-signature mr-3"></i> Tanda Tangan Serah Terima</h3>
+                <button type="button" onclick="closeModal('handoverSignatureModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitHandoverSignature(event)" class="p-6 sm:p-8 flex flex-col gap-6">
+                <input type="hidden" id="handover-sig-ticket-id">
+                <input type="hidden" id="handover-sig-action">
+                <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 p-4 rounded-xl">
+                    <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase mb-1">Rincian Unit Customer</p>
+                    <p class="text-sm font-black text-gray-900 dark:text-white" id="handover-sig-unit-name">-</p>
+                    <p class="text-[10px] text-gray-505 dark:text-lux-400 mt-1 uppercase" id="handover-sig-cust-info">-</p>
+                </div>
+                <div class="border-t border-gray-200 dark:border-lux-800 pt-4">
+                    <p class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4" id="handover-sig-statement">Silakan bubuhkan tanda tangan digital untuk memvalidasi proses serah terima unit ini.</p>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider" id="handover-sig-giver-label">Pihak Pengirim/Pemberi</label>
+                                <button type="button" id="btn-clear-handover-giver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                            </div>
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                                <canvas id="handover-sig-canvas-giver" class="w-full h-full rounded-xl"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider" id="handover-sig-receiver-label">Pihak Penerima</label>
+                                <button type="button" id="btn-clear-handover-receiver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                            </div>
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                                <canvas id="handover-sig-canvas-receiver" class="w-full h-full rounded-xl"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-lux-800">
+                    <button type="button" onclick="closeModal('handoverSignatureModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
+                    <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan</button>
                 </div>
             </form>
         </div>
@@ -1672,6 +1937,28 @@
                         <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-wider">Tanda Tangan Penerima BAST Customer</p>
                         <div class="h-16 flex items-center mt-1.5"><img id="svc-det-sig-img" class="h-14 bg-white dark:bg-transparent rounded px-2" alt="Signature"></div>
                     </div>
+
+                    <!-- Foto Before / After -->
+                    <div class="sm:col-span-2 pt-3 border-t border-gray-200/50 dark:border-lux-800 hidden" id="svc-det-photos-wrapper">
+                        <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-wider mb-2"><i class="fa-solid fa-camera mr-1.5 text-gold-500"></i>Foto Kondisi Unit</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="hidden" id="svc-det-photo-before-wrap">
+                                <p class="text-[8px] text-gray-400 font-bold uppercase mb-1">Sebelum Perbaikan</p>
+                                <img id="svc-det-photo-before" class="w-full h-32 object-cover rounded-xl border border-gray-200 dark:border-lux-700" alt="Foto Sebelum">
+                            </div>
+                            <div class="hidden" id="svc-det-photo-after-wrap">
+                                <p class="text-[8px] text-emerald-600 font-bold uppercase mb-1">Sesudah Perbaikan</p>
+                                <img id="svc-det-photo-after" class="w-full h-32 object-cover rounded-xl border border-emerald-200 dark:border-emerald-900/50" alt="Foto Sesudah">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WA Notification Button -->
+                <div class="mt-4 flex justify-end">
+                    <button id="svc-det-wa-btn" class="flex items-center gap-2 px-4 py-2.5 bg-[#25D366] hover:bg-[#1aa850] text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition shadow-md">
+                        <i class="fa-brands fa-whatsapp text-base"></i> Kirim Notifikasi WA ke Customer
+                    </button>
                 </div>
 
                 <!-- Timeline / Audit Trail -->
@@ -1751,6 +2038,24 @@
             </div>
             <h4 id="ticket-toast-title" class="font-extrabold text-[13px] text-gray-900 dark:text-white truncate text-gold-600 dark:text-gold-500">Notifikasi Baru</h4>
             <p id="ticket-toast-msg" class="text-[12px] text-gray-500 dark:text-lux-400 font-semibold truncate mt-0.5">Isi notifikasi...</p>
+        </div>
+        <div class="flex items-center text-gray-400 dark:text-lux-500 shrink-0"><i class="fa-solid fa-chevron-right text-xs"></i></div>
+    </div>
+
+    <!-- Service Update Toast Notification -->
+    <div id="svc-toast" class="svc-toast fixed top-4 left-4 right-4 sm:left-auto sm:right-8 lg:top-8 lg:right-8 bg-white/95 dark:bg-[#1c1c20]/95 backdrop-blur-md text-gray-900 dark:text-white p-4 rounded-2xl shadow-2xl flex gap-4 sm:max-w-md sm:min-w-[360px] cursor-pointer transition-all duration-300 active:scale-95 border-l-4 border-blue-500" onclick="switchTab('customer-service'); this.classList.remove('show');">
+        <div class="relative shrink-0">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 bg-blue-500/10 border border-blue-500/20" id="svc-toast-icon-wrap">
+                <i class="fa-solid fa-screwdriver-wrench text-blue-500" id="svc-toast-icon"></i>
+            </div>
+        </div>
+        <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-2 mb-0.5">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400" id="svc-toast-label">Service Update • TMS</span>
+                <span class="text-[9px] font-bold text-gray-400 dark:text-lux-500" id="svc-toast-time">Sekarang</span>
+            </div>
+            <h4 id="svc-toast-title" class="font-extrabold text-[13px] text-gray-900 dark:text-white truncate">Update Layanan</h4>
+            <p id="svc-toast-msg" class="text-[12px] text-gray-500 dark:text-lux-400 font-semibold mt-0.5 line-clamp-2">Detail update...</p>
         </div>
         <div class="flex items-center text-gray-400 dark:text-lux-500 shrink-0"><i class="fa-solid fa-chevron-right text-xs"></i></div>
     </div>
@@ -2718,9 +3023,10 @@
                             const localVersion = parseInt(db.version || 0);
                             if (cloudVersion >= localVersion) {
                                 const nd = data.db_data;
-                                const localUsers = db.users; // JAGA users lokal
+                                const localUsers = db.users || {};
+                                const cloudUsers = nd.users || {};
                                 db = nd;
-                                db.users = localUsers;
+                                db.users = { ...localUsers, ...cloudUsers };
                                 if (!db.tools) db.tools = [];
                                 if (!db.requests) db.requests = [];
                                 if (!db.historyLog) db.historyLog = [];
@@ -2848,7 +3154,7 @@
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Data Inventaris</div>
                     ${assetsMenu}
                     <a href="#" onclick="switchTab('demo-inventory')" id="nav-demo-inventory" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-box-archive w-4 text-center text-sm"></i> Backup/Demo</a>
-                    <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service Customer</a>
+                    <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex justify-between items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service Customer</div><span id="badge-svc-stagnant" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)]">!</span></a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Manajemen Sistem</div>
                     <a href="#" onclick="switchTab('spv-maintenance')" id="nav-spv-maintenance" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Modul Maintenance</a>
                     <a href="#" onclick="switchTab('spv-personnel')" id="nav-spv-personnel" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-users w-4 text-center text-sm"></i> Data Personel</a>
@@ -2869,13 +3175,13 @@
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Data Inventaris</div>
                     <a href="#" onclick="switchTab('ts-toolbox')" id="nav-ts-toolbox" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-toolbox w-4 text-center text-sm"></i> Inventaris Saya</a>
                     <a href="#" onclick="switchTab('ts-radar')" id="nav-ts-radar" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-globe w-4 text-center text-sm"></i> Direktori Aset</a>
-                    <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service Customer</a>
+                    <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex justify-between items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service Customer</div><span id="badge-svc-stagnant" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)]">!</span></a>
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Buku Tiket</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Validasi</div>
                     <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Tanda Terima Fisik</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
                 switchTab('ts-dash');
             }
-            updateOwnerDropdown(); checkNotifications(); renderChatUsers(); updateChatBadge(); initRealtimeSync();
+            updateOwnerDropdown(); checkNotifications(); renderChatUsers(); updateChatBadge(); initRealtimeSync(); initServiceNotifPolling();
         }
 
         function switchTab(tabId) {
@@ -3051,9 +3357,18 @@
 
         function checkNotifications() {
             if(!currentUser) return;
-            const notifList = document.getElementById('notif-list'); notifList.innerHTML = ''; let alertCount = 0;
-            const isRegionalSpv = currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang';
+            const notifList = document.getElementById('notif-list');
+            if(!notifList) return;
+            notifList.innerHTML = '';
             
+            let alertCount = 0;
+            const isRegionalSpv = currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang';
+            let allNotifs = [];
+
+            const addNotif = (time, html) => {
+                allNotifs.push({ time: new Date(time).getTime() || 0, html: html });
+            };
+
             const checkItem = (item, typeStr) => {
                 if (currentUser.role === 'ts') {
                     if (item.ownerId !== currentUser.id) return;
@@ -3065,114 +3380,183 @@
                 }
                 
                 const loc = item.ownerId === 0 ? 'Gudang (Pool)' : (db.users[item.ownerId] ? `${db.users[item.ownerId].name} (${db.users[item.ownerId].group})` : 'Gudang (Pool)');
-                if(item.condition === 'Rusak') { 
+                if(item.condition === 'Rusak' && (!item.maintenanceStatus || item.maintenanceStatus === 'Menunggu Tindakan')) { 
                     alertCount++; 
-                    notifList.innerHTML += `<div onclick="showToolDetail(${item.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                    const html = `<div onclick="showToolDetail(${item.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                         <p class="text-[10px] text-red-600 dark:text-red-500 font-black uppercase mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Alat Rusak</p>
                         <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
                         <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Lokasi: ${loc}</span></p>
                     </div>`; 
+                    addNotif(item.id, html);
                 }
                 const calStat = getCalibrationStatus(item.calDate);
                 if(calStat.isAlert) { 
                     alertCount++; 
-                    const color = calStat.text==='KADALUARSA' ? 'text-red-600 dark:text-red-500' : 'text-amber-600 dark:text-amber-500'; 
-                    notifList.innerHTML += `<div onclick="showToolDetail(${item.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                        <p class="text-[10px] ${color} font-black uppercase mb-1"><i class="fa-solid fa-clock"></i> ${calStat.msg}</p>
+                    const color = calStat.text==='KADALUARSA' ? 'text-red-600 dark:text-red-500' : 'text-amber-600 dark:text-amber-500';
+                    const icon = calStat.text==='KADALUARSA' ? 'fa-calendar-xmark' : 'fa-calendar-check';
+                    const html = `<div onclick="showToolDetail(${item.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                        <p class="text-[10px] ${color} font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> Kalibrasi ${calStat.text}</p>
                         <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
-                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Lokasi: ${loc}</span></p>
-                    </div>`; 
+                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">${calStat.msg} (${item.calDate || '-'})</span></p>
+                    </div>`;
+                    addNotif(item.id, html);
                 }
             };
-            db.tools.forEach(t => checkItem(t, 'Spesial Tool')); db.demoUnits.forEach(d => checkItem(d, 'Demo Unit'));
-            
-            // Ticket-based smart notifications targeting
-            if (db.requests && db.requests.length > 0) {
+
+            loadDB();
+            if (db.tools && Array.isArray(db.tools)) {
+                db.tools.forEach(t => checkItem(t, 'Spesial Tools'));
+            }
+            if (db.demoUnits && Array.isArray(db.demoUnits)) {
+                db.demoUnits.forEach(d => checkItem(d, 'Demo/Backup'));
+            }
+
+            if (db.requests && Array.isArray(db.requests)) {
                 db.requests.forEach(r => {
-                    const u = db.users[r.requesterId];
-                    const arr = r.toolType === 'demo' ? db.demoUnits : db.tools;
-                    const t = arr.find(x => x.id === r.toolId);
-                    
                     if (r.reqType === 'verify_user') {
                         if (currentUser.role === 'owner' && (r.status === 'pending_spv' || r.status === 'pending_tsf')) {
                             const newPersonel = db.users[r.toolId];
                             if (newPersonel) {
                                 alertCount++;
-                                notifList.innerHTML += `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                const html = `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                     <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-user-plus"></i> Verifikasi Personel</p>
                                     <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Personel Baru: ${newPersonel.name}</p>
                                     <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Peran: ${newPersonel.role.toUpperCase()} | Wilayah: ${newPersonel.group}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu Owner</span></p>
                                 </div>`;
+                                addNotif(r.id, html);
                             }
                         }
                         return;
                     }
-                    
+
+                    const u = db.users[r.requesterId];
+                    const arr = r.toolType === 'demo' ? db.demoUnits : db.tools;
+                    const t = arr.find(x => x.id === r.toolId);
                     if (!u || !t) return;
-                    
-                    // 1. Role is SPV:
-                    // a. Peminjaman / Pengembalian Alat
-                    if (currentUser.role === 'spv' && r.status === 'pending_spv') {
-                        if (u.group === currentUser.group) {
-                            alertCount++;
-                            const reqTypeLabel = r.reqType === 'borrow' ? 'Peminjaman' : (r.reqType === 'return' ? 'Pengembalian' : 'Verifikasi Aset');
-                            notifList.innerHTML += `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                <p class="text-[10px] text-amber-600 dark:text-amber-500 font-black uppercase mb-1"><i class="fa-solid fa-file-signature"></i> Otorisasi ${reqTypeLabel}</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Butuh approval: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu SPV</span></p>
+
+                    let shouldAlert = false;
+                    let html = '';
+
+                    if (currentUser.role === 'ts' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
+                        if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') {
+                            shouldAlert = true;
+                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Butuh Tanda Terima Fisik</p>
+                            </div>`;
+                        }
+                    } else if (currentUser.role === 'tsf') {
+                        if (r.reqType === 'return' && r.status === 'approved') {
+                            shouldAlert = true;
+                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Pengembalian</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                            </div>`;
+                        } else if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') {
+                            shouldAlert = true;
+                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
+                            </div>`;
+                        }
+                    } else if (currentUser.role === 'spv') {
+                        if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') {
+                            shouldAlert = true;
+                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
+                            </div>`;
+                        } else if (!isRegionalSpv && r.reqType === 'return' && r.status === 'approved') {
+                            shouldAlert = true;
+                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Pengembalian</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                            </div>`;
+                        } else if (isRegionalSpv && r.status === 'pending_spv' && r.reqType !== 'verify_user' && u.group === currentUser.group) {
+                            shouldAlert = true;
+                            html = `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Otorisasi Peminjaman/Pengembalian</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu SPV: ${t.desc}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: pending_spv</span></p>
                             </div>`;
                         }
                     }
-                    
-                    // 2. Role is TSF:
-                    // a. Otorisasi Demo (pending_tsf)
-                    if (currentUser.role === 'tsf' && r.status === 'pending_tsf') {
-                        alertCount++;
-                        const reqTypeLabel = r.reqType === 'borrow' ? 'Peminjaman Demo' : 'Pengembalian Demo';
-                        notifList.innerHTML += `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                            <p class="text-[10px] text-purple-600 dark:text-purple-500 font-black uppercase mb-1"><i class="fa-solid fa-file-signature"></i> Otorisasi TSF</p>
-                            <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Butuh approval TSF: ${t.desc}</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu TSF</span></p>
-                        </div>`;
-                    }
-                    // b. Serah Terima Pengembalian Fisik
-                    if (currentUser.role === 'tsf' && r.reqType === 'return' && r.status === 'approved') {
-                        alertCount++;
-                        notifList.innerHTML += `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                            <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-truck-ramp-box"></i> Serah Terima Pengembalian</p>
-                            <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Fisik Siap Diterima: ${t.desc}</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pengirim: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu TTD Gudang</span></p>
-                        </div>`;
-                    }
-                    
-                    // 3. Role is TS (Technician):
-                    // a. Serah Terima Peminjaman Fisik
-                    if (currentUser.role === 'ts' && r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') {
-                        alertCount++;
-                        notifList.innerHTML += `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                            <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-hand-holding"></i> Serah Terima Peminjaman</p>
-                            <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Siap Diambil: ${t.desc}</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV<br><span class="text-gold-600 dark:text-gold-500 font-bold">Silahkan lakukan TTD Serah Terima</span></p>
-                        </div>`;
-                    }
-                    
-                    // 4. Role is Owner:
-                    // a. Audit Otorisasi
+
                     if (currentUser.role === 'owner' && (r.status === 'pending_spv' || r.status === 'pending_tsf')) {
-                        alertCount++;
+                        shouldAlert = true;
                         const reqTypeLabel = r.reqType === 'borrow' ? 'Peminjaman' : (r.reqType === 'return' ? 'Pengembalian' : 'Verifikasi Aset');
-                        notifList.innerHTML += `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                        html = `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                             <p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Audit Otorisasi: ${reqTypeLabel}</p>
                             <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu: ${t.desc}</p>
                             <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${r.status}</span></p>
                         </div>`;
                     }
+
+                    if (shouldAlert) {
+                        alertCount++;
+                        addNotif(r.id, html);
+                    }
                 });
             }
 
+            if (db.serviceTickets && Array.isArray(db.serviceTickets)) {
+                const activeStatuses = ['registered', 'picked_up', 'initial_analyzed', 'received_tsf', 'quoted', 'po_issued', 'repaired', 'received_field'];
+                const relevantTickets = db.serviceTickets.filter(t => {
+                    if (!activeStatuses.includes(t.status)) return false;
+                    if (currentUser.role === 'ts') {
+                        return t.assignedTsId === currentUser.id;
+                    }
+                    if (currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang') {
+                        const tsUser = db.users[t.assignedTsId];
+                        return tsUser && tsUser.group === currentUser.group;
+                    }
+                    return true;
+                });
+
+                relevantTickets.forEach(t => {
+                    alertCount++;
+                    const cfg = SVC_NOTIF_CONFIG[t.status] || {};
+                    const lastUpdate = t.history && t.history.length > 0 ? new Date(t.history[0].t) : new Date(t.id);
+                    const tsUser = db.users[t.assignedTsId] || { name: '-' };
+                    const color = cfg.color || 'blue';
+                    const icon = cfg.icon || 'fa-screwdriver-wrench';
+                    const label = cfg.label || t.status.toUpperCase();
+                    
+                    const html = `<div onclick="showServiceDetail(${t.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                        <p class="text-[10px] text-${color}-600 dark:text-${color}-500 font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> ${label}</p>
+                        <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${t.unitName} — ${t.customerName}</p>
+                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${t.noService} | TS: ${tsUser.name}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${label}</span></p>
+                    </div>`;
+                    addNotif(lastUpdate.getTime(), html);
+                });
+            }
+
+            allNotifs.sort((a, b) => b.time - a.time);
+
+            if (allNotifs.length > 0) {
+                allNotifs.forEach(n => {
+                    notifList.innerHTML += n.html;
+                });
+            } else {
+                notifList.innerHTML = `<div class="p-5 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">Tidak ada peringatan</div>`;
+            }
+
             const badge = document.getElementById('notif-badge');
-            if(alertCount > 0) { badge.innerText = alertCount; badge.classList.remove('hidden'); } else { badge.classList.add('hidden'); notifList.innerHTML = `<div class="p-5 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">Tidak ada peringatan</div>`; }
+            if (badge) {
+                if (alertCount > 0) {
+                    badge.innerText = alertCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
         }
+
         function toggleNotifications() { document.getElementById('notif-dropdown').classList.toggle('hidden'); }
 
         // --- FILTER TAB LOGIC ---
@@ -3261,7 +3645,7 @@
                 if(activeTab === 'spv-maintenance') renderSpvMaintenance();
                 if(activeTab === 'ts-handover') renderTsHandover();
             } else if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { 
-                if(activeTab === 'spv-dash') renderSpvDash(); if(activeTab === 'spv-assets') renderSpvAssets(); if(activeTab === 'demo-inventory') renderDemoInventory(); if(activeTab === 'spv-personnel') renderSpvPersonnel(); if(activeTab === 'spv-approvals') renderSpvApprovals(); if(activeTab === 'spv-maintenance') renderSpvMaintenance();
+            if(activeTab === 'spv-dash') renderSpvDash(); if(activeTab === 'spv-assets') renderSpvAssets(); if(activeTab === 'demo-inventory') renderDemoInventory(); if(activeTab === 'spv-personnel') renderSpvPersonnel(); if(activeTab === 'spv-approvals') renderSpvApprovals(); if(activeTab === 'spv-maintenance') renderSpvMaintenance();
                 if((currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') && activeTab === 'ts-handover') renderTsHandover();
             }
             
@@ -3277,6 +3661,7 @@
                 }
             }
             if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { 
+                checkStagnantServiceAlerts();
                 const pr = db.requests.filter(r => {
                     if (r.status !== 'pending_spv' && r.status !== 'pending_tsf') return false;
                     if (currentUser.role === 'tsf') return r.status === 'pending_tsf';
@@ -3330,6 +3715,7 @@
                     (t.tipe && t.tipe.toLowerCase().includes(query))
                 );
             });
+            filteredTools.sort((a, b) => b.id - a.id);
             
             if(filteredTools.length === 0) {
                 mcTools.innerHTML = `<div class="col-span-full border border-dashed border-gray-300 dark:border-lux-700 rounded-2xl p-8 text-center text-gray-500 dark:text-lux-500 font-bold uppercase tracking-widest text-[11px] bg-white dark:bg-[#18181b]">Tidak Ada Spesial Tools</div>`;
@@ -3435,6 +3821,7 @@
                         (t.tipe && t.tipe.toLowerCase().includes(query))
                     );
                 });
+                filteredDemos.sort((a, b) => b.id - a.id);
                 
                 if(filteredDemos.length === 0) {
                     mcDemo.innerHTML = `<div class="col-span-full border border-dashed border-gray-300 dark:border-lux-700 rounded-2xl p-8 text-center text-gray-500 dark:text-lux-500 font-bold uppercase tracking-widest text-[11px] bg-white dark:bg-[#18181b]">Tidak Ada Unit Backup / Demo</div>`;
@@ -3552,6 +3939,7 @@
                 );
             });
             const filteredTools = allTools.filter(t => currentTsRadarFilter === 'all' || t.subCategory === currentTsRadarFilter);
+            filteredTools.sort((a, b) => b.id - a.id);
 
             const allDemos = db.demoUnits.filter(t => {
                 const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
@@ -3566,6 +3954,7 @@
                     (ownerName.includes(q))
                 );
             });
+            allDemos.sort((a, b) => b.id - a.id);
             
             if(filteredTools.length === 0) scTools.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">Tidak ada spesial tools ditemukan</td></tr>`;
             
@@ -3796,6 +4185,8 @@
                     dashAlerts.innerHTML = `<div class="p-5 text-center border border-dashed border-gray-300 dark:border-lux-700 rounded-xl text-gray-500 dark:text-lux-500 text-[10px] font-bold uppercase tracking-widest my-auto">Semua alat beroperasi normal & kalibrasi valid</div>`;
                 }
             }
+            // Render service statistics section
+            renderServiceStatsDash();
         }
 
         function renderSpvAssets() {
@@ -3824,6 +4215,7 @@
                 }
                 return t.status !== 'pending_auth' && matchQ && matchF;
             });
+            filtered.sort((a, b) => b.id - a.id);
             filtered.forEach(t => {
                 const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
                 let ownerHtml = ownerUser ? `${ownerUser.name}` : 'Gudang (Pool)';
@@ -3872,6 +4264,7 @@
                 }
                 return matchQ;
             });
+            filtered.sort((a, b) => b.id - a.id);
             filtered.forEach(t => {
                 const owner = t.ownerId === 0 ? 'Gudang' : (db.users[t.ownerId] ? db.users[t.ownerId].name : 'Tidak Diketahui');
                 const reasonStr = t.reason || "Standby";
@@ -3893,7 +4286,10 @@
         function renderSpvPersonnel() {
             const q = document.getElementById('search-tech').value.toLowerCase(); const container = document.getElementById('spv-users-container'); container.innerHTML = '';
             const isRegionalSpv = currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang';
-            Object.values(db.users).filter(u => (u.name && u.name.toLowerCase().includes(q)) || (u.nik && u.nik.toLowerCase().includes(q))).forEach(u => {
+            Object.values(db.users)
+                .filter(u => (u.name && u.name.toLowerCase().includes(q)) || (u.nik && u.nik.toLowerCase().includes(q)))
+                .sort((a, b) => b.id - a.id)
+                .forEach(u => {
                 if (currentUser.role !== 'owner') {
                     if(u.role === 'spv' && u.group === 'TSF/Gudang') return; 
                     if(u.role === 'owner') return;
@@ -4046,6 +4442,7 @@
                            toolTipe.includes(q);
                 });
             }
+            filteredPending.sort((a, b) => b.id - a.id);
             
             if(filteredPending.length === 0) {
                 rc.innerHTML = '<p class="text-[11px] font-bold text-gray-500 dark:text-lux-500 tracking-widest uppercase border border-dashed border-gray-300 dark:border-lux-700 p-8 rounded-2xl bg-gray-50 dark:bg-[#09090b] text-center">Tidak ada permohonan tertunda</p>';
@@ -4115,6 +4512,7 @@
                 }
                 return matchQ;
             });
+            filtered.sort((a, b) => b.id - a.id);
             
             if(filtered.length === 0) { sc.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">Tidak ada aset dalam proses maintenance</td></tr>`; }
             
@@ -5469,6 +5867,152 @@
             }
         }
 
+        // ====================================================================
+        // SISTEM NOTIFIKASI SERVICE UNIT CUSTOMER
+        // ====================================================================
+
+        // Warna & ikon per status transisi service ticket
+        const SVC_NOTIF_CONFIG = {
+            'picked_up':       { color: 'blue',   icon: 'fa-truck-pickup',        label: 'Unit Diambil (Pickup)' },
+            'initial_analyzed':{ color: 'amber',  icon: 'fa-magnifying-glass',    label: 'Analisa Awal Selesai' },
+            'received_tsf':    { color: 'purple', icon: 'fa-industry',            label: 'Diterima Workshop TSF' },
+            'quoted':          { color: 'indigo', icon: 'fa-file-invoice-dollar', label: 'Penawaran Dikirim' },
+            'po_issued':       { color: 'orange', icon: 'fa-money-check-dollar',  label: 'PO Diterima — Proses Perbaikan' },
+            'repaired':        { color: 'pink',   icon: 'fa-wrench',              label: 'Perbaikan TSF Selesai' },
+            'received_field':  { color: 'teal',   icon: 'fa-person-carry-box',    label: 'Diterima Teknisi Lapangan' },
+            'completed':       { color: 'emerald',icon: 'fa-circle-check',        label: 'Unit Diserahkan — BAST Sah' },
+            'registered':      { color: 'gray',   icon: 'fa-file-circle-plus',    label: 'Tiket Baru Terdaftar' },
+        };
+
+        /**
+         * Tampilkan toast notifikasi khusus Service Customer.
+         * @param {string} title - Judul notifikasi
+         * @param {string} msg   - Isi pesan notifikasi
+         * @param {string} status - Status baru tiket (untuk pewarnaan)
+         * @param {number} ticketId - ID tiket (opsional, untuk navigasi langsung)
+         */
+        function showServiceNotif(title, msg, status = 'registered', ticketId = null) {
+            const cfg = SVC_NOTIF_CONFIG[status] || SVC_NOTIF_CONFIG['registered'];
+            const colorMap = {
+                blue:   { border: '#3b82f6', bg: 'bg-blue-500/10',   border2: 'border-blue-500/20',   text: 'text-blue-500',   label: 'text-blue-600 dark:text-blue-400' },
+                amber:  { border: '#f59e0b', bg: 'bg-amber-500/10',  border2: 'border-amber-500/20',  text: 'text-amber-500',  label: 'text-amber-600 dark:text-amber-400' },
+                purple: { border: '#a855f7', bg: 'bg-purple-500/10', border2: 'border-purple-500/20', text: 'text-purple-500', label: 'text-purple-600 dark:text-purple-400' },
+                indigo: { border: '#6366f1', bg: 'bg-indigo-500/10', border2: 'border-indigo-500/20', text: 'text-indigo-500', label: 'text-indigo-600 dark:text-indigo-400' },
+                orange: { border: '#f97316', bg: 'bg-orange-500/10', border2: 'border-orange-500/20', text: 'text-orange-500', label: 'text-orange-600 dark:text-orange-400' },
+                pink:   { border: '#ec4899', bg: 'bg-pink-500/10',   border2: 'border-pink-500/20',   text: 'text-pink-500',   label: 'text-pink-600 dark:text-pink-400' },
+                teal:   { border: '#14b8a6', bg: 'bg-teal-500/10',   border2: 'border-teal-500/20',   text: 'text-teal-500',   label: 'text-teal-600 dark:text-teal-400' },
+                emerald:{ border: '#22c55e', bg: 'bg-emerald-500/10',border2: 'border-emerald-500/20',text: 'text-emerald-500',label: 'text-emerald-600 dark:text-emerald-400' },
+                gray:   { border: '#6b7280', bg: 'bg-gray-500/10',   border2: 'border-gray-500/20',   text: 'text-gray-500',   label: 'text-gray-600 dark:text-gray-400' },
+            };
+            const c = colorMap[cfg.color] || colorMap.blue;
+
+            const toast = document.getElementById('svc-toast');
+            if (!toast) return;
+
+            // Update toast style
+            toast.style.borderLeftColor = c.border;
+            toast.onclick = () => { 
+                if (ticketId) showServiceDetail(ticketId);
+                else switchTab('customer-service');
+                toast.classList.remove('show'); 
+            };
+
+            // Update icon
+            const iconWrap = document.getElementById('svc-toast-icon-wrap');
+            const iconEl = document.getElementById('svc-toast-icon');
+            if (iconWrap) iconWrap.className = `w-12 h-12 rounded-full flex items-center justify-center text-xl shrink-0 ${c.bg} border ${c.border2}`;
+            if (iconEl) iconEl.className = `fa-solid ${cfg.icon} ${c.text}`;
+
+            // Update label
+            const labelEl = document.getElementById('svc-toast-label');
+            if (labelEl) { labelEl.className = `text-[10px] font-extrabold uppercase tracking-wider ${c.label}`; labelEl.innerText = cfg.label + ' • TMS'; }
+
+            // Update time
+            const timeEl = document.getElementById('svc-toast-time');
+            if (timeEl) timeEl.innerText = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            // Update content
+            document.getElementById('svc-toast-title').innerText = title;
+            document.getElementById('svc-toast-msg').innerText = msg;
+
+            // Show toast
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 7000);
+
+            // Suara notifikasi
+            playNotificationSound();
+
+            // Browser push notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    const n = new Notification(`🔧 ${cfg.label}`, {
+                        body: `${title}\n${msg}`,
+                        icon: 'tms_pwa_icon.png',
+                        tag: `svc-${ticketId || 'update'}`,
+                        renotify: true
+                    });
+                    n.onclick = () => { window.focus(); if (ticketId) showServiceDetail(ticketId); };
+                } catch(e) {}
+            }
+        }
+
+        // ====================================================================
+        // POLLING REALTIME: Deteksi perubahan status service tiket
+        // ====================================================================
+        let _svcNotifSnapshot = {}; // snapshot status terakhir tiap tiket
+        let _svcPollingTimer = null;
+
+        function initServiceNotifPolling() {
+            // Build snapshot awal tanpa notifikasi
+            _buildSvcSnapshot(false);
+
+            // Polling setiap 30 detik
+            if (_svcPollingTimer) clearInterval(_svcPollingTimer);
+            _svcPollingTimer = setInterval(() => {
+                _checkSvcStatusChanges();
+            }, 30000);
+        }
+
+        function _buildSvcSnapshot(notify = true) {
+            loadDB();
+            const tickets = db.serviceTickets || [];
+            tickets.forEach(t => {
+                const prevStatus = _svcNotifSnapshot[t.id];
+                if (prevStatus === undefined) {
+                    // Tiket baru yang belum di-snapshot
+                    _svcNotifSnapshot[t.id] = t.status;
+                } else if (prevStatus !== t.status && notify) {
+                    // Status berubah — kirim notifikasi
+                    _fireServiceStatusNotif(t, prevStatus, t.status);
+                    _svcNotifSnapshot[t.id] = t.status;
+                }
+            });
+        }
+
+        function _checkSvcStatusChanges() {
+            if (!currentUser) return;
+            _buildSvcSnapshot(true);
+            // Refresh checkNotifications panel juga
+            checkNotifications();
+        }
+
+        function _fireServiceStatusNotif(ticket, oldStatus, newStatus) {
+            if (!currentUser) return;
+            const cfg = SVC_NOTIF_CONFIG[newStatus] || {};
+            const tsUser = db.users[ticket.assignedTsId] || { name: 'Teknisi' };
+            const title = `${ticket.unitName} — ${ticket.customerName}`;
+            const msg = `${cfg.label || newStatus.toUpperCase()} | TS: ${tsUser.name} | No: ${ticket.noService}`;
+            showServiceNotif(title, msg, newStatus, ticket.id);
+        }
+
+        // Fungsi dipanggil manual saat ada update data (di addToHistory / submitService*)
+        function notifyServiceUpdate(ticket, newStatus) {
+            if (!currentUser) return;
+            _svcNotifSnapshot[ticket.id] = newStatus;
+            _fireServiceStatusNotif(ticket, null, newStatus);
+            checkNotifications();
+        }
+
         // --- 5. FITUR PREMIUM ADVANCED ---
         var spvChart = null;
         function updateSpvChart(good, broken, maint) {
@@ -6295,36 +6839,18 @@
         // CUSTOMER SERVICE & WORKFLOW FUNCTIONS
         // ==========================================
 
-        const svcCanvas = document.getElementById('svc-sig-canvas');
-        const svcCtx = svcCanvas ? svcCanvas.getContext('2d') : null;
-        let svcisDrawing = false;
+        function setupSignatureDrawing(canvasId, clearButtonId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return null;
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
 
-        function resizeSvcCanvas() {
-            if (!svcCanvas) return;
-            const rect = svcCanvas.parentElement.getBoundingClientRect();
-            if (rect.width === 0) return;
-            const temp = document.createElement('canvas');
-            const tCtx = temp.getContext('2d');
-            temp.width = svcCanvas.width;
-            temp.height = svcCanvas.height;
-            tCtx.drawImage(svcCanvas, 0, 0);
-            svcCanvas.width = rect.width;
-            svcCanvas.height = rect.height;
-            svcCtx.strokeStyle = '#eab308';
-            svcCtx.lineWidth = 3;
-            svcCtx.lineCap = 'round';
-            svcCtx.lineJoin = 'round';
-            svcCtx.drawImage(temp, 0, 0);
-        }
-
-        if (svcCanvas) {
-            window.addEventListener('resize', resizeSvcCanvas);
-            function startSvcPosition(e) { svcisDrawing = true; drawSvc(e); }
-            function endSvcPosition() { svcisDrawing = false; svcCtx.beginPath(); }
-            function drawSvc(e) {
-                if (!svcisDrawing) return;
+            function startPosition(e) { isDrawing = true; draw(e); }
+            function endPosition(e) { isDrawing = false; ctx.beginPath(); }
+            function draw(e) {
+                if (!isDrawing) return;
                 e.preventDefault();
-                const rect = svcCanvas.getBoundingClientRect();
+                const rect = canvas.getBoundingClientRect();
                 let x, y;
                 if (e.type.includes('touch')) {
                     x = e.touches[0].clientX - rect.left;
@@ -6333,27 +6859,77 @@
                     x = e.clientX - rect.left;
                     y = e.clientY - rect.top;
                 }
-                svcCtx.lineTo(x, y);
-                svcCtx.stroke();
-                svcCtx.beginPath();
-                svcCtx.moveTo(x, y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
             }
-            function clearServiceSignature() {
-                svcCtx.clearRect(0, 0, svcCanvas.width, svcCanvas.height);
-                svcCtx.beginPath();
+            
+            canvas.removeEventListener('mousedown', startPosition);
+            canvas.removeEventListener('mouseup', endPosition);
+            canvas.removeEventListener('mousemove', draw);
+            canvas.removeEventListener('touchstart', startPosition);
+            canvas.removeEventListener('touchend', endPosition);
+            canvas.removeEventListener('touchmove', draw);
+
+            canvas.addEventListener('mousedown', startPosition);
+            canvas.addEventListener('mouseup', endPosition);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', startPosition, { passive: false });
+            canvas.addEventListener('touchend', endPosition);
+            canvas.addEventListener('touchmove', draw, { passive: false });
+
+            const clearBtn = document.getElementById(clearButtonId);
+            if (clearBtn) {
+                clearBtn.onclick = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath();
+                };
             }
-            function isSvcCanvasBlank() {
-                const blank = document.createElement('canvas');
-                blank.width = svcCanvas.width;
-                blank.height = svcCanvas.height;
-                return svcCanvas.toDataURL() === blank.toDataURL();
-            }
-            svcCanvas.addEventListener('mousedown', startSvcPosition);
-            svcCanvas.addEventListener('mouseup', endSvcPosition);
-            svcCanvas.addEventListener('mousemove', drawSvc);
-            svcCanvas.addEventListener('touchstart', startSvcPosition, { passive: false });
-            svcCanvas.addEventListener('touchend', endSvcPosition);
-            svcCanvas.addEventListener('touchmove', drawSvc, { passive: false });
+
+            return {
+                canvas: canvas,
+                ctx: ctx,
+                clear: () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.beginPath();
+                },
+                isBlank: () => {
+                    const blank = document.createElement('canvas');
+                    blank.width = canvas.width;
+                    blank.height = canvas.height;
+                    return canvas.toDataURL() === blank.toDataURL();
+                },
+                resize: () => {
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    if (rect.width === 0) return;
+                    const temp = document.createElement('canvas');
+                    const tCtx = temp.getContext('2d');
+                    temp.width = canvas.width;
+                    temp.height = canvas.height;
+                    tCtx.drawImage(canvas, 0, 0);
+                    canvas.width = rect.width;
+                    canvas.height = rect.height;
+                    ctx.strokeStyle = '#eab308';
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.drawImage(temp, 0, 0);
+                }
+            };
+        }
+
+        let handoverGiverDraw, handoverReceiverDraw;
+        let svcGiverDraw, svcReceiverDraw;
+
+        function initServiceSignatureCanvas() {
+            svcGiverDraw = setupSignatureDrawing('svc-sig-canvas-giver', 'btn-clear-svc-giver');
+            svcReceiverDraw = setupSignatureDrawing('svc-sig-canvas-receiver', 'btn-clear-svc-receiver');
+        }
+
+        function initHandoverSignatureCanvas() {
+            handoverGiverDraw = setupSignatureDrawing('handover-sig-canvas-giver', 'btn-clear-handover-giver');
+            handoverReceiverDraw = setupSignatureDrawing('handover-sig-canvas-receiver', 'btn-clear-handover-receiver');
         }
 
         function getBase64(file) {
@@ -6536,6 +7112,7 @@
                             <div class="flex flex-col gap-1.5 items-start">
                                 ${statusBadge}
                                 <span onclick="showServiceDetail(${s.id})" class="text-[9.5px] text-gold-500 hover:text-gold-600 hover:underline cursor-pointer font-bold uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Track Status</span>
+                                ${s.status !== 'registered' ? `<span onclick="openServiceReceiptModal(${s.id})" class="text-[9.5px] text-blue-500 hover:text-blue-600 hover:underline cursor-pointer font-bold uppercase tracking-wider mt-1 block"><i class="fa-solid fa-print mr-1"></i> Tanda Terima</span>` : ''}
                             </div>
                         </td>
                         <td class="p-5 text-center whitespace-nowrap">
@@ -6549,48 +7126,118 @@
             });
         }
 
+        function smartFillServiceByArtNo(val) {
+            if (!val || val.trim() === '') return;
+            loadDB();
+            const artVal = val.trim().toLowerCase();
+            
+            // 1. Search in db.tools
+            let found = (db.tools || []).find(t => (t.artNo || '').toLowerCase() === artVal);
+            
+            // 2. Search in db.demoUnits if not found
+            if (!found) {
+                found = (db.demoUnits || []).find(d => (d.artNo || '').toLowerCase() === artVal);
+            }
+            
+            // 3. Search in previous serviceTickets if not found
+            if (!found) {
+                found = (db.serviceTickets || []).find(s => (s.unitArtNo || '').toLowerCase() === artVal);
+            }
+            
+            if (found) {
+                const desc = found.desc || found.unitName || '';
+                const brand = found.merk || found.unitMerk || '';
+                const model = found.tipe || found.unitTipe || '';
+                const sn = found.sn || found.unitSn || '';
+                
+                // Map product category
+                let prod = '';
+                if (found.unitProduct) {
+                    prod = found.unitProduct;
+                } else if (found.subCategory) {
+                    const subCat = found.subCategory.toLowerCase();
+                    if (subCat.includes('avitum')) prod = 'Avitum';
+                    else if (subCat.includes('ais')) prod = 'AIS';
+                    else if (subCat.includes('aes') || subCat.includes('aesculap')) prod = 'AES';
+                }
+                
+                if (desc) document.getElementById('svc-unit-name').value = desc;
+                if (brand) document.getElementById('svc-unit-merk').value = brand;
+                if (model) document.getElementById('svc-unit-tipe').value = model;
+                if (sn && sn !== '-') document.getElementById('svc-unit-sn').value = sn;
+                if (prod) document.getElementById('svc-unit-product').value = prod;
+            }
+        }
+
         function openServiceModal() {
             loadDB();
             populateServiceTsSelect();
             document.getElementById('service-id').value = '';
             document.getElementById('svc-cust-name').value = '';
+            document.getElementById('svc-cust-pic').value = '';
             document.getElementById('svc-cust-contact').value = '';
+            document.getElementById('svc-unit-art-no').value = '';
+            document.getElementById('svc-unit-product').value = '';
             document.getElementById('svc-unit-name').value = '';
             document.getElementById('svc-unit-sn').value = '';
             document.getElementById('svc-unit-merk').value = '';
             document.getElementById('svc-unit-tipe').value = '';
             document.getElementById('svc-complaint').value = '';
-            document.getElementById('svc-assigned-ts').value = '';
+            
+            const tsSelect = document.getElementById('svc-assigned-ts');
+            if (currentUser && currentUser.role === 'ts') {
+                tsSelect.value = currentUser.id;
+                tsSelect.disabled = true;
+            } else {
+                tsSelect.value = '';
+                tsSelect.disabled = false;
+            }
             openModal('serviceModal');
         }
 
-        function submitServiceTicket(e) {
+        async function submitServiceTicket(e) {
             e.preventDefault();
             loadDB();
-            
+
             const noSvc = generateServiceNumber();
+            
+            const tsSelect = document.getElementById('svc-assigned-ts');
+            const assignedTsId = parseInt(tsSelect.value);
+
+            // Read photo before
+            let unitPhotoBefore = null;
+            const photoBeforeInput = document.getElementById('svc-unit-photo-before');
+            if (photoBeforeInput && photoBeforeInput.files && photoBeforeInput.files[0]) {
+                try { unitPhotoBefore = await getBase64(photoBeforeInput.files[0]); } catch(e) {}
+            }
+
             const newTicket = {
                 id: Date.now(),
                 noService: noSvc,
                 customerName: document.getElementById('svc-cust-name').value,
+                picName: document.getElementById('svc-cust-pic').value,
                 customerContact: document.getElementById('svc-cust-contact').value,
+                unitArtNo: document.getElementById('svc-unit-art-no').value || '-',
+                unitProduct: document.getElementById('svc-unit-product').value,
                 unitName: document.getElementById('svc-unit-name').value,
                 unitSn: document.getElementById('svc-unit-sn').value || '-',
                 unitMerk: document.getElementById('svc-unit-merk').value,
                 unitTipe: document.getElementById('svc-unit-tipe').value,
                 complaint: document.getElementById('svc-complaint').value,
-                assignedTsId: parseInt(document.getElementById('svc-assigned-ts').value),
+                assignedTsId: assignedTsId,
+                unitPhotoBefore: unitPhotoBefore,
                 status: 'registered',
                 history: [{
                     t: new Date().toISOString(),
                     m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) dan ditugaskan ke Teknisi Lapangan.`
                 }]
             };
-            
+
             db.serviceTickets = db.serviceTickets || [];
             db.serviceTickets.push(newTicket);
-            
+
             addToHistory(`Service Customer Dibuat: Unit ${newTicket.unitName} untuk RS/Customer ${newTicket.customerName} berhasil didaftarkan dengan No. Layanan ${newTicket.noService}.`);
+            notifyServiceUpdate(newTicket, 'registered');
             playNotificationSound();
             saveDB();
             updateData();
@@ -6598,40 +7245,532 @@
             showToast("Unit Didaftarkan", `Tiket perbaikan ${noSvc} berhasil dibuat.`, "success");
         }
 
-        function actionServiceTicket(id, action) {
+        function openServiceReceiptModal(id) {
             loadDB();
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
             
-            if (action === 'pickup') {
-                s.status = 'picked_up';
-                s.history.unshift({
-                    t: new Date().toISOString(),
-                    m: `Unit diambil dari customer oleh Teknisi Lapangan (${currentUser.name}) untuk dilakukan analisa awal.`
-                });
-                addToHistory(`Service Unit Pickup: ${s.noService} diambil oleh ${currentUser.name}.`);
-                showToast("Unit Di-pickup", "Status berhasil diperbarui.", "success");
-            } else if (action === 'receive_tsf') {
-                s.status = 'received_tsf';
-                s.history.unshift({
-                    t: new Date().toISOString(),
-                    m: `Unit diterima di TSF workshop oleh TSF (${currentUser.name}) untuk pemeriksaan lanjutan.`
-                });
-                addToHistory(`Service Unit Diterima TSF: ${s.noService} diterima di workshop oleh ${currentUser.name}.`);
-                showToast("Diterima TSF Workshop", "Status berhasil diperbarui.", "success");
-            } else if (action === 'receive_field') {
-                s.status = 'received_field';
-                s.history.unshift({
-                    t: new Date().toISOString(),
-                    m: `Unit perbaikan selesai diterima kembali dari TSF oleh Teknisi Lapangan (${currentUser.name}) untuk diserahkan ke customer.`
-                });
-                addToHistory(`Service Unit Diterima Lapangan: ${s.noService} diserahkan ke ${currentUser.name}.`);
-                showToast("Diterima Lapangan", "Unit siap diserahkan ke customer.", "success");
+            document.getElementById('svc-receipt-active-id').value = id;
+            
+            // Manage tabs availability based on status
+            const hasPickup = s.status !== 'registered';
+            const hasTsf = ['received_tsf', 'quoted', 'po_issued', 'repaired', 'received_field', 'completed'].includes(s.status);
+            const hasField = ['received_field', 'completed'].includes(s.status);
+            const hasCompleted = s.status === 'completed';
+            
+            // Set tab disabled state and visual class
+            setupTabButton('tab-receipt-pickup', hasPickup);
+            setupTabButton('tab-receipt-tsf', hasTsf);
+            setupTabButton('tab-receipt-field', hasField);
+            setupTabButton('tab-receipt-completed', hasCompleted);
+            
+            // Select default tab: the highest active one
+            let defaultTab = 'pickup';
+            if (hasCompleted) defaultTab = 'completed';
+            else if (hasField) defaultTab = 'field';
+            else if (hasTsf) defaultTab = 'tsf';
+            
+            renderServiceReceiptTab(defaultTab);
+            openModal('serviceReceiptModal');
+        }
+        
+        function setupTabButton(tabId, enabled) {
+            const btn = document.getElementById(tabId);
+            if (!btn) return;
+            if (enabled) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+            }
+        }
+
+        function renderServiceReceiptTab(docType) {
+            const id = parseInt(document.getElementById('svc-receipt-active-id').value);
+            loadDB();
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) return;
+            
+            // Highlight active tab
+            const tabs = ['pickup', 'tsf', 'field', 'completed'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tab-receipt-${t}`);
+                if (btn) {
+                    if (t === docType) {
+                        btn.classList.remove('bg-gray-150', 'dark:bg-lux-800', 'text-gray-600', 'dark:text-lux-300');
+                        btn.classList.add('bg-gold-500', 'text-white', 'dark:text-black', 'shadow-md');
+                    } else {
+                        btn.classList.remove('bg-gold-500', 'text-white', 'dark:text-black', 'shadow-md');
+                        btn.classList.add('bg-gray-150', 'dark:bg-lux-800', 'text-gray-600', 'dark:text-lux-300');
+                    }
+                }
+            });
+            
+            const container = document.getElementById('svc-receipt-content-body');
+            if (!container) return;
+            
+            const tsUser = db.users[s.assignedTsId] || { name: 'Belum Ditunjuk', phone: '-', nik: '-' };
+            const dateStr = new Date(s.id).toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'});
+            
+            // Extract TSF receiver name from history
+            let tsfName = "Gudang (TSF)";
+            const tsfHist = (s.history || []).find(h => h.m.includes("Unit diterima di TSF workshop oleh TSF"));
+            if (tsfHist) {
+                const match = tsfHist.m.match(/oleh TSF \((.*?)\)/);
+                if (match) tsfName = match[1];
+            }
+
+            let docTitle = "";
+            let docSub = "";
+            let descHandover = "";
+            let leftSigLabel = "";
+            let leftSigName = "";
+            let rightSigLabel = "";
+            let rightSigName = "";
+
+            if (docType === 'pickup') {
+                docTitle = "TANDA TERIMA PICKUP SERVICE";
+                docSub = "No. Dokumen: TTP/" + s.noService;
+                descHandover = `Bahwa pada hari ini, telah dilakukan penyerahan unit alat medis milik Customer/Rumah Sakit oleh perwakilan Customer kepada Teknisi Lapangan TMS untuk dilakukan pengiriman dan pemeriksaan awal di workshop TSF.`;
+                leftSigLabel = "Pihak Pengirim (Customer)";
+                leftSigName = s.picName || s.customerName;
+                rightSigLabel = "Pihak Penerima (Teknisi TMS)";
+                rightSigName = tsUser.name;
+            } else if (docType === 'tsf') {
+                docTitle = "SERAH TERIMA UNIT WORKSHOP TSF";
+                docSub = "No. Dokumen: STW/" + s.noService;
+                descHandover = `Bahwa unit alat perbaikan telah diserahkan oleh Teknisi Lapangan ke workshop pusat TSF untuk dilakukan analisis kerusakan tingkat lanjut, estimasi biaya penggantian suku cadang, dan tindakan perbaikan resmi.`;
+                leftSigLabel = "Yang Menyerahkan (Teknisi)";
+                leftSigName = tsUser.name;
+                rightSigLabel = "Yang Menerima (TSF Workshop)";
+                rightSigName = tsfName;
+            } else if (docType === 'field') {
+                docTitle = "SURAT JALAN PENGIRIMAN BALIK LAPANGAN";
+                docSub = "No. Dokumen: SJB/" + s.noService;
+                descHandover = `Bahwa unit alat perbaikan yang telah dinyatakan selesai dikerjakan di workshop TSF diserahkan kembali kepada Teknisi Lapangan untuk dilakukan pengiriman balik ke Rumah Sakit/Customer serta pelaksanaan uji fungsi ulang di lokasi.`;
+                leftSigLabel = "Yang Menyerahkan (TSF Workshop)";
+                leftSigName = tsfName;
+                rightSigLabel = "Yang Menerima (Teknisi)";
+                rightSigName = tsUser.name;
+            } else if (docType === 'completed') {
+                docTitle = "BERITA ACARA SERAH TERIMA (BAST)";
+                docSub = "No. Dokumen: BAST/" + s.noService;
+                descHandover = `Menyatakan bahwa perbaikan unit alat medis tersebut di bawah ini telah selesai dilaksanakan oleh pihak TMS dan diserahkan kembali kepada pihak Customer/Rumah Sakit dalam kondisi baik, terkalibrasi/siap guna, serta telah diuji fungsi bersama dengan hasil baik.`;
+                leftSigLabel = "Pihak Penyerah (Teknisi TMS)";
+                leftSigName = tsUser.name;
+                rightSigLabel = "Pihak Penerima (Customer)";
+                rightSigName = s.picName || s.customerName;
+            }
+
+            let sigHtmlLeft = `<div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2"><p class="text-[9px] text-gray-300 italic font-bold">Fisik / Basah</p></div>`;
+            let sigHtmlRight = `<div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2"><p class="text-[9px] text-gray-300 italic font-bold">Fisik / Basah</p></div>`;
+
+            if (docType === 'pickup') {
+                const sigGiver = s.signaturePickupGiver || s.signaturePickup;
+                const sigReceiver = s.signaturePickupReceiver;
+                if (sigGiver) {
+                    sigHtmlLeft = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        </div>
+                    `;
+                }
+                if (sigReceiver) {
+                    sigHtmlRight = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        </div>
+                    `;
+                }
+            } else if (docType === 'tsf') {
+                const sigGiver = s.signatureTsfGiver;
+                const sigReceiver = s.signatureTsfReceiver || s.signatureTsf;
+                if (sigGiver) {
+                    sigHtmlLeft = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        </div>
+                    `;
+                }
+                if (sigReceiver) {
+                    sigHtmlRight = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        </div>
+                    `;
+                }
+            } else if (docType === 'field') {
+                const sigGiver = s.signatureFieldGiver;
+                const sigReceiver = s.signatureFieldReceiver || s.signatureField;
+                if (sigGiver) {
+                    sigHtmlLeft = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        </div>
+                    `;
+                }
+                if (sigReceiver) {
+                    sigHtmlRight = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        </div>
+                    `;
+                }
+            } else if (docType === 'completed') {
+                const sigGiver = s.signatureDeliveryGiver;
+                const sigReceiver = s.signatureDeliveryReceiver || s.signature;
+                if (sigGiver) {
+                    sigHtmlLeft = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        </div>
+                    `;
+                }
+                if (sigReceiver) {
+                    sigHtmlRight = `
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = `
+                <!-- Header Dokumen Cetak -->
+                <div class="flex justify-between items-start border-b-2 border-yellow-500 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-yellow-500 text-white flex items-center justify-center text-lg font-black"><i class="fa-solid fa-layer-group"></i></div>
+                        <div>
+                            <h2 class="text-base font-black text-gray-900 tracking-wider leading-none">TMS</h2>
+                            <p class="text-[8px] text-gray-500 font-extrabold uppercase tracking-widest mt-1">Corporate Asset Control</p>
+                        </div>
+                    </div>
+                    <div class="text-right flex items-center gap-3">
+                        <div class="flex flex-col items-center gap-0.5">
+                            <canvas id="receipt-qr" class="w-11 h-11"></canvas>
+                            <span class="text-[6.5px] text-gray-400 font-mono font-bold">VERIFIKASI</span>
+                        </div>
+                        <div class="text-right">
+                            <h1 class="text-sm font-black text-yellow-600 tracking-wider uppercase leading-none">${docTitle}</h1>
+                            <p class="text-[9px] font-bold text-gray-500 font-mono mt-1">${docSub}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informasi Transaksi -->
+                <div class="grid grid-cols-2 gap-4 mb-6 text-[11px] leading-relaxed">
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">IDENTITAS CUSTOMER</p>
+                        <table class="w-full">
+                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-20">Rumah Sakit</td><td class="py-1 font-bold text-gray-800">${s.customerName}</td></tr>
+                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">PIC Customer</td><td class="py-1 font-bold text-gray-800">${s.picName || '-'}</td></tr>
+                            <tr><td class="py-1 text-gray-500 font-bold">Kontak / HP</td><td class="py-1 font-mono text-gray-800 font-bold">${s.customerContact}</td></tr>
+                        </table>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">DETAIL ALAT MEDIS</p>
+                        <table class="w-full">
+                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-20">Deskripsi Alat</td><td class="py-1 font-bold text-gray-800 truncate">${s.unitName}</td></tr>
+                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Art No / Brand</td><td class="py-1 font-bold text-gray-800">${s.unitArtNo || '-'} / ${s.unitMerk || '-'}</td></tr>
+                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Model / SN</td><td class="py-1 font-bold text-gray-800">${s.unitTipe || '-'} / ${s.unitSn || '-'}</td></tr>
+                            <tr><td class="py-1 text-gray-500 font-bold">Product Cat</td><td class="py-1 font-bold text-gray-800">${s.unitProduct || '-'}</td></tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Keluhan & Deskripsi Handover -->
+                <div class="space-y-4 mb-6 text-[11px] leading-relaxed">
+                    <div class="bg-yellow-50/10 border border-yellow-200 p-4 rounded-xl">
+                        <p class="text-[9px] text-yellow-600 font-black uppercase tracking-wider mb-1">KELUHAN / KERUSAKAN AWAL</p>
+                        <p class="font-mono text-gray-700 italic">"${s.complaint || 'Tidak ada keluhan tertulis.'}"</p>
+                    </div>
+
+                    ${docType === 'completed' && s.quotePrice ? `
+                    <div class="bg-emerald-50/10 border border-emerald-200 p-4 rounded-xl">
+                        <p class="text-[9px] text-emerald-600 font-black uppercase tracking-wider mb-1">DETAIL PERBAIKAN & BIAYA DAMAGE</p>
+                        <p class="text-gray-700 font-bold mb-1">${s.quoteDetails || '-'}</p>
+                        <p class="text-gray-500 text-[10px]">Total Biaya Perbaikan (PO): <span class="font-mono font-bold text-emerald-600 text-xs">Rp ${s.quotePrice.toLocaleString('id-ID')}</span></p>
+                    </div>
+                    ` : ''}
+
+                    <p class="text-[11px] text-gray-600 leading-relaxed text-justify mt-3">${descHandover}</p>
+                </div>
+
+                <!-- Tanda Tangan -->
+                <div class="mt-8 pt-4 border-t border-gray-200">
+                    <p class="text-right text-[10px] text-gray-400 font-mono mb-6">Dokumen sah dicetak pada: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</p>
+                    <div class="grid grid-cols-2 gap-10 text-[11px]">
+                        <!-- Kiri -->
+                        <div class="flex flex-col text-center">
+                            <p class="text-gray-500 font-bold uppercase tracking-wider mb-1">${leftSigLabel}</p>
+                            ${sigHtmlLeft}
+                            <div class="border-t border-dashed border-gray-300 pt-2 mt-2">
+                                <p class="font-bold text-gray-900">${leftSigName}</p>
+                                <p class="text-[9px] text-gray-400 font-mono uppercase">Nama Jelas & Tgl</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Kanan -->
+                        <div class="flex flex-col text-center">
+                            <p class="text-gray-500 font-bold uppercase tracking-wider mb-1">${rightSigLabel}</p>
+                            ${sigHtmlRight}
+                            <div class="border-t border-dashed border-gray-300 pt-2 mt-2">
+                                <p class="font-bold text-gray-900">${rightSigName}</p>
+                                <p class="text-[9px] text-gray-400 font-mono uppercase">Nama Jelas & Tgl</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            `;
+
+            // Initialize QR Code dynamically using QRious
+            setTimeout(() => {
+                const qrCanvas = document.getElementById('receipt-qr');
+                if (qrCanvas) {
+                    new QRious({
+                        element: qrCanvas,
+                        value: `https://tms.rs.com/track/service/${s.noService}`,
+                        size: 80
+                    });
+                }
+            }, 100);
+        }
+
+        function printServiceReceipt() {
+            document.body.classList.add('print-svc-receipt');
+            window.print();
+            document.body.classList.remove('print-svc-receipt');
+        }
+
+        function downloadServiceReceiptPDF() {
+            const id = parseInt(document.getElementById('svc-receipt-active-id').value);
+            loadDB();
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) return;
+
+            const element = document.getElementById('svc-receipt-print-area');
+            const options = {
+                margin:       10,
+                filename:     `Tanda_Terima_Service_${s.noService}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            element.classList.add('bg-white', 'text-gray-900');
+            
+            html2pdf().set(options).from(element).save().then(() => {
+                element.classList.remove('bg-white', 'text-gray-900');
+            }).catch(err => {
+                console.error("Gagal membuat PDF:", err);
+                showToast("Gagal Unduh PDF", "Terjadi kesalahan saat mengekspor dokumen.", "error");
+            });
+        }
+
+        function actionServiceTicket(id, action) {
+            loadDB();
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) return;
+
+            if (['pickup', 'receive_tsf', 'receive_field'].includes(action)) {
+                openHandoverSignatureModal(id, action);
+                return;
             }
             
             playNotificationSound();
             saveDB();
             updateData();
+        }
+
+        // --- HANDOVER SIGNATURE CANVAS LOGIC ---
+        let handoverCanvas, handoverCtx;
+        let handoverIsDrawing = false;
+
+        function initHandoverCanvas() {
+            handoverCanvas = document.getElementById('handover-sig-canvas');
+            if (!handoverCanvas) return;
+            handoverCtx = handoverCanvas.getContext('2d');
+            
+            handoverCanvas.removeEventListener('mousedown', startHandoverPosition);
+            handoverCanvas.removeEventListener('mouseup', endHandoverPosition);
+            handoverCanvas.removeEventListener('mousemove', drawHandover);
+            handoverCanvas.removeEventListener('touchstart', startHandoverPosition);
+            handoverCanvas.removeEventListener('touchend', endHandoverPosition);
+            handoverCanvas.removeEventListener('touchmove', drawHandover);
+
+            handoverCanvas.addEventListener('mousedown', startHandoverPosition);
+            handoverCanvas.addEventListener('mouseup', endHandoverPosition);
+            handoverCanvas.addEventListener('mousemove', drawHandover);
+            handoverCanvas.addEventListener('touchstart', startHandoverPosition, { passive: false });
+            handoverCanvas.addEventListener('touchend', endHandoverPosition);
+            handoverCanvas.addEventListener('touchmove', drawHandover, { passive: false });
+        }
+
+        function startHandoverPosition(e) { handoverIsDrawing = true; drawHandover(e); }
+        function endHandoverPosition() { handoverIsDrawing = false; handoverCtx.beginPath(); }
+        function drawHandover(e) {
+            if (!handoverIsDrawing) return;
+            e.preventDefault();
+            const rect = handoverCanvas.getBoundingClientRect();
+            let x, y;
+            if (e.type.includes('touch')) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+            handoverCtx.lineTo(x, y);
+            handoverCtx.stroke();
+            handoverCtx.beginPath();
+            handoverCtx.moveTo(x, y);
+        }
+
+        function resizeHandoverCanvas() {
+            if (!handoverCanvas) return;
+            const rect = handoverCanvas.parentElement.getBoundingClientRect();
+            if (rect.width === 0) return;
+            const temp = document.createElement('canvas');
+            const tCtx = temp.getContext('2d');
+            temp.width = handoverCanvas.width;
+            temp.height = handoverCanvas.height;
+            tCtx.drawImage(handoverCanvas, 0, 0);
+            handoverCanvas.width = rect.width;
+            handoverCanvas.height = rect.height;
+            handoverCtx.strokeStyle = '#eab308';
+            handoverCtx.lineWidth = 3;
+            handoverCtx.lineCap = 'round';
+            handoverCtx.lineJoin = 'round';
+            handoverCtx.drawImage(temp, 0, 0);
+        }
+
+        function clearHandoverSignature() {
+            if (!handoverCtx || !handoverCanvas) return;
+            handoverCtx.clearRect(0, 0, handoverCanvas.width, handoverCanvas.height);
+            handoverCtx.beginPath();
+        }
+
+        function isHandoverCanvasBlank() {
+            if (!handoverCanvas) return true;
+            const blank = document.createElement('canvas');
+            blank.width = handoverCanvas.width;
+            blank.height = handoverCanvas.height;
+            return handoverCanvas.toDataURL() === blank.toDataURL();
+        }
+
+        function openHandoverSignatureModal(id, action) {
+            loadDB();
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) return;
+
+            document.getElementById('handover-sig-ticket-id').value = id;
+            document.getElementById('handover-sig-action').value = action;
+            document.getElementById('handover-sig-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('handover-sig-cust-info').innerText = `${s.customerName} | SN: ${s.unitSn || '-'}`;
+            
+            initHandoverSignatureCanvas();
+            if (handoverGiverDraw) handoverGiverDraw.clear();
+            if (handoverReceiverDraw) handoverReceiverDraw.clear();
+
+            let title = "Tanda Tangan Serah Terima";
+            let statement = "";
+            let giverLabel = "Pihak Pengirim/Pemberi";
+            let receiverLabel = "Pihak Penerima";
+
+            if (action === 'pickup') {
+                title = "Tanda Tangan Pickup (RS \u2192 TS)";
+                statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan oleh perwakilan Customer/RS (${s.picName || s.customerName}) kepada Teknisi Lapangan TMS untuk dikirim ke workshop TSF.`;
+                giverLabel = "PIC Customer (Pengirim)";
+                receiverLabel = "Teknisi TMS (Penerima)";
+            } else if (action === 'receive_tsf') {
+                title = "Tanda Tangan Terima Workshop (TS \u2192 TSF)";
+                statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan oleh Teknisi Lapangan dan diterima oleh Petugas Workshop TSF untuk dilakukan tindakan perbaikan lanjutan.`;
+                giverLabel = "Teknisi TMS (Penyerah)";
+                receiverLabel = "Staff TSF (Penerima)";
+            } else if (action === 'receive_field') {
+                title = "Tanda Tangan Kirim Lapangan (TSF \u2192 TS)";
+                statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan kembali oleh Workshop TSF dan diterima oleh Teknisi Lapangan dalam kondisi telah selesai diperbaiki.`;
+                giverLabel = "Staff TSF (Penyerah)";
+                receiverLabel = "Teknisi TMS (Penerima)";
+            }
+
+            document.getElementById('handover-sig-title').innerHTML = `<i class="fa-solid fa-signature mr-3"></i> ${title}`;
+            document.getElementById('handover-sig-statement').innerText = statement;
+            document.getElementById('handover-sig-giver-label').innerText = giverLabel;
+            document.getElementById('handover-sig-receiver-label').innerText = receiverLabel;
+
+            openModal('handoverSignatureModal');
+            setTimeout(() => {
+                if (handoverGiverDraw) handoverGiverDraw.resize();
+                if (handoverReceiverDraw) handoverReceiverDraw.resize();
+            }, 200);
+        }
+
+        function submitHandoverSignature(e) {
+            e.preventDefault();
+            if (!handoverGiverDraw || !handoverReceiverDraw || handoverGiverDraw.isBlank() || handoverReceiverDraw.isBlank()) {
+                showToast("Tanda Tangan Wajib", "Kedua belah pihak (pengirim & penerima) wajib menandatangani canvas.", "error");
+                return;
+            }
+            loadDB();
+            const id = parseInt(document.getElementById('handover-sig-ticket-id').value);
+            const action = document.getElementById('handover-sig-action').value;
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) return;
+
+            const sigGiver = handoverGiverDraw.canvas.toDataURL();
+            const sigReceiver = handoverReceiverDraw.canvas.toDataURL();
+
+            if (action === 'pickup') {
+                s.status = 'picked_up';
+                s.signaturePickupGiver = sigGiver;
+                s.signaturePickupReceiver = sigReceiver;
+                s.signaturePickup = sigReceiver; // Fallback
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Unit diambil dari customer oleh Teknisi Lapangan. Serah terima divalidasi oleh tanda tangan digital pengirim (Customer) dan penerima (Teknisi).`,
+                    sigGiver: sigGiver,
+                    sigReceiver: sigReceiver
+                });
+                addToHistory(`Service Unit Pickup: ${s.noService} diambil oleh ${currentUser.name}.`, null, sigReceiver);
+                notifyServiceUpdate(s, 'picked_up');
+                showToast("Unit Di-pickup", "Status berhasil diperbarui dan TTD disimpan.", "success");
+            } else if (action === 'receive_tsf') {
+                s.status = 'received_tsf';
+                s.signatureTsfGiver = sigGiver;
+                s.signatureTsfReceiver = sigReceiver;
+                s.signatureTsf = sigReceiver; // Fallback
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Unit diterima di workshop TSF. Serah terima divalidasi oleh tanda tangan digital penyerah (Teknisi) dan penerima (Staff TSF).`,
+                    sigGiver: sigGiver,
+                    sigReceiver: sigReceiver
+                });
+                addToHistory(`Service Unit Diterima TSF: ${s.noService} diterima di workshop oleh ${currentUser.name}.`, null, sigReceiver);
+                notifyServiceUpdate(s, 'received_tsf');
+                showToast("Diterima TSF Workshop", "Status berhasil diperbarui dan TTD disimpan.", "success");
+            } else if (action === 'receive_field') {
+                s.status = 'received_field';
+                s.signatureFieldGiver = sigGiver;
+                s.signatureFieldReceiver = sigReceiver;
+                s.signatureField = sigReceiver; // Fallback
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Unit selesai diperbaiki dan diterima kembali oleh Teknisi Lapangan. Serah terima divalidasi oleh tanda tangan digital penyerah (Staff TSF) dan penerima (Teknisi).`,
+                    sigGiver: sigGiver,
+                    sigReceiver: sigReceiver
+                });
+                addToHistory(`Service Unit Diterima Lapangan: ${s.noService} diserahkan ke ${currentUser.name}.`, null, sigReceiver);
+                notifyServiceUpdate(s, 'received_field');
+                showToast("Diterima Lapangan", "Unit siap diserahkan ke customer dan TTD disimpan.", "success");
+            }
+
+            playNotificationSound();
+            saveDB();
+            updateData();
+            closeModal('handoverSignatureModal');
         }
 
         function openAnalysisModal(id) {
@@ -6661,6 +7800,7 @@
             });
             
             addToHistory(`Analisa Awal Disubmit: ${s.noService} dianalisa oleh ${currentUser.name}.`);
+            notifyServiceUpdate(s, 'initial_analyzed');
             playNotificationSound();
             saveDB();
             updateData();
@@ -6718,6 +7858,7 @@
             });
             
             addToHistory(`Penawaran TSF Dibuat: ${s.noService} dinilai Rp ${price.toLocaleString('id-ID')} oleh ${currentUser.name}.`);
+            notifyServiceUpdate(s, 'quoted');
             playNotificationSound();
             saveDB();
             updateData();
@@ -6771,6 +7912,7 @@
             });
             
             addToHistory(`Purchase Order Di-input: ${s.noService} dengan PO No. ${poNumber} oleh ${currentUser.name}.`);
+            notifyServiceUpdate(s, 'po_issued');
             playNotificationSound();
             saveDB();
             updateData();
@@ -6789,7 +7931,7 @@
             openModal('serviceRepairModal');
         }
 
-        function submitServiceRepair(e) {
+        async function submitServiceRepair(e) {
             e.preventDefault();
             loadDB();
             const id = parseInt(document.getElementById('svc-repair-id').value);
@@ -6799,12 +7941,20 @@
             const text = document.getElementById('svc-repair-note-text').value;
             s.repairNote = text;
             s.status = 'repaired';
+
+            // Save photo after
+            const photoAfterInput = document.getElementById('svc-unit-photo-after');
+            if (photoAfterInput && photoAfterInput.files && photoAfterInput.files[0]) {
+                try { s.unitPhotoAfter = await getBase64(photoAfterInput.files[0]); } catch(e) {}
+            }
+
             s.history.unshift({
                 t: new Date().toISOString(),
                 m: `Laporan Kerja TSF: "${text}". Unit selesai diperbaiki dan siap dikirim balik ke Teknisi Lapangan.`
             });
             
             addToHistory(`Perbaikan Selesai: TSF (${currentUser.name}) menyelesaikan perbaikan ${s.noService}.`);
+            notifyServiceUpdate(s, 'repaired');
             playNotificationSound();
             saveDB();
             updateData();
@@ -6819,14 +7969,22 @@
             document.getElementById('svc-delivery-id').value = id;
             document.getElementById('svc-delivery-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
             document.getElementById('svc-delivery-cust-info').innerText = `${s.customerName} (${s.customerContact})`;
+            
+            initServiceSignatureCanvas();
+            if (svcGiverDraw) svcGiverDraw.clear();
+            if (svcReceiverDraw) svcReceiverDraw.clear();
+
             openModal('serviceDeliveryModal');
-            setTimeout(resizeSvcCanvas, 200);
+            setTimeout(() => {
+                if (svcGiverDraw) svcGiverDraw.resize();
+                if (svcReceiverDraw) svcReceiverDraw.resize();
+            }, 200);
         }
 
         function submitServiceDelivery(e) {
             e.preventDefault();
-            if (isSvcCanvasBlank()) {
-                showToast("Tanda Tangan Wajib", "Customer harus menandatangani Berita Acara ini.", "error");
+            if (!svcGiverDraw || !svcReceiverDraw || svcGiverDraw.isBlank() || svcReceiverDraw.isBlank()) {
+                showToast("Tanda Tangan Wajib", "Kedua belah pihak (penyerah & penerima) wajib menandatangani BAST.", "error");
                 return;
             }
             loadDB();
@@ -6834,21 +7992,327 @@
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
             
-            const sigData = svcCanvas.toDataURL();
-            s.signature = sigData;
+            const sigGiver = svcGiverDraw.canvas.toDataURL();
+            const sigReceiver = svcReceiverDraw.canvas.toDataURL();
+
+            s.signatureDeliveryGiver = sigGiver;
+            s.signatureDeliveryReceiver = sigReceiver;
+            s.signature = sigReceiver; // Fallback for compatibility
             s.status = 'completed';
             s.history.unshift({
                 t: new Date().toISOString(),
-                m: `Unit diserahkan secara fisik ke Customer. Berita Acara Serah Terima (BAST) disahkan dengan tanda tangan digital representatif customer.`,
-                sig: sigData
+                m: `Unit diserahkan secara fisik ke Customer. Berita Acara Serah Terima (BAST) disahkan dengan tanda tangan digital penyerah (Teknisi) dan penerima (Customer).`,
+                sigGiver: sigGiver,
+                sigReceiver: sigReceiver
             });
             
-            addToHistory(`Unit Diserahkan BAST: ${s.noService} diserahkan ke customer oleh ${currentUser.name}. BAST Sah!`, null, sigData);
+            addToHistory(`Unit Diserahkan BAST: ${s.noService} diserahkan ke customer oleh ${currentUser.name}. BAST Sah!`, null, sigReceiver);
+            notifyServiceUpdate(s, 'completed');
             playNotificationSound();
             saveDB();
             updateData();
             closeModal('serviceDeliveryModal');
             showToast("BAST Sah!", "Unit resmi diserahkan kembali ke customer.", "success");
+        }
+
+        // ====================================================================
+        // FITUR 1 — Dashboard Statistik Service
+        // ====================================================================
+        let svcMonthlyChart = null;
+        let svcStatusChart = null;
+
+        function renderServiceStatsDash() {
+            const tickets = db.serviceTickets || [];
+            const now = new Date();
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
+
+            // KPI Cards
+            const el = (id) => document.getElementById(id);
+            if (!el('svc-kpi-total')) return;
+
+            const activeStatuses = ['registered','picked_up','initial_analyzed','received_tsf','quoted','po_issued','repaired','received_field'];
+            const activeTickets = tickets.filter(t => activeStatuses.includes(t.status));
+            const completedMonthly = tickets.filter(t => {
+                if (t.status !== 'completed') return false;
+                const lastHist = (t.history || []).find(h => h.m.includes('BAST'));
+                if (!lastHist) return false;
+                const d = new Date(lastHist.t);
+                return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+            });
+
+            // Average completion days
+            const completedAll = tickets.filter(t => t.status === 'completed');
+            let avgDays = '-';
+            if (completedAll.length > 0) {
+                const totalDays = completedAll.reduce((sum, t) => {
+                    const created = new Date(t.id);
+                    const lastH = (t.history || [])[0];
+                    const finished = lastH ? new Date(lastH.t) : created;
+                    return sum + Math.max(0, Math.floor((finished - created) / 86400000));
+                }, 0);
+                avgDays = Math.round(totalDays / completedAll.length);
+            }
+
+            el('svc-kpi-total').innerText = tickets.length;
+            el('svc-kpi-active').innerText = activeTickets.length;
+            el('svc-kpi-monthly').innerText = completedMonthly.length;
+            el('svc-kpi-avgdays').innerText = avgDays;
+
+            // Monthly Bar Chart — unit masuk 6 bulan terakhir
+            const months = [];
+            const monthData = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(thisYear, thisMonth - i, 1);
+                months.push(d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }));
+                const count = tickets.filter(t => {
+                    const td = new Date(t.id);
+                    return td.getMonth() === d.getMonth() && td.getFullYear() === d.getFullYear();
+                }).length;
+                monthData.push(count);
+            }
+
+            const monthCtx = document.getElementById('svc-stat-monthly-chart');
+            if (monthCtx) {
+                if (svcMonthlyChart) svcMonthlyChart.destroy();
+                svcMonthlyChart = new Chart(monthCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Unit Masuk',
+                            data: monthData,
+                            backgroundColor: 'rgba(234,179,8,0.75)',
+                            borderColor: 'rgba(234,179,8,1)',
+                            borderWidth: 2,
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: 'rgba(200,200,200,0.15)' } },
+                            x: { ticks: { font: { size: 10 } }, grid: { display: false } }
+                        }
+                    }
+                });
+            }
+
+            // Status Donut Chart
+            const statusMap = {
+                'Terdaftar': tickets.filter(t => t.status === 'registered').length,
+                'Pickup & Analisa': tickets.filter(t => ['picked_up','initial_analyzed'].includes(t.status)).length,
+                'Workshop TSF': tickets.filter(t => ['received_tsf','quoted','po_issued','repaired'].includes(t.status)).length,
+                'Lapangan': tickets.filter(t => t.status === 'received_field').length,
+                'Selesai': tickets.filter(t => t.status === 'completed').length,
+            };
+            const statusCtx = document.getElementById('svc-stat-status-chart');
+            if (statusCtx) {
+                if (svcStatusChart) svcStatusChart.destroy();
+                const vals = Object.values(statusMap);
+                if (vals.reduce((a,b)=>a+b,0) > 0) {
+                    svcStatusChart = new Chart(statusCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(statusMap),
+                            datasets: [{
+                                data: vals,
+                                backgroundColor: ['#6b7280','#3b82f6','#a855f7','#14b8a6','#22c55e'],
+                                borderWidth: 0,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '65%',
+                            plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 6, boxWidth: 10 } } }
+                        }
+                    });
+                }
+            }
+
+            // Stagnant list
+            checkStagnantServiceAlerts();
+        }
+
+        // ====================================================================
+        // FITUR 3 — Sistem Reminder: Deteksi Tiket Stagnan
+        // ====================================================================
+        function getStagnantServiceTickets(thresholdDays = 7) {
+            const tickets = db.serviceTickets || [];
+            const now = Date.now();
+            return tickets.filter(t => {
+                if (t.status === 'completed') return false;
+                const lastUpdate = t.history && t.history.length > 0 ? new Date(t.history[0].t).getTime() : t.id;
+                const diffDays = (now - lastUpdate) / 86400000;
+                return diffDays >= thresholdDays;
+            });
+        }
+
+        function checkStagnantServiceAlerts() {
+            const stagnant = getStagnantServiceTickets(7);
+
+            // Update badge nav
+            const badge = document.getElementById('badge-svc-stagnant');
+            if (badge) {
+                if (stagnant.length > 0) { badge.classList.remove('hidden'); badge.innerText = stagnant.length; }
+                else badge.classList.add('hidden');
+            }
+
+            // Render stagnant list in dashboard
+            const listEl = document.getElementById('svc-stagnant-list');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            if (stagnant.length === 0) {
+                listEl.innerHTML = `<p class="text-[10px] text-gray-400 dark:text-lux-500 font-bold text-center py-2">Tidak ada tiket stagnan</p>`;
+                return;
+            }
+            stagnant.slice(0, 5).forEach(t => {
+                const lastUpdate = t.history && t.history.length > 0 ? new Date(t.history[0].t) : new Date(t.id);
+                const diffDays = Math.floor((Date.now() - lastUpdate.getTime()) / 86400000);
+                const tsUser = db.users[t.assignedTsId] || { name: '-' };
+                listEl.innerHTML += `<div class="p-2.5 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-xl cursor-pointer hover:bg-red-100 dark:hover:bg-red-950/40 transition" onclick="showServiceDetail(${t.id})">
+                    <p class="text-[9px] text-red-600 dark:text-red-500 font-black uppercase">${diffDays} Hari Tanpa Update</p>
+                    <p class="text-[11px] font-bold text-gray-900 dark:text-white truncate">${t.unitName} — ${t.customerName}</p>
+                    <p class="text-[9px] text-gray-500 dark:text-lux-400 font-mono mt-0.5">${t.noService} | TS: ${tsUser.name}</p>
+                </div>`;
+            });
+        }
+
+        // ====================================================================
+        // FITUR 4 — Export Laporan Service ke CSV/Excel
+        // ====================================================================
+        function exportServiceTicketsCSV() {
+            loadDB();
+            const tickets = db.serviceTickets || [];
+            if (tickets.length === 0) {
+                showToast("Tidak Ada Data", "Belum ada tiket service untuk diekspor.", "error");
+                return;
+            }
+
+            const headers = [
+                'No. Service','Customer/RS','PIC Customer','No HP/Kontak','Nama Unit','Merk/Brand',
+                'Model/Tipe','Serial Number','Art Number','Product','Keluhan Awal',
+                'Teknisi PJ','Status','Tgl Masuk','Update Terakhir',
+                'Analisa Awal TS','Analisa TSF','Rincian Perbaikan','Harga (Rp)','No PO','Tgl PO',
+                'TTD Pickup','TTD TSF','TTD Lapangan','TTD BAST','Foto Sebelum','Foto Sesudah'
+            ];
+
+            const statusLabels = {
+                'registered':'Terdaftar','picked_up':'Diambil (Pickup)','initial_analyzed':'Analisa Awal',
+                'received_tsf':'Diterima TSF','quoted':'Penawaran Dikirim','po_issued':'PO Keluar',
+                'repaired':'Selesai Diperbaiki','received_field':'Diterima Lapangan','completed':'Selesai/BAST'
+            };
+
+            const rows = tickets.map(t => {
+                const tsUser = db.users[t.assignedTsId] || { name: '-' };
+                const lastUpdate = t.history && t.history.length > 0 ? new Date(t.history[0].t).toLocaleDateString('id-ID') : '-';
+                const tglMasuk = new Date(t.id).toLocaleDateString('id-ID');
+                return [
+                    t.noService, t.customerName, t.picName || '-', t.customerContact,
+                    t.unitName, t.unitMerk || '-', t.unitTipe || '-', t.unitSn || '-',
+                    t.unitArtNo || '-', t.unitProduct || '-', (t.complaint || '-').replace(/"/g,'""'),
+                    tsUser.name, statusLabels[t.status] || t.status,
+                    tglMasuk, lastUpdate,
+                    (t.initialAnalysis || '-').replace(/"/g,'""'),
+                    (t.tsfAnalysis || '-').replace(/"/g,'""'),
+                    (t.quoteDetails || '-').replace(/"/g,'""'),
+                    t.quotePrice ? t.quotePrice.toLocaleString('id-ID') : '-',
+                    t.poNumber || '-', t.poDate || '-',
+                    t.signaturePickup ? 'Ada' : 'Belum',
+                    t.signatureTsf ? 'Ada' : 'Belum',
+                    t.signatureField ? 'Ada' : 'Belum',
+                    t.signature ? 'Ada' : 'Belum',
+                    t.unitPhotoBefore ? 'Ada' : 'Tidak',
+                    t.unitPhotoAfter ? 'Ada' : 'Tidak'
+                ];
+            });
+
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(cell => `"${String(cell).replace(/\n/g,' ')}"`).join(','))
+                .join('\r\n');
+
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const today = new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
+            a.href = url;
+            a.download = `Laporan_Service_TMS_${today}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Ekspor Berhasil", `${tickets.length} tiket service diekspor ke Excel/CSV.`, "success");
+        }
+
+        // ====================================================================
+        // FITUR 5 — Notifikasi WhatsApp ke Customer
+        // ====================================================================
+        function sendWhatsAppNotification(id) {
+            loadDB();
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) { showToast("Error", "Tiket tidak ditemukan.", "error"); return; }
+
+            const phone = (s.customerContact || '').replace(/[^0-9]/g,'');
+            const intlPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
+
+            const statusLabels = {
+                'registered':'Menunggu Pickup','picked_up':'Dalam Pengambilan & Analisa',
+                'initial_analyzed':'Dikirim ke Workshop','received_tsf':'Diterima Workshop TSF',
+                'quoted':'Penawaran Dikirim (Menunggu PO)','po_issued':'PO Diterima, Dalam Pengerjaan',
+                'repaired':'Selesai Diperbaiki (Dikirim Balik)','received_field':'Diterima Teknisi Lapangan',
+                'completed':'Selesai & Diserahkan ke Customer'
+            };
+
+            const tsUser = db.users[s.assignedTsId] || { name: 'Teknisi TMS', phone: '-' };
+            const statusText = statusLabels[s.status] || s.status.toUpperCase();
+            const completedNote = s.status === 'completed'
+                ? `\n✅ *UNIT TELAH SELESAI DIPERBAIKI & DISERAHKAN*\n📋 Rincian: ${s.repairNote || s.quoteDetails || '-'}`
+                : '';
+            const biayaNote = s.quotePrice
+                ? `\n💰 Estimasi Biaya Perbaikan: *Rp ${s.quotePrice.toLocaleString('id-ID')}*`
+                : '';
+
+            const message = `🔧 *UPDATE LAYANAN SERVICE UNIT*\n` +
+                `━━━━━━━━━━━━━━━━━━━━━\n` +
+                `📋 No. Layanan: *${s.noService}*\n` +
+                `🏥 Customer/RS: *${s.customerName}*\n` +
+                `⚕️ Unit Alat: *${s.unitName}* (${s.unitMerk} ${s.unitTipe})\n` +
+                `🔢 SN: ${s.unitSn || '-'}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━\n` +
+                `📍 *STATUS SAAT INI: ${statusText}*` +
+                completedNote +
+                biayaNote + `\n` +
+                `👷 Teknisi PJ: ${tsUser.name}\n` +
+                `📅 Update: ${new Date().toLocaleDateString('id-ID', {day:'2-digit',month:'long',year:'numeric'})}\n` +
+                `━━━━━━━━━━━━━━━━━━━━━\n` +
+                `Terima kasih atas kepercayaan Anda kepada *TMS Service*. Untuk pertanyaan lebih lanjut, hubungi teknisi kami.\n` +
+                `_Pesan ini dikirim otomatis dari sistem TMS._`;
+
+            const waUrl = `https://wa.me/${intlPhone}?text=${encodeURIComponent(message)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // ====================================================================
+        // FITUR 2 — Foto Kondisi Unit: Preview & Simpan
+        // ====================================================================
+        function previewServicePhoto(input, previewContainerId) {
+            const container = document.getElementById(previewContainerId);
+            if (!container) return;
+            const file = input.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                showToast("File Terlalu Besar", "Ukuran foto tidak boleh melebihi 2MB.", "error");
+                input.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                container.innerHTML = `<img src="${e.target.result}" class="h-24 object-contain rounded-lg" alt="Preview Foto">`;
+            };
+            reader.readAsDataURL(file);
         }
 
         function showServiceDetail(id) {
@@ -6904,6 +8368,26 @@
             } else {
                 sigWrapper.classList.add('hidden');
             }
+
+            // Photos before/after
+            const photoWrapper = document.getElementById('svc-det-photos-wrapper');
+            if (photoWrapper) {
+                if (s.unitPhotoBefore || s.unitPhotoAfter) {
+                    photoWrapper.classList.remove('hidden');
+                    const pbEl = document.getElementById('svc-det-photo-before');
+                    const paEl = document.getElementById('svc-det-photo-after');
+                    const pbWrap = document.getElementById('svc-det-photo-before-wrap');
+                    const paWrap = document.getElementById('svc-det-photo-after-wrap');
+                    if (pbEl && pbWrap) { pbEl.src = s.unitPhotoBefore || ''; pbWrap.classList.toggle('hidden', !s.unitPhotoBefore); }
+                    if (paEl && paWrap) { paEl.src = s.unitPhotoAfter || ''; paWrap.classList.toggle('hidden', !s.unitPhotoAfter); }
+                } else {
+                    photoWrapper.classList.add('hidden');
+                }
+            }
+
+            // WA Button
+            const waBtn = document.getElementById('svc-det-wa-btn');
+            if (waBtn) { waBtn.onclick = () => sendWhatsAppNotification(s.id); }
             
             const badge = document.getElementById('svc-det-status-badge');
             badge.innerText = s.status.toUpperCase();
@@ -6926,17 +8410,32 @@
                     day: '2-digit', month: 'short', year: 'numeric',
                     hour: '2-digit', minute: '2-digit'
                 });
-                
                 let attachmentHtml = '';
-                if (h.sig) {
+                if (h.sigGiver || h.sigReceiver) {
+                    attachmentHtml = `
+                        <div class="mt-3 flex gap-3 p-2.5 bg-gray-50 dark:bg-[#0f0f11] rounded-xl border border-gray-200 dark:border-lux-800 w-max shadow-sm">
+                            ${h.sigGiver ? `
+                            <div class="flex flex-col items-center">
+                                <p class="text-[7.5px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-wider mb-1"><i class="fa-solid fa-signature text-gold-500 mr-1"></i> Penyerah/Pemberi</p>
+                                <img src="${h.sigGiver}" class="h-8 bg-white dark:bg-transparent rounded px-1" alt="Signature Giver">
+                            </div>
+                            ` : ''}
+                            ${h.sigReceiver ? `
+                            <div class="flex flex-col items-center">
+                                <p class="text-[7.5px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-wider mb-1"><i class="fa-solid fa-signature text-gold-500 mr-1"></i> Penerima</p>
+                                <img src="${h.sigReceiver}" class="h-8 bg-white dark:bg-transparent rounded px-1" alt="Signature Receiver">
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                } else if (h.sig) {
                     attachmentHtml = `
                         <div class="mt-3 p-2 bg-white dark:bg-[#0f0f11] rounded-xl border border-gray-200 dark:border-lux-800 w-max shadow-sm">
-                            <p class="text-[8.5px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-widest mb-1.5"><i class="fa-solid fa-signature text-gold-500 mr-1"></i> BAST Signature</p>
+                            <p class="text-[8.5px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-widest mb-1.5"><i class="fa-solid fa-signature text-gold-500 mr-1"></i> Signature</p>
                             <img src="${h.sig}" class="h-10 bg-white dark:bg-transparent rounded px-1" alt="Signature">
                         </div>
                     `;
                 }
-                
                 timeline.innerHTML += `
                     <div class="relative pl-8">
                         <span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span>
