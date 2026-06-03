@@ -1618,7 +1618,7 @@
                     <div class="md:col-span-2"><label class="input-label">Nama Rumah Sakit / Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-name" required class="input-field" placeholder="Masukkan nama RS / klinik / perusahaan..."></div>
                     <div><label class="input-label">PIC Customer/RS <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-pic" required class="input-field" placeholder="Nama PIC Penanggung Jawab..."></div>
                     <div><label class="input-label">No HP PIC/Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-contact" required class="input-field" placeholder="Nomor telepon PIC..."></div>
-                    <div><label class="input-label">Art Number (Nomor Art)</label><input type="text" id="svc-unit-art-no" class="input-field font-mono" placeholder="Masukkan Art Number..." oninput="smartFillServiceByArtNo(this.value)"></div>
+                    <div><label class="input-label">Art Number (Nomor Art)</label><input type="text" id="svc-unit-art-no" class="input-field font-mono" placeholder="Masukkan Art Number..." oninput="smartFillServiceByArtNo(this.value); checkServiceDuplicate();"></div>
                     <div><label class="input-label">Product <span class="text-gold-500">*</span></label>
                         <select id="svc-unit-product" required class="input-field">
                             <option value="" disabled selected>-- Pilih Kategori Product --</option>
@@ -1628,7 +1628,7 @@
                         </select>
                     </div>
                     <div><label class="input-label">Nama Alat / Deskripsi Unit <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-name" required class="input-field" placeholder="Contoh: Defibrillator, Syringe Pump..."></div>
-                    <div><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Masukkan SN alat..."></div>
+                    <div><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Masukkan SN alat..." oninput="smartFillServiceBySn(this.value); checkServiceDuplicate();"></div>
                     <div><label class="input-label">Merk / Brand <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-merk" required class="input-field" placeholder="Contoh: Mindray, B. Braun..."></div>
                     <div><label class="input-label">Tipe / Model <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-tipe" required class="input-field" placeholder="Contoh: BeneHeart D3, Infusomat..."></div>
                     <div class="md:col-span-2"><label class="input-label">Deskripsi Keluhan / Masalah Alat <span class="text-gold-500">*</span></label><textarea id="svc-complaint" required rows="3" class="input-field" placeholder="Jelaskan kendala atau keluhan kerusakan alat..."></textarea></div>
@@ -1649,6 +1649,13 @@
                             </label>
                             <input id="svc-unit-photo-before" type="file" accept="image/*" class="hidden" onchange="previewServicePhoto(this, 'svc-photo-before-preview')">
                         </div>
+                    </div>
+                </div>
+                <div id="service-duplicate-warning" class="hidden bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 p-4 rounded-xl flex items-start gap-3 mb-6">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-500 mt-0.5 text-base"></i>
+                    <div>
+                        <p class="text-rose-600 dark:text-rose-400 font-extrabold text-[11px] uppercase tracking-wider">Peringatan: Unit Sedang Diproses</p>
+                        <p id="service-duplicate-msg" class="text-gray-600 dark:text-lux-300 text-[11px] mt-1 leading-relaxed"></p>
                     </div>
                 </div>
                 <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-lux-800"><button type="submit" id="btn-save-service" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Daftarkan Unit</button></div>
@@ -2809,15 +2816,15 @@
             let updated = false;
 
             // Enforce specialist accounts roles and products migration
-            if (!db.users[101] || db.users[101].user !== 'spesialis1' || db.users[101].role !== 'ts_spec') {
+            if (db.users[101] && (db.users[101].user !== 'spesialis1' || db.users[101].role !== 'ts_spec')) {
                 db.users[101] = { id: 101, user: "spesialis1", pass: "123", role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum", email: "heri@rs.com", phone: "083333333", group: "TSF/Gudang", status: "active", products: ["Avitum"] };
                 updated = true;
             }
-            if (!db.users[102] || db.users[102].user !== 'spesialis2' || db.users[102].role !== 'ts_spec') {
+            if (db.users[102] && (db.users[102].user !== 'spesialis2' || db.users[102].role !== 'ts_spec')) {
                 db.users[102] = { id: 102, user: "spesialis2", pass: "123", role: "ts_spec", name: "Deni AIS Specialist", nik: "3002", jabatan: "Technical Specialist AIS/Aesculap", email: "deni@rs.com", phone: "084444444", group: "TSF/Gudang", status: "active", products: ["AIS", "Aesculap"] };
                 updated = true;
             }
-            if (!db.users[103] || db.users[103].user !== 'spesialis' || db.users[103].role !== 'ts_spec') {
+            if (db.users[103] && (db.users[103].user !== 'spesialis' || db.users[103].role !== 'ts_spec')) {
                 db.users[103] = { id: 103, user: "spesialis", pass: "123", role: "ts_spec", name: "Budi All Specialist", nik: "3003", jabatan: "Technical Specialist", email: "budi@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] };
                 updated = true;
             }
@@ -3023,10 +3030,8 @@
                             const localVersion = parseInt(db.version || 0);
                             if (cloudVersion >= localVersion) {
                                 const nd = data.db_data;
-                                const localUsers = db.users || {};
-                                const cloudUsers = nd.users || {};
                                 db = nd;
-                                db.users = { ...localUsers, ...cloudUsers };
+                                if (!db.users) db.users = {};
                                 if (!db.tools) db.tools = [];
                                 if (!db.requests) db.requests = [];
                                 if (!db.historyLog) db.historyLog = [];
@@ -3063,7 +3068,13 @@
                         { id: 102, user: "spesialis2", pass: "123",   role: "ts_spec", name: "Deni AIS Specialist",    nik: "3002", jabatan: "Technical Specialist AIS",     group: "TSF/Gudang",  status: "active", products: ["AIS","Aesculap"] },
                         { id: 103, user: "spesialis",  pass: "123",   role: "ts_spec", name: "Budi All Specialist",    nik: "3003", jabatan: "Technical Specialist",         group: "TSF/Gudang",  status: "active", products: ["Avitum","AIS","Aesculap"] }
                     ];
-                    f = defaults.find(d => d.user.toLowerCase() === u && String(d.pass).trim() === p);
+                    // Only match fallback accounts that still exist in db.users OR were never added (db.users[id] is undefined).
+                    // Explicitly skip any account whose ID is already absent from db.users if the DB has been saved at least once.
+                    const hasBeenInitialized = Object.keys(db.users || {}).length > 0;
+                    const filteredDefaults = hasBeenInitialized
+                        ? defaults.filter(d => db.users && db.users[d.id] !== undefined)
+                        : defaults;
+                    f = filteredDefaults.find(d => d.user.toLowerCase() === u && String(d.pass).trim() === p);
                     if (f) {
                         if (!db.users || typeof db.users !== 'object') db.users = {};
                         db.users[f.id] = f;
@@ -7126,6 +7137,94 @@
             });
         }
 
+        function checkDuplicateService(artNo, sn) {
+            loadDB();
+            const tickets = db.serviceTickets || [];
+            
+            const cleanArtNo = (artNo || '').trim().toLowerCase();
+            const cleanSn = (sn || '').trim().toLowerCase();
+            
+            const activeTickets = tickets.filter(t => t.status !== 'completed');
+            
+            for (const t of activeTickets) {
+                const tArtNo = (t.unitArtNo || '').trim().toLowerCase();
+                const tSn = (t.unitSn || '').trim().toLowerCase();
+                
+                if (cleanArtNo && cleanArtNo !== '-' && tArtNo && tArtNo !== '-' && tArtNo === cleanArtNo) {
+                    return t;
+                }
+                if (cleanSn && cleanSn !== '-' && tSn && tSn !== '-' && tSn === cleanSn) {
+                    return t;
+                }
+            }
+            return null;
+        }
+
+        function checkServiceDuplicate() {
+            const artNo = document.getElementById('svc-unit-art-no').value.trim();
+            const sn = document.getElementById('svc-unit-sn').value.trim();
+            
+            const warningEl = document.getElementById('service-duplicate-warning');
+            const msgEl = document.getElementById('service-duplicate-msg');
+            const btnEl = document.getElementById('btn-save-service');
+            
+            if (!warningEl || !msgEl || !btnEl) return;
+            
+            const dup = checkDuplicateService(artNo, sn);
+            if (dup) {
+                let identifier = "";
+                if (artNo && artNo !== '-' && dup.unitArtNo && dup.unitArtNo.toLowerCase() === artNo.toLowerCase()) {
+                    identifier = `Art Number: ${dup.unitArtNo}`;
+                } else if (sn && sn !== '-' && dup.unitSn && dup.unitSn.toLowerCase() === sn.toLowerCase()) {
+                    identifier = `Serial Number: ${dup.unitSn}`;
+                }
+                
+                msgEl.innerHTML = `Unit dengan <strong>${identifier}</strong> saat ini sedang dalam proses perbaikan dengan <strong>No. Layanan ${dup.noService}</strong> (Status: <span class="uppercase font-bold">${dup.status}</span>). Anda tidak dapat mendaftarkan unit yang sama sebelum proses perbaikan sebelumnya selesai.`;
+                warningEl.classList.remove('hidden');
+                btnEl.disabled = true;
+                btnEl.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                warningEl.classList.add('hidden');
+                btnEl.disabled = false;
+                btnEl.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function fillServiceFormFields(found) {
+            const desc = found.desc || found.unitName || '';
+            const brand = found.merk || found.unitMerk || '';
+            const model = found.tipe || found.unitTipe || '';
+            const sn = found.sn || found.unitSn || '';
+            const artNo = found.artNo || found.unitArtNo || '';
+            
+            // Map product category
+            let prod = '';
+            if (found.unitProduct) {
+                prod = found.unitProduct;
+            } else if (found.subCategory) {
+                const subCat = found.subCategory.toLowerCase();
+                if (subCat.includes('avitum')) prod = 'Avitum';
+                else if (subCat.includes('ais')) prod = 'AIS';
+                else if (subCat.includes('aes') || subCat.includes('aesculap')) prod = 'AES';
+            }
+            
+            if (desc) document.getElementById('svc-unit-name').value = desc;
+            if (brand) document.getElementById('svc-unit-merk').value = brand;
+            if (model) document.getElementById('svc-unit-tipe').value = model;
+            if (sn && sn !== '-') document.getElementById('svc-unit-sn').value = sn;
+            if (artNo && artNo !== '-') document.getElementById('svc-unit-art-no').value = artNo;
+            if (prod) document.getElementById('svc-unit-product').value = prod;
+            
+            // Also fill customer details if found in a service ticket (recurring damage case)
+            const custName = found.customerName || '';
+            const picName = found.picName || '';
+            const custContact = found.customerContact || '';
+            
+            if (custName) document.getElementById('svc-cust-name').value = custName;
+            if (picName) document.getElementById('svc-cust-pic').value = picName;
+            if (custContact) document.getElementById('svc-cust-contact').value = custContact;
+        }
+
         function smartFillServiceByArtNo(val) {
             if (!val || val.trim() === '') return;
             loadDB();
@@ -7145,27 +7244,32 @@
             }
             
             if (found) {
-                const desc = found.desc || found.unitName || '';
-                const brand = found.merk || found.unitMerk || '';
-                const model = found.tipe || found.unitTipe || '';
-                const sn = found.sn || found.unitSn || '';
-                
-                // Map product category
-                let prod = '';
-                if (found.unitProduct) {
-                    prod = found.unitProduct;
-                } else if (found.subCategory) {
-                    const subCat = found.subCategory.toLowerCase();
-                    if (subCat.includes('avitum')) prod = 'Avitum';
-                    else if (subCat.includes('ais')) prod = 'AIS';
-                    else if (subCat.includes('aes') || subCat.includes('aesculap')) prod = 'AES';
-                }
-                
-                if (desc) document.getElementById('svc-unit-name').value = desc;
-                if (brand) document.getElementById('svc-unit-merk').value = brand;
-                if (model) document.getElementById('svc-unit-tipe').value = model;
-                if (sn && sn !== '-') document.getElementById('svc-unit-sn').value = sn;
-                if (prod) document.getElementById('svc-unit-product').value = prod;
+                fillServiceFormFields(found);
+                checkServiceDuplicate();
+            }
+        }
+
+        function smartFillServiceBySn(val) {
+            if (!val || val.trim() === '' || val.trim() === '-') return;
+            loadDB();
+            const snVal = val.trim().toLowerCase();
+            
+            // 1. Search in db.tools
+            let found = (db.tools || []).find(t => (t.sn || '').toLowerCase() === snVal);
+            
+            // 2. Search in db.demoUnits if not found
+            if (!found) {
+                found = (db.demoUnits || []).find(d => (d.sn || '').toLowerCase() === snVal);
+            }
+            
+            // 3. Search in previous serviceTickets if not found
+            if (!found) {
+                found = (db.serviceTickets || []).find(s => (s.unitSn || '').toLowerCase() === snVal);
+            }
+            
+            if (found) {
+                fillServiceFormFields(found);
+                checkServiceDuplicate();
             }
         }
 
@@ -7192,12 +7296,29 @@
                 tsSelect.value = '';
                 tsSelect.disabled = false;
             }
+            
+            const warningEl = document.getElementById('service-duplicate-warning');
+            if (warningEl) warningEl.classList.add('hidden');
+            const btnEl = document.getElementById('btn-save-service');
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
             openModal('serviceModal');
         }
 
         async function submitServiceTicket(e) {
             e.preventDefault();
             loadDB();
+
+            const artNo = document.getElementById('svc-unit-art-no').value.trim();
+            const sn = document.getElementById('svc-unit-sn').value.trim();
+            const dup = checkDuplicateService(artNo, sn);
+            if (dup) {
+                showToast("Gagal", `Unit dengan SN/Art Number tersebut sedang aktif dalam proses perbaikan (${dup.noService}).`, "error");
+                return;
+            }
 
             const noSvc = generateServiceNumber();
             
