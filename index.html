@@ -2794,6 +2794,36 @@
             return localTime >= cloudTime ? localRec : cloudRec;
         }
 
+        function hasLocalOnlyItems(local, cloud) {
+            if (!local || !cloud) return false;
+            
+            const cloudToolIds = new Set((cloud.tools || []).filter(x => x).map(x => x.id));
+            const hasLocalTool = (local.tools || []).some(t => t && t.id && !cloudToolIds.has(t.id));
+            if (hasLocalTool) return true;
+            
+            const cloudDemoIds = new Set((cloud.demoUnits || []).filter(x => x).map(x => x.id));
+            const hasLocalDemo = (local.demoUnits || []).some(d => d && d.id && !cloudDemoIds.has(d.id));
+            if (hasLocalDemo) return true;
+            
+            const cloudReqIds = new Set((cloud.requests || []).filter(x => x).map(x => x.id));
+            const hasLocalReq = (local.requests || []).some(r => r && r.id && !cloudReqIds.has(r.id));
+            if (hasLocalReq) return true;
+            
+            const cloudTicketIds = new Set((cloud.serviceTickets || []).filter(x => x).map(x => x.id));
+            const hasLocalTicket = (local.serviceTickets || []).some(s => s && s.id && !cloudTicketIds.has(s.id));
+            if (hasLocalTicket) return true;
+            
+            const cloudMsgIds = new Set((cloud.messages || []).filter(x => x).map(x => x.id));
+            const hasLocalMsg = (local.messages || []).some(m => m && m.id && !cloudMsgIds.has(m.id));
+            if (hasLocalMsg) return true;
+
+            const cloudDeleted = new Set(cloud.deletedIds || []);
+            const hasLocalDeleted = (local.deletedIds || []).some(id => id && !cloudDeleted.has(id));
+            if (hasLocalDeleted) return true;
+            
+            return false;
+        }
+
         function mergeDatabases(local, cloud) {
             if (!local || typeof local !== 'object') return cloud;
             if (!cloud || typeof cloud !== 'object') return local;
@@ -2817,6 +2847,7 @@
                 if (mergedDeleted.includes(keyInt)) return;
                 
                 const cloudUser = cloud.users[k];
+                if (!cloudUser) return;
                 const localUser = local.users ? local.users[k] : null;
                 
                 if (!localUser && keyInt <= 1000 && !cloudIsNewer) {
@@ -2830,6 +2861,7 @@
                 if (mergedDeleted.includes(keyInt)) return;
                 
                 const localUser = local.users[k];
+                if (!localUser) return;
                 const cloudUser = usersMap.get(keyInt);
                 if (cloudUser) {
                     usersMap.set(keyInt, mergeRecord(localUser, cloudUser, 'user'));
@@ -2851,14 +2883,16 @@
             // 2. Merge Tools
             const toolsMap = new Map();
             (cloud.tools || []).forEach(t => {
+                if (!t || !t.id) return;
                 if (mergedDeleted.includes(t.id)) return;
-                const localTool = (local.tools || []).find(x => x.id === t.id);
+                const localTool = (local.tools || []).find(x => x && x.id === t.id);
                 if (!localTool && t.id <= 1000 && !cloudIsNewer) {
                     return;
                 }
                 toolsMap.set(t.id, t);
             });
             (local.tools || []).forEach(t => {
+                if (!t || !t.id) return;
                 if (mergedDeleted.includes(t.id)) return;
                 const ext = toolsMap.get(t.id);
                 if (ext) {
@@ -2878,14 +2912,16 @@
             // 3. Merge Demo Units
             const demoMap = new Map();
             (cloud.demoUnits || []).forEach(d => {
+                if (!d || !d.id) return;
                 if (mergedDeleted.includes(d.id)) return;
-                const localDemo = (local.demoUnits || []).find(x => x.id === d.id);
+                const localDemo = (local.demoUnits || []).find(x => x && x.id === d.id);
                 if (!localDemo && d.id <= 1000 && !cloudIsNewer) {
                     return;
                 }
                 demoMap.set(d.id, d);
             });
             (local.demoUnits || []).forEach(d => {
+                if (!d || !d.id) return;
                 if (mergedDeleted.includes(d.id)) return;
                 const ext = demoMap.get(d.id);
                 if (ext) {
@@ -2905,14 +2941,16 @@
             // 4. Merge Requests
             const reqMap = new Map();
             (cloud.requests || []).forEach(r => {
+                if (!r || !r.id) return;
                 if (mergedDeleted.includes(r.id)) return;
-                const localReq = (local.requests || []).find(x => x.id === r.id);
+                const localReq = (local.requests || []).find(x => x && x.id === r.id);
                 if (!localReq && r.id <= 1000 && !cloudIsNewer) {
                     return;
                 }
                 reqMap.set(r.id, r);
             });
             (local.requests || []).forEach(r => {
+                if (!r || !r.id) return;
                 if (mergedDeleted.includes(r.id)) return;
                 const ext = reqMap.get(r.id);
                 if (ext) {
@@ -2952,14 +2990,16 @@
             // 6. Merge Service Tickets
             const ticketMap = new Map();
             (cloud.serviceTickets || []).forEach(st => {
+                if (!st || !st.id) return;
                 if (mergedDeleted.includes(st.id)) return;
-                const localTicket = (local.serviceTickets || []).find(x => x.id === st.id);
+                const localTicket = (local.serviceTickets || []).find(x => x && x.id === st.id);
                 if (!localTicket && st.id <= 1000 && !cloudIsNewer) {
                     return;
                 }
                 ticketMap.set(st.id, st);
             });
             (local.serviceTickets || []).forEach(st => {
+                if (!st || !st.id) return;
                 if (mergedDeleted.includes(st.id)) return;
                 const ext = ticketMap.get(st.id);
                 if (ext) {
@@ -2978,12 +3018,20 @@
 
             // 7. Merge Messages
             const msgMap = new Map();
-            (cloud.messages || []).forEach(m => msgMap.set(m.id, m));
-            (local.messages || []).forEach(m => msgMap.set(m.id, m));
+            (cloud.messages || []).forEach(m => {
+                if (m && m.id) msgMap.set(m.id, m);
+            });
+            (local.messages || []).forEach(m => {
+                if (m && m.id) msgMap.set(m.id, m);
+            });
             merged.messages = Array.from(msgMap.values()).sort((a, b) => a.id - b.id);
 
-            // Simpan versi tertinggi
-            merged.version = Math.max(parseInt(local.version || 0), parseInt(cloud.version || 0));
+            // Simpan versi tertinggi atau bump jika ada kontribusi lokal baru yang belum di cloud
+            if (hasLocalOnlyItems(local, cloud)) {
+                merged.version = Date.now();
+            } else {
+                merged.version = Math.max(parseInt(local.version || 0), parseInt(cloud.version || 0));
+            }
 
             return merged;
         }
@@ -3036,6 +3084,13 @@
             }
             
             if (!db || typeof db !== 'object') db = {};
+            if (db.users && typeof db.users === 'object') {
+                Object.keys(db.users).forEach(k => {
+                    if (!db.users[k] || typeof db.users[k] !== 'object') {
+                        delete db.users[k];
+                    }
+                });
+            }
             if (!db.users || typeof db.users !== 'object' || Object.keys(db.users).length === 0) {
                 db.users = {
                     1: { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
@@ -7688,6 +7743,7 @@
 
             const tickets = db.serviceTickets || [];
             tickets.forEach(s => {
+                if (!s || !s.status) return;
                 if (s.status === 'registered') countReg++;
                 else if (s.status === 'picked_up' || s.status === 'initial_analyzed' || s.status === 'received_tsf') countAnalysing++;
                 else if (s.status === 'quoted') countPo++;
@@ -7704,11 +7760,17 @@
             container.innerHTML = '';
             
             const filtered = tickets.filter(s => {
-                const ts = db.users[s.assignedTsId] ? db.users[s.assignedTsId].name : '';
-                const matchesQuery = s.noService.toLowerCase().includes(query) ||
-                                     s.customerName.toLowerCase().includes(query) ||
-                                     s.unitName.toLowerCase().includes(query) ||
-                                     (s.unitSn || '').toLowerCase().includes(query) ||
+                if (!s) return false;
+                const ts = (s.assignedTsId && db.users[s.assignedTsId]) ? db.users[s.assignedTsId].name : '';
+                const noSvc = s.noService || '';
+                const custName = s.customerName || '';
+                const unitName = s.unitName || '';
+                const unitSn = s.unitSn || '';
+                
+                const matchesQuery = noSvc.toLowerCase().includes(query) ||
+                                     custName.toLowerCase().includes(query) ||
+                                     unitName.toLowerCase().includes(query) ||
+                                     unitSn.toLowerCase().includes(query) ||
                                      ts.toLowerCase().includes(query);
                 const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
                 return matchesQuery && matchesStatus;
