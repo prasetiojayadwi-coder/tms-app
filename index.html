@@ -2796,6 +2796,10 @@
 
             const merged = { ...local };
             
+            const localVersion = local.version || 0;
+            const cloudVersion = cloud.version || 0;
+            const cloudIsNewer = cloudVersion >= localVersion;
+
             // 1. Merge Users
             const usersMap = new Map();
             Object.keys(cloud.users || {}).forEach(k => {
@@ -2805,7 +2809,11 @@
                 const keyInt = parseInt(k);
                 const localUser = local.users[k];
                 const cloudUser = usersMap.get(keyInt);
-                usersMap.set(keyInt, mergeRecord(localUser, cloudUser, 'user'));
+                if (cloudUser) {
+                    usersMap.set(keyInt, mergeRecord(localUser, cloudUser, 'user'));
+                } else if (!cloudIsNewer) {
+                    usersMap.set(keyInt, localUser);
+                }
             });
             merged.users = {};
             usersMap.forEach((val, key) => {
@@ -2817,7 +2825,11 @@
             (cloud.tools || []).forEach(t => toolsMap.set(t.id, t));
             (local.tools || []).forEach(t => {
                 const ext = toolsMap.get(t.id);
-                toolsMap.set(t.id, mergeRecord(t, ext, 'tool'));
+                if (ext) {
+                    toolsMap.set(t.id, mergeRecord(t, ext, 'tool'));
+                } else if (!cloudIsNewer) {
+                    toolsMap.set(t.id, t);
+                }
             });
             merged.tools = Array.from(toolsMap.values());
 
@@ -2826,7 +2838,11 @@
             (cloud.demoUnits || []).forEach(d => demoMap.set(d.id, d));
             (local.demoUnits || []).forEach(d => {
                 const ext = demoMap.get(d.id);
-                demoMap.set(d.id, mergeRecord(d, ext, 'demoUnit'));
+                if (ext) {
+                    demoMap.set(d.id, mergeRecord(d, ext, 'demoUnit'));
+                } else if (!cloudIsNewer) {
+                    demoMap.set(d.id, d);
+                }
             });
             merged.demoUnits = Array.from(demoMap.values());
 
@@ -2835,7 +2851,11 @@
             (cloud.requests || []).forEach(r => reqMap.set(r.id, r));
             (local.requests || []).forEach(r => {
                 const ext = reqMap.get(r.id);
-                reqMap.set(r.id, mergeRecord(r, ext, 'request'));
+                if (ext) {
+                    reqMap.set(r.id, mergeRecord(r, ext, 'request'));
+                } else if (!cloudIsNewer) {
+                    reqMap.set(r.id, r);
+                }
             });
             merged.requests = Array.from(reqMap.values());
 
@@ -2850,7 +2870,11 @@
             (cloud.serviceTickets || []).forEach(st => ticketMap.set(st.id, st));
             (local.serviceTickets || []).forEach(st => {
                 const ext = ticketMap.get(st.id);
-                ticketMap.set(st.id, mergeRecord(st, ext, 'serviceTicket'));
+                if (ext) {
+                    ticketMap.set(st.id, mergeRecord(st, ext, 'serviceTicket'));
+                } else if (!cloudIsNewer) {
+                    ticketMap.set(st.id, st);
+                }
             });
             merged.serviceTickets = Array.from(ticketMap.values());
 
@@ -3019,6 +3043,40 @@
         let previousServiceTicketStates = null;
         loadDB(); if(db.messages) lastMsgCount = db.messages.length;
         initRealtimeSync();
+        
+        // Periodically refresh online status UI and update currentUser.lastOnline in database
+        setInterval(async () => {
+            if (currentUser) {
+                // 1. Refresh local UI elements to update relative time / offline status
+                if (typeof renderChatUsers === 'function') renderChatUsers();
+                if (activeTab === 'spv-personnel' && typeof renderSpvPersonnel === 'function') renderSpvPersonnel();
+                
+                // 2. Periodically update lastOnline in database (every 2 minutes) to stay fresh
+                if (supabaseClient) {
+                    // Refresh presence track just to make sure it's active in Supabase
+                    if (realtimeChannel && typeof realtimeChannel.track === 'function') {
+                        try {
+                            await realtimeChannel.track({
+                                user_id: currentUser.id,
+                                online_at: new Date().toISOString()
+                            });
+                        } catch(e) {
+                            console.warn("Gagal update presence track:", e);
+                        }
+                    }
+                    
+                    const now = Date.now();
+                    if (!window._lastDbOnlineUpdate || now - window._lastDbOnlineUpdate > 2 * 60 * 1000) {
+                        window._lastDbOnlineUpdate = now;
+                        loadDB();
+                        if (db.users && db.users[currentUser.id]) {
+                            db.users[currentUser.id].lastOnline = new Date().toISOString();
+                            saveDB();
+                        }
+                    }
+                }
+            }
+        }, 30000); // Check every 30 seconds
         
         const sessionUser = localStorage.getItem('tms_current_user');
         if(sessionUser) {
@@ -3267,6 +3325,12 @@
         }
         
         function handleLogout() {
+            loadDB();
+            if (currentUser && db.users && db.users[currentUser.id]) {
+                // Set lastOnline to 6 minutes ago so they immediately show as offline to others relying on lastOnline fallback
+                db.users[currentUser.id].lastOnline = new Date(Date.now() - 6 * 60 * 1000).toISOString();
+                saveDB();
+            }
             currentUser = null;
             knownRequestIds = null;
             previousRequestStates = null;
