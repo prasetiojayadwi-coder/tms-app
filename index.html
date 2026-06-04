@@ -3046,7 +3046,7 @@
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
                         if (key && key.startsWith('tms_enterprise_db_v')) {
-                            const ver = parseInt(key.replace('tms_enterprise_db_v', ''));
+                            const ver = parseInt(key.replace('tms_enterprise_db_v', ''), 10);
                             if (!isNaN(ver) && ver > bestVer) {
                                 bestVer = ver;
                                 bestKey = key;
@@ -3060,19 +3060,52 @@
                     const oldData = localStorage.getItem(bestKey);
                     if (oldData) {
                         saved = oldData;
-                        try {
-                            localStorage.setItem(DB_KEY, saved);
-                            console.log(`Database berhasil dimigrasikan dari versi lama (${bestKey}) ke versi baru (${DB_KEY})`);
-                        } catch(e) {
-                            console.warn("Gagal menyalin data migrasi:", e);
-                        }
+                        console.log(`Menemukan versi lama untuk migrasi: ${bestKey}`);
                     }
+                }
+            }
+
+            // Hapus semua versi lama tms_enterprise_db_v* yang bukan DB_KEY untuk membebaskan kuota localStorage
+            try {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('tms_enterprise_db_v') && key !== DB_KEY) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(k => {
+                    localStorage.removeItem(k);
+                    console.log(`Dibersihkan legacy key: ${k}`);
+                });
+            } catch(e) {
+                console.warn("Gagal membersihkan legacy keys:", e);
+            }
+
+            // Jika sedang migrasi, simpan ke DB_KEY setelah membersihkan legacy keys
+            if (!localStorage.getItem(DB_KEY) && saved) {
+                try {
+                    localStorage.setItem(DB_KEY, saved);
+                    console.log(`Database berhasil dimigrasikan ke versi baru (${DB_KEY})`);
+                } catch(e) {
+                    console.warn("Gagal menyimpan database migrasi:", e);
                 }
             }
 
             if (saved) {
                 try {
-                    db = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed === 'object') {
+                        const localVer = Number(parsed.version) || 0;
+                        const memVer = Number(db && db.version) || 0;
+                        // Hanya timpa memori jika versi lokal lebih baru/sama,
+                        // ATAU jika memori belum memuat database (memVer <= 1)
+                        if (localVer >= memVer || memVer <= 1) {
+                            db = parsed;
+                        } else {
+                            console.warn(`Menolak menimpa memori (versi ${memVer}) dengan database lokal yang lebih lama (versi ${localVer})`);
+                        }
+                    }
                 } catch(e) {
                     console.error("Gagal membaca database lokal, mereset database:", e);
                 }
@@ -3336,27 +3369,38 @@
         
         let lastMsgCount = 0;
         window.addEventListener('storage', (e) => { 
-            if(e.key === DB_KEY) { 
-                db = JSON.parse(e.newValue); 
-                if(currentUser) {
-                    updateData(); 
-                    if(db.messages && db.messages.length > lastMsgCount) {
-                        const newMsg = db.messages[db.messages.length - 1];
-                        if((newMsg.to === currentUser.id && !newMsg.read) || (newMsg.to === 'global' && newMsg.from !== currentUser.id)) {
-                            const senderName = db.users[newMsg.from] ? db.users[newMsg.from].name : "Seseorang";
-                            const msgText = newMsg.to === 'global' ? `[Global] ${newMsg.text}` : newMsg.text;
-                            showChatPopup(senderName, msgText);
-                            renderChatUsers(); 
-                            if(activeChatUser === newMsg.from || (activeChatUser === 'global' && newMsg.to === 'global')) {
-                                if(document.getElementById('chat-window').classList.contains('hidden') === false) renderChatMessages();
+            if(e.key === DB_KEY && e.newValue) { 
+                try {
+                    const parsed = JSON.parse(e.newValue);
+                    if (parsed && typeof parsed === 'object') {
+                        const localVer = Number(parsed.version) || 0;
+                        const memVer = Number(db && db.version) || 0;
+                        if (localVer >= memVer) {
+                            db = parsed;
+                            if(currentUser) {
+                                updateData(); 
+                                if(db.messages && db.messages.length > lastMsgCount) {
+                                    const newMsg = db.messages[db.messages.length - 1];
+                                    if((newMsg.to === currentUser.id && !newMsg.read) || (newMsg.to === 'global' && newMsg.from !== currentUser.id)) {
+                                        const senderName = db.users[newMsg.from] ? db.users[newMsg.from].name : "Seseorang";
+                                        const msgText = newMsg.to === 'global' ? `[Global] ${newMsg.text}` : newMsg.text;
+                                        showChatPopup(senderName, msgText);
+                                        renderChatUsers(); 
+                                        if(activeChatUser === newMsg.from || (activeChatUser === 'global' && newMsg.to === 'global')) {
+                                            if(document.getElementById('chat-window').classList.contains('hidden') === false) renderChatMessages();
+                                        }
+                                        updateChatBadge();
+                                    }
+                                }
+                                if (activeChatUser && !document.getElementById('chat-window').classList.contains('hidden') && typeof renderChatMessages === 'function') {
+                                    renderChatMessages();
+                                }
+                                if(db.messages) lastMsgCount = db.messages.length;
                             }
-                            updateChatBadge();
                         }
                     }
-                    if (activeChatUser && !document.getElementById('chat-window').classList.contains('hidden') && typeof renderChatMessages === 'function') {
-                        renderChatMessages();
-                    }
-                    if(db.messages) lastMsgCount = db.messages.length;
+                } catch(err) {
+                    console.error("Gagal memparsing storage update:", err);
                 }
             } 
         });
