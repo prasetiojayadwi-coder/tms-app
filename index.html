@@ -2448,14 +2448,17 @@
         let db = {
             version: 1,
             users: {
-                1: { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1" },
-                2: { id: 2, user: "teknisi2", pass: "123", role: "ts", name: "Benny (Tech)", nik: "1002", jabatan: "Technical Service", email: "benny@rs.com", phone: "08999999", group: "Barat 2" },
-                3: { id: 3, user: "tsf1", pass: "123", role: "tsf", name: "Gudang (TSF)", nik: "2001", jabatan: "Technical TSF", email: "tsf@rs.com", phone: "0888888", group: "TSF/Gudang" },
-                4: { id: 4, user: "teknisi3", pass: "123", role: "ts", name: "Candra (Tech)", nik: "1003", jabatan: "Technical Service", email: "candra@rs.com", phone: "08777777", group: "Timur/Tengah" },
-                97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1" },
-                98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2" },
-                99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah" },
-                100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang" }
+                1: { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                2: { id: 2, user: "teknisi2", pass: "123", role: "ts", name: "Benny (Tech)", nik: "1002", jabatan: "Technical Service", email: "benny@rs.com", phone: "08999999", group: "Barat 2", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                3: { id: 3, user: "tsf1", pass: "123", role: "tsf", name: "Gudang (TSF)", nik: "2001", jabatan: "Technical TSF", email: "tsf@rs.com", phone: "0888888", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                4: { id: 4, user: "teknisi3", pass: "123", role: "ts", name: "Candra (Tech)", nik: "1003", jabatan: "Technical Service", email: "candra@rs.com", phone: "08777777", group: "Timur/Tengah", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                101: { id: 101, user: "spesialis1", pass: "123", role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum", email: "heri@rs.com", phone: "083333333", group: "TSF/Gudang", status: "active", products: ["Avitum"] },
+                102: { id: 102, user: "spesialis2", pass: "123", role: "ts_spec", name: "Deni AIS Specialist", nik: "3002", jabatan: "Technical Specialist AIS/Aesculap", email: "deni@rs.com", phone: "084444444", group: "TSF/Gudang", status: "active", products: ["AIS", "Aesculap"] },
+                103: { id: 103, user: "spesialis", pass: "123", role: "ts_spec", name: "Budi All Specialist", nik: "3003", jabatan: "Technical Specialist", email: "budi@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] }
             },
             tools: [
                 { id: 101, noInv: "TK-2605-0001", artNo: "ART-101", desc: "Fluke Electrical Analyzer", merk: "Fluke", tipe: "ESA620", sn: "SN-FLK001", ownerId: 1, condition: "Baik", buyDate: "2023-12-01", price: "50000000", calDate: "2024-05-01", status: "good", category: "standard", subCategory: "Avitum", reason: "", maintenanceStatus: "", history: [{t: new Date().toISOString(), m: "Alat didaftarkan ke sistem."}] },
@@ -2467,7 +2470,8 @@
             requests: [],
             historyLog: [{ id: 1, time: new Date().toISOString(), action: "Sistem Eksekutif Diinisialisasi." }],
             messages: [],
-            serviceTickets: []
+            serviceTickets: [],
+            deletedIds: []
         };
         
         async function syncWithCloud(forceUpload = false) {
@@ -2800,19 +2804,43 @@
             const cloudVersion = cloud.version || 0;
             const cloudIsNewer = cloudVersion >= localVersion;
 
+            // Merge deletedIds
+            const localDeleted = local.deletedIds || [];
+            const cloudDeleted = cloud.deletedIds || [];
+            const mergedDeleted = Array.from(new Set([...localDeleted, ...cloudDeleted]));
+            merged.deletedIds = mergedDeleted;
+
             // 1. Merge Users
             const usersMap = new Map();
             Object.keys(cloud.users || {}).forEach(k => {
-                usersMap.set(parseInt(k), cloud.users[k]);
+                const keyInt = parseInt(k);
+                if (mergedDeleted.includes(keyInt)) return;
+                
+                const cloudUser = cloud.users[k];
+                const localUser = local.users ? local.users[k] : null;
+                
+                if (!localUser && keyInt <= 1000 && !cloudIsNewer) {
+                    // Deleted locally offline
+                    return;
+                }
+                usersMap.set(keyInt, cloudUser);
             });
             Object.keys(local.users || {}).forEach(k => {
                 const keyInt = parseInt(k);
+                if (mergedDeleted.includes(keyInt)) return;
+                
                 const localUser = local.users[k];
                 const cloudUser = usersMap.get(keyInt);
                 if (cloudUser) {
                     usersMap.set(keyInt, mergeRecord(localUser, cloudUser, 'user'));
-                } else if (!cloudIsNewer) {
-                    usersMap.set(keyInt, localUser);
+                } else {
+                    if (keyInt <= 1000) {
+                        if (!cloudIsNewer) {
+                            usersMap.set(keyInt, localUser);
+                        }
+                    } else {
+                        usersMap.set(keyInt, localUser);
+                    }
                 }
             });
             merged.users = {};
@@ -2822,39 +2850,81 @@
 
             // 2. Merge Tools
             const toolsMap = new Map();
-            (cloud.tools || []).forEach(t => toolsMap.set(t.id, t));
+            (cloud.tools || []).forEach(t => {
+                if (mergedDeleted.includes(t.id)) return;
+                const localTool = (local.tools || []).find(x => x.id === t.id);
+                if (!localTool && t.id <= 1000 && !cloudIsNewer) {
+                    return;
+                }
+                toolsMap.set(t.id, t);
+            });
             (local.tools || []).forEach(t => {
+                if (mergedDeleted.includes(t.id)) return;
                 const ext = toolsMap.get(t.id);
                 if (ext) {
                     toolsMap.set(t.id, mergeRecord(t, ext, 'tool'));
-                } else if (!cloudIsNewer) {
-                    toolsMap.set(t.id, t);
+                } else {
+                    if (t.id <= 1000) {
+                        if (!cloudIsNewer) {
+                            toolsMap.set(t.id, t);
+                        }
+                    } else {
+                        toolsMap.set(t.id, t);
+                    }
                 }
             });
             merged.tools = Array.from(toolsMap.values());
 
             // 3. Merge Demo Units
             const demoMap = new Map();
-            (cloud.demoUnits || []).forEach(d => demoMap.set(d.id, d));
+            (cloud.demoUnits || []).forEach(d => {
+                if (mergedDeleted.includes(d.id)) return;
+                const localDemo = (local.demoUnits || []).find(x => x.id === d.id);
+                if (!localDemo && d.id <= 1000 && !cloudIsNewer) {
+                    return;
+                }
+                demoMap.set(d.id, d);
+            });
             (local.demoUnits || []).forEach(d => {
+                if (mergedDeleted.includes(d.id)) return;
                 const ext = demoMap.get(d.id);
                 if (ext) {
                     demoMap.set(d.id, mergeRecord(d, ext, 'demoUnit'));
-                } else if (!cloudIsNewer) {
-                    demoMap.set(d.id, d);
+                } else {
+                    if (d.id <= 1000) {
+                        if (!cloudIsNewer) {
+                            demoMap.set(d.id, d);
+                        }
+                    } else {
+                        demoMap.set(d.id, d);
+                    }
                 }
             });
             merged.demoUnits = Array.from(demoMap.values());
 
             // 4. Merge Requests
             const reqMap = new Map();
-            (cloud.requests || []).forEach(r => reqMap.set(r.id, r));
+            (cloud.requests || []).forEach(r => {
+                if (mergedDeleted.includes(r.id)) return;
+                const localReq = (local.requests || []).find(x => x.id === r.id);
+                if (!localReq && r.id <= 1000 && !cloudIsNewer) {
+                    return;
+                }
+                reqMap.set(r.id, r);
+            });
             (local.requests || []).forEach(r => {
+                if (mergedDeleted.includes(r.id)) return;
                 const ext = reqMap.get(r.id);
                 if (ext) {
                     reqMap.set(r.id, mergeRecord(r, ext, 'request'));
-                } else if (!cloudIsNewer) {
-                    reqMap.set(r.id, r);
+                } else {
+                    if (r.id <= 1000) {
+                        if (!cloudIsNewer) {
+                            reqMap.set(r.id, r);
+                        }
+                    } else {
+                        reqMap.set(r.id, r);
+                    }
                 }
             });
             merged.requests = Array.from(reqMap.values());
@@ -2867,13 +2937,27 @@
 
             // 6. Merge Service Tickets
             const ticketMap = new Map();
-            (cloud.serviceTickets || []).forEach(st => ticketMap.set(st.id, st));
+            (cloud.serviceTickets || []).forEach(st => {
+                if (mergedDeleted.includes(st.id)) return;
+                const localTicket = (local.serviceTickets || []).find(x => x.id === st.id);
+                if (!localTicket && st.id <= 1000 && !cloudIsNewer) {
+                    return;
+                }
+                ticketMap.set(st.id, st);
+            });
             (local.serviceTickets || []).forEach(st => {
+                if (mergedDeleted.includes(st.id)) return;
                 const ext = ticketMap.get(st.id);
                 if (ext) {
                     ticketMap.set(st.id, mergeRecord(st, ext, 'serviceTicket'));
-                } else if (!cloudIsNewer) {
-                    ticketMap.set(st.id, st);
+                } else {
+                    if (st.id <= 1000) {
+                        if (!cloudIsNewer) {
+                            ticketMap.set(st.id, st);
+                        }
+                    } else {
+                        ticketMap.set(st.id, st);
+                    }
                 }
             });
             merged.serviceTickets = Array.from(ticketMap.values());
@@ -2940,14 +3024,14 @@
             if (!db || typeof db !== 'object') db = {};
             if (!db.users || typeof db.users !== 'object' || Object.keys(db.users).length === 0) {
                 db.users = {
-                    1: { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1", products: ["Avitum", "AIS", "Aesculap"] },
-                    2: { id: 2, user: "teknisi2", pass: "123", role: "ts", name: "Benny (Tech)", nik: "1002", jabatan: "Technical Service", email: "benny@rs.com", phone: "08999999", group: "Barat 2", products: ["Avitum", "AIS", "Aesculap"] },
-                    3: { id: 3, user: "tsf1", pass: "123", role: "tsf", name: "Gudang (TSF)", nik: "2001", jabatan: "Technical TSF", email: "tsf@rs.com", phone: "0888888", group: "TSF/Gudang", products: ["Avitum", "AIS", "Aesculap"] },
-                    4: { id: 4, user: "teknisi3", pass: "123", role: "ts", name: "Candra (Tech)", nik: "1003", jabatan: "Technical Service", email: "candra@rs.com", phone: "08777777", group: "Timur/Tengah", products: ["Avitum", "AIS", "Aesculap"] },
-                    97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1", products: ["Avitum", "AIS", "Aesculap"] },
-                    98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2", products: ["Avitum", "AIS", "Aesculap"] },
-                    99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah", products: ["Avitum", "AIS", "Aesculap"] },
-                    100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang", products: ["Avitum", "AIS", "Aesculap"] },
+                    1: { id: 1, user: "teknisi1", pass: "123", role: "ts", name: "Alex Pratama", nik: "1001", jabatan: "Technical Service", email: "alex@rs.com", phone: "08123456789", group: "Barat 1", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                    2: { id: 2, user: "teknisi2", pass: "123", role: "ts", name: "Benny (Tech)", nik: "1002", jabatan: "Technical Service", email: "benny@rs.com", phone: "08999999", group: "Barat 2", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                    3: { id: 3, user: "tsf1", pass: "123", role: "tsf", name: "Gudang (TSF)", nik: "2001", jabatan: "Technical TSF", email: "tsf@rs.com", phone: "0888888", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                    4: { id: 4, user: "teknisi3", pass: "123", role: "ts", name: "Candra (Tech)", nik: "1003", jabatan: "Technical Service", email: "candra@rs.com", phone: "08777777", group: "Timur/Tengah", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                    97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                    98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                    99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
+                    100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] },
                     101: { id: 101, user: "spesialis1", pass: "123", role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum", email: "heri@rs.com", phone: "083333333", group: "TSF/Gudang", status: "active", products: ["Avitum"] },
                     102: { id: 102, user: "spesialis2", pass: "123", role: "ts_spec", name: "Deni AIS Specialist", nik: "3002", jabatan: "Technical Specialist AIS/Aesculap", email: "deni@rs.com", phone: "084444444", group: "TSF/Gudang", status: "active", products: ["AIS", "Aesculap"] },
                     103: { id: 103, user: "spesialis", pass: "123", role: "ts_spec", name: "Budi All Specialist", nik: "3003", jabatan: "Technical Specialist", email: "budi@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "AIS", "Aesculap"] }
@@ -2959,6 +3043,7 @@
             if (!db.historyLog || !Array.isArray(db.historyLog)) db.historyLog = [];
             if (!db.messages || !Array.isArray(db.messages)) db.messages = [];
             if (!db.serviceTickets || !Array.isArray(db.serviceTickets)) db.serviceTickets = [];
+            if (!db.deletedIds || !Array.isArray(db.deletedIds)) db.deletedIds = [];
             if (!db.version) { db.version = 1; }
 
             localStorage.setItem(DB_KEY, JSON.stringify(db));
@@ -2994,7 +3079,10 @@
                 }
             });
             if (updated) {
-                db.version = Date.now();
+                // Safeguard: only bump version if we are not on a fresh/default database template (version 1)
+                if (db.version > 1) {
+                    db.version = Date.now();
+                }
                 localStorage.setItem(DB_KEY, JSON.stringify(db));
             }
 
@@ -3007,6 +3095,16 @@
             localStorage.setItem(DB_KEY, JSON.stringify(db)); 
             if (supabaseClient) {
                 syncWithCloud();
+            }
+        }
+        function recordDeletion(id) {
+            if (!id) return;
+            if (!db.deletedIds || !Array.isArray(db.deletedIds)) {
+                db.deletedIds = [];
+            }
+            const idNum = typeof id === 'string' ? parseInt(id) : id;
+            if (!db.deletedIds.includes(idNum)) {
+                db.deletedIds.push(idNum);
             }
         }
         
@@ -5452,6 +5550,12 @@
                         if (t) {
                             if (r.toolType === 'demo') db.demoUnits = db.demoUnits.filter(x => x.id !== t.id);
                             else db.tools = db.tools.filter(x => x.id !== t.id);
+                            recordDeletion(t.id);
+                            db.requests.forEach(req => {
+                                if (req.toolId === t.id && req.toolType === r.toolType) {
+                                    recordDeletion(req.id);
+                                }
+                            });
                             db.requests = db.requests.filter(req => !(req.toolId === t.id && req.toolType === r.toolType));
                             addToHistory(`${authRole} (${currentUser.name}) menolak registrasi alat baru ${t.noInv} (Dari ${u ? u.name : 'Teknisi'}). Aset dihapus.`, t.id);
                         }
@@ -5471,6 +5575,7 @@
                         if(targetUser) {
                             addToHistory(`${authRole} (${currentUser.name}) menolak registrasi personel baru ${targetUser.name} (${targetUser.jabatan}). Personel dihapus.`, null);
                             delete db.users[r.toolId];
+                            recordDeletion(r.toolId);
                             showToast("Ditolak", "Registrasi personel ditolak dan akun dihapus.", "error");
                         }
                     }
@@ -5761,6 +5866,7 @@
         function deleteItem(type, id) {
             if(!confirm("Hapus secara permanen? Data riwayat juga akan hilang.")) return;
             loadDB(); // Sinkronisasi sebelum menghapus
+            recordDeletion(id);
             if(type === 'tech') {
                 const userName = db.users[id] ? db.users[id].name : `ID ${id}`;
                 // Return all tools carried by this technician back to Warehouse
@@ -8968,6 +9074,7 @@
                 }
             });
             db.serviceTickets = db.serviceTickets.filter(s => !idsToDelete.includes(s.id));
+            idsToDelete.forEach(id => recordDeletion(id));
             
             const masterCheckbox = document.getElementById('select-all-service-tickets');
             if (masterCheckbox) masterCheckbox.checked = false;
@@ -8989,6 +9096,7 @@
             if (s) {
                 addToHistory(`${currentUser.role.toUpperCase()} menghapus permanen tiket service: ${s.noService}.`);
                 db.serviceTickets = db.serviceTickets.filter(x => x.id !== id);
+                recordDeletion(id);
                 playNotificationSound();
                 saveDB();
                 updateData();
