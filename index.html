@@ -2521,7 +2521,7 @@
                         pendingMessages.forEach(m => {
                             m.status = 'sent';
                         });
-                        localStorage.setItem(DB_KEY, JSON.stringify(db));
+                        safeSaveLocalStorage();
 
                         console.log("Inisialisasi database awal ke Supabase Cloud berhasil.");
                         if (currentUser && typeof renderChatMessages === 'function' && !document.getElementById('chat-window').classList.contains('hidden')) {
@@ -2571,7 +2571,7 @@
                             m.status = 'sent';
                         });
                         db.version = nextVersion;
-                        localStorage.setItem(DB_KEY, JSON.stringify(db));
+                        safeSaveLocalStorage();
 
                         console.log("Sinkronisasi: Data lokal berhasil diunggah ke Supabase Cloud (Versi: " + nextVersion + ")");
                         if (currentUser && typeof renderChatMessages === 'function' && !document.getElementById('chat-window').classList.contains('hidden')) {
@@ -2599,7 +2599,7 @@
                             db = mergeDatabases(db, data.db_data);
                             db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
 
-                            localStorage.setItem(DB_KEY, JSON.stringify(db));
+                            safeSaveLocalStorage();
                             loadDB(); // Enforce database migrations immediately on downloaded cloud database!
                             lastMsgCount = db.messages ? db.messages.length : 0;
                             
@@ -2680,7 +2680,7 @@
 
                                     db = mergeDatabases(db, cloudData.db_data);
                                     db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
-                                    localStorage.setItem(DB_KEY, JSON.stringify(db));
+                                    safeSaveLocalStorage();
                                     loadDB(); // Enforce database migrations immediately on real-time downloaded cloud database!
                                     lastMsgCount = db.messages ? db.messages.length : 0;
                                 }
@@ -3112,7 +3112,7 @@
             } else {
                 db.version = 1;
                 try {
-                    localStorage.setItem(DB_KEY, JSON.stringify(db));
+                    safeSaveLocalStorage();
                 } catch(e) {}
             }
             
@@ -3162,7 +3162,7 @@
             
             if (!db.version) { db.version = 1; }
 
-            localStorage.setItem(DB_KEY, JSON.stringify(db));
+            safeSaveLocalStorage();
 
             let updated = false;
 
@@ -3199,7 +3199,7 @@
                 if (db.version > 1) {
                     db.version = Date.now();
                 }
-                localStorage.setItem(DB_KEY, JSON.stringify(db));
+                safeSaveLocalStorage();
             }
 
             if (supabaseClient) {
@@ -3207,23 +3207,26 @@
             }
             cleanExistingLargeImages();
         }
-        function saveDB() { 
+        function safeSaveLocalStorage() {
             try {
-                db.version = Date.now();
-                localStorage.setItem(DB_KEY, JSON.stringify(db)); 
-                if (supabaseClient) {
-                    syncWithCloud();
-                }
+                localStorage.setItem(DB_KEY, JSON.stringify(db));
             } catch (e) {
-                console.error("Gagal menyimpan database (Kapasitas kemungkinan penuh):", e);
+                console.warn("SafeSave: Gagal menyimpan database ke localStorage (Kapasitas kemungkinan penuh):", e);
                 cleanExistingLargeImages().then(() => {
                     try {
                         localStorage.setItem(DB_KEY, JSON.stringify(db));
-                        console.log("Database berhasil disimpan setelah kompresi gambar.");
+                        console.log("SafeSave: Database berhasil disimpan setelah kompresi gambar.");
                     } catch (err) {
-                        console.error("Tetap gagal menyimpan database setelah kompresi:", err);
+                        console.error("SafeSave: Tetap gagal menyimpan database setelah kompresi:", err);
                     }
                 });
+            }
+        }
+        function saveDB() { 
+            db.version = Date.now();
+            safeSaveLocalStorage();
+            if (supabaseClient) {
+                syncWithCloud();
             }
         }
         function recordDeletion(id) {
@@ -3591,7 +3594,7 @@
                                 if (!db.historyLog) db.historyLog = [];
                                 if (!db.messages) db.messages = [];
                                 if (!db.serviceTickets) db.serviceTickets = [];
-                                localStorage.setItem(DB_KEY, JSON.stringify(db));
+                                safeSaveLocalStorage();
                                 loadDB();
                                 lastMsgCount = (db.messages || []).length;
                             }
@@ -3632,7 +3635,7 @@
                     if (f) {
                         if (!db.users || typeof db.users !== 'object') db.users = {};
                         db.users[f.id] = f;
-                        localStorage.setItem(DB_KEY, JSON.stringify(db));
+                        safeSaveLocalStorage();
                         console.log('Login: akun default dipulihkan untuk', u);
                     }
                 }
