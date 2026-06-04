@@ -646,21 +646,21 @@
                                 <div id="spec-cat-avitum-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-amber-500"></span>
-                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-200">Avitum Special Tools</span>
+                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-300">Avitum Special Tools</span>
                                     </div>
                                     <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-avitum">0 Unit</span>
                                 </div>
                                 <div id="spec-cat-ais-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-200">AIS Special Tools</span>
+                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-300">AIS Special Tools</span>
                                     </div>
                                     <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-ais">0 Unit</span>
                                 </div>
                                 <div id="spec-cat-aesculap-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-200">Aesculap Special Tools</span>
+                                        <span class="text-xs font-bold text-gray-800 dark:text-lux-300">Aesculap Special Tools</span>
                                     </div>
                                     <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-aesculap">0 Unit</span>
                                 </div>
@@ -1163,16 +1163,16 @@
                     <div class="md:col-span-2">
                         <label class="input-label">Tanggung Jawab Produk (Akses Aset/Repair) <span class="text-gold-500">*</span></label>
                         <div class="flex flex-wrap gap-5 mt-2 p-3 bg-gray-50 dark:bg-[#131316] rounded-xl border border-gray-200 dark:border-lux-850">
-                            <label class="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-lux-200 cursor-pointer">
-                                <input type="checkbox" id="add-prod-avitum" checked class="w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer">
+                            <label class="flex items-center gap-2 text-[13px] font-semibold text-gray-700 dark:text-lux-300 cursor-pointer">
+                                <input type="checkbox" id="add-prod-avitum" checked class="w-4 h-4 rounded border-gray-300 dark:border-lux-700 accent-gold-500 dark:accent-gold-500 cursor-pointer">
                                 Avitum
                             </label>
-                            <label class="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-lux-200 cursor-pointer">
-                                <input type="checkbox" id="add-prod-ais" checked class="w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer">
+                            <label class="flex items-center gap-2 text-[13px] font-semibold text-gray-700 dark:text-lux-300 cursor-pointer">
+                                <input type="checkbox" id="add-prod-ais" checked class="w-4 h-4 rounded border-gray-300 dark:border-lux-700 accent-gold-500 dark:accent-gold-500 cursor-pointer">
                                 AIS
                             </label>
-                            <label class="flex items-center gap-2 text-xs font-bold text-gray-800 dark:text-lux-200 cursor-pointer">
-                                <input type="checkbox" id="add-prod-aesculap" checked class="w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer">
+                            <label class="flex items-center gap-2 text-[13px] font-semibold text-gray-700 dark:text-lux-300 cursor-pointer">
+                                <input type="checkbox" id="add-prod-aesculap" checked class="w-4 h-4 rounded border-gray-300 dark:border-lux-700 accent-gold-500 dark:accent-gold-500 cursor-pointer">
                                 Aesculap
                             </label>
                         </div>
@@ -2876,6 +2876,8 @@
 
         let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all';
         let knownRequestIds = null;
+        let previousRequestStates = null;
+        let previousServiceTicketStates = null;
         loadDB(); if(db.messages) lastMsgCount = db.messages.length;
         initRealtimeSync();
         
@@ -3128,6 +3130,8 @@
         function handleLogout() {
             currentUser = null;
             knownRequestIds = null;
+            previousRequestStates = null;
+            previousServiceTicketStates = null;
             sessionStorage.removeItem('tms_current_user');
             localStorage.removeItem('tms_current_user');
             if ("clearAppBadge" in navigator) { navigator.clearAppBadge().catch(e => {}); }
@@ -3613,46 +3617,131 @@
         function updateData() {
             if(!currentUser) return;
 
-            if(!knownRequestIds) {
-                knownRequestIds = new Set((db.requests || []).map(r => r.id));
+            if (!previousRequestStates) {
+                previousRequestStates = new Map();
+                (db.requests || []).forEach(r => {
+                    previousRequestStates.set(r.id, r.status);
+                });
             } else {
                 const currentRequests = db.requests || [];
                 currentRequests.forEach(r => {
-                    if (!knownRequestIds.has(r.id)) {
-                        knownRequestIds.add(r.id);
-                        if (r.reqType === 'borrow' || r.reqType === 'return' || r.reqType === 'verify_tool') {
-                            if (r.requesterId !== currentUser.id) {
-                                // Filter relevance
-                                let isRelevant = false;
-                                if (currentUser.role === 'owner' || currentUser.role === 'tsf') {
+                    const prevStatus = previousRequestStates.get(r.id);
+                    if (prevStatus === undefined) {
+                        previousRequestStates.set(r.id, r.status);
+                        
+                        if (r.requesterId !== currentUser.id) {
+                            let isRelevant = false;
+                            if (currentUser.role === 'owner' || currentUser.role === 'tsf') {
+                                isRelevant = true;
+                            } else if (currentUser.role === 'spv') {
+                                const reqUser = db.users[r.requesterId];
+                                if (reqUser && reqUser.group === currentUser.group) {
                                     isRelevant = true;
-                                } else if (currentUser.role === 'spv') {
-                                    const reqUser = db.users[r.requesterId];
-                                    if (reqUser && reqUser.group === currentUser.group) {
-                                        isRelevant = true;
-                                    }
-                                } else if (currentUser.role === 'ts') {
-                                    if (r.requesterId === currentUser.id) {
-                                        isRelevant = true;
-                                    }
-                                }
-
-                                if (isRelevant) {
-                                    const requester = db.users[r.requesterId] ? db.users[r.requesterId].name : 'Personel';
-                                    const arr = r.toolType === 'demo' ? db.demoUnits : db.tools;
-                                    const t = arr.find(x => x.id === r.toolId);
-                                    const assetName = t ? t.desc : 'Alat';
-                                    
-                                    let actionStr = 'permohonan baru';
-                                    if (r.reqType === 'borrow') actionStr = 'peminjaman';
-                                    else if (r.reqType === 'return') actionStr = 'pengembalian';
-                                    else if (r.reqType === 'verify_tool') actionStr = 'verifikasi';
-
-                                    const title = `Tiket Baru: ${r.reqType === 'borrow' ? 'PINJAM' : (r.reqType === 'return' ? 'KEMBALI' : 'VERIFIKASI')}`;
-                                    const msg = `${requester} mengajukan ${actionStr} untuk ${assetName}`;
-                                    showTicketPopup(title, msg);
                                 }
                             }
+                            if (isRelevant) {
+                                const requester = db.users[r.requesterId] ? db.users[r.requesterId].name : 'Personel';
+                                const arr = r.toolType === 'demo' ? db.demoUnits : db.tools;
+                                const t = arr.find(x => x.id === r.toolId);
+                                const assetName = t ? t.desc : 'Alat';
+                                
+                                let actionStr = 'permohonan baru';
+                                if (r.reqType === 'borrow') actionStr = 'peminjaman';
+                                else if (r.reqType === 'return') actionStr = 'pengembalian';
+                                else if (r.reqType === 'verify_tool') actionStr = 'verifikasi';
+
+                                const title = `Tiket Baru: ${r.reqType === 'borrow' ? 'PINJAM' : (r.reqType === 'return' ? 'KEMBALI' : 'VERIFIKASI')}`;
+                                const msg = `${requester} mengajukan ${actionStr} untuk ${assetName}`;
+                                showTicketPopup(title, msg);
+                            }
+                        }
+                    } else if (prevStatus !== r.status) {
+                        previousRequestStates.set(r.id, r.status);
+
+                        const requester = db.users[r.requesterId] ? db.users[r.requesterId].name : 'Personel';
+                        const arr = r.toolType === 'demo' ? db.demoUnits : db.tools;
+                        const t = arr.find(x => x.id === r.toolId);
+                        const assetName = t ? t.desc : 'Alat';
+
+                        if (r.requesterId === currentUser.id) {
+                            let title = '';
+                            let msg = '';
+                            if (r.status === 'approved') {
+                                title = 'Permohonan Disetujui';
+                                msg = `Permohonan ${r.reqType === 'borrow' ? 'peminjaman' : 'pengembalian'} ${assetName} disetujui SPV. Silakan serah terima fisik.`;
+                            } else if (r.status === 'rejected') {
+                                title = 'Permohonan Ditolak';
+                                msg = `Permohonan ${r.reqType === 'borrow' ? 'peminjaman' : 'pengembalian'} ${assetName} telah ditolak.`;
+                            } else if (r.status === 'pending_tsf') {
+                                title = 'Diteruskan ke TSF';
+                                msg = `Permohonan ${r.reqType === 'borrow' ? 'peminjaman' : 'pengembalian'} ${assetName} diteruskan ke Gudang (TSF).`;
+                            } else if (r.status === 'borrowed') {
+                                title = 'Peminjaman Aktif';
+                                msg = `Fisik ${assetName} telah sah Anda terima.`;
+                            } else if (r.status === 'returned') {
+                                title = 'Pengembalian Selesai';
+                                msg = `Aset ${assetName} telah berhasil dikembalikan ke Gudang.`;
+                            }
+                            if (title) showTicketPopup(title, msg);
+                        } else {
+                            let isUserInvolved = false;
+                            if (currentUser.role === 'owner' || currentUser.role === 'tsf') {
+                                isUserInvolved = true;
+                            } else if (currentUser.role === 'spv') {
+                                const reqUser = db.users[r.requesterId];
+                                if (reqUser && reqUser.group === currentUser.group) {
+                                    isUserInvolved = true;
+                                }
+                            }
+
+                            if (isUserInvolved) {
+                                let title = '';
+                                let msg = '';
+                                if (r.status === 'borrowed') {
+                                    title = 'Serah Terima Selesai';
+                                    msg = `${requester} telah menandatangani serah terima peminjaman ${assetName}.`;
+                                } else if (r.status === 'returned') {
+                                    title = 'Pengembalian Selesai';
+                                    msg = `Aset ${assetName} dari ${requester} telah kembali ke Gudang.`;
+                                } else if (r.status === 'approved' && currentUser.role === 'tsf') {
+                                    title = 'Peminjaman Disetujui';
+                                    msg = `Peminjaman ${assetName} untuk ${requester} disetujui SPV. Silakan siapkan fisik alat.`;
+                                }
+                                if (title) showTicketPopup(title, msg);
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (!previousServiceTicketStates) {
+                previousServiceTicketStates = new Map();
+                (db.serviceTickets || []).forEach(st => {
+                    previousServiceTicketStates.set(st.id, st.status);
+                });
+            } else {
+                const currentTickets = db.serviceTickets || [];
+                currentTickets.forEach(st => {
+                    const prevStatus = previousServiceTicketStates.get(st.id);
+                    if (prevStatus === undefined) {
+                        previousServiceTicketStates.set(st.id, st.status);
+                        if (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') {
+                            showTicketPopup('Service Baru', `Tiket service customer baru untuk aset: ${st.desc || st.toolName || 'Aset'}`);
+                        }
+                    } else if (prevStatus !== st.status) {
+                        previousServiceTicketStates.set(st.id, st.status);
+                        if (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') {
+                            const statusLabels = {
+                                'received_tsf': 'Diterima TSF',
+                                'quoted': 'Penawaran Dikirim',
+                                'po_issued': 'PO Keluar',
+                                'servicing': 'Dalam Perbaikan',
+                                'completed': 'Selesai',
+                                'returned_cust': 'Kembali ke Customer',
+                                'cancelled': 'Dibatalkan'
+                            };
+                            const newStatusText = statusLabels[st.status] || st.status;
+                            showTicketPopup('Update Service', `Status tiket service ${st.desc || st.toolName || 'Aset'} berubah menjadi: ${newStatusText}`);
                         }
                     }
                 });
