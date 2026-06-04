@@ -4533,7 +4533,14 @@
                 }
                 return t.status !== 'pending_auth' && matchQ && matchF;
             });
-            filtered.sort((a, b) => b.id - a.id);
+            filtered.sort((a, b) => {
+                const subCatA = a.subCategory || 'Lainnya';
+                const subCatB = b.subCategory || 'Lainnya';
+                if (subCatA !== subCatB) {
+                    return subCatA.localeCompare(subCatB);
+                }
+                return b.id - a.id;
+            });
             filtered.forEach(t => {
                 const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
                 let ownerHtml = ownerUser ? `${ownerUser.name}` : 'Gudang (Pool)';
@@ -4582,12 +4589,20 @@
                 }
                 return matchQ;
             });
-            filtered.sort((a, b) => b.id - a.id);
+            filtered.sort((a, b) => {
+                const subCatA = a.subCategory || 'Lainnya';
+                const subCatB = b.subCategory || 'Lainnya';
+                if (subCatA !== subCatB) {
+                    return subCatA.localeCompare(subCatB);
+                }
+                return b.id - a.id;
+            });
             filtered.forEach(t => {
                 const owner = t.ownerId === 0 ? 'Gudang' : (db.users[t.ownerId] ? db.users[t.ownerId].name : 'Tidak Diketahui');
                 const reasonStr = t.reason || "Standby";
                 const condColor = t.condition === 'Rusak' ? 'text-red-600 dark:text-red-500' : 'text-emerald-600 dark:text-emerald-400';
                 const calStat = getCalibrationStatus(t.calDate);
+                const subCatBadge = t.subCategory ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${t.subCategory}</span>` : '';
                 const maintBadge = t.maintenanceStatus ? `<br><span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 mt-1 inline-block whitespace-nowrap">${t.maintenanceStatus}</span>` : '';
                 
                 const editDeleteBtns = (currentUser.role === 'tsf' || currentUser.role === 'owner') ? `<button onclick="openFormModal('demo', ${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 dark:text-gold-500 hover:bg-gold-600 dark:hover:bg-gold-500 hover:text-white dark:hover:text-black transition flex items-center justify-center shadow-sm" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button><button onclick="deleteItem('demo', ${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>` : '';
@@ -4597,7 +4612,7 @@
                     : `<button onclick="openDistributeModal(${t.id}, 'demo')" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-600 dark:text-emerald-500 hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Distribusikan"><i class="fa-solid fa-paper-plane text-[10px]"></i></button>`;
                 sc.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
                     <td class="p-5 text-center"><input type="checkbox" value="${t.id}" class="demo-asset-checkbox w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer"></td>
-                    <td class="p-5 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[12px] whitespace-nowrap">${t.noInv}</td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1 whitespace-nowrap">${t.artNo||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||''} ${t.tipe||''}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonStr}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-300 hover:bg-gray-600 dark:hover:bg-lux-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button>${editDeleteBtns}</div></td></tr>`;
+                    <td class="p-5 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[12px] whitespace-nowrap">${t.noInv}</td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1 whitespace-nowrap">${t.artNo||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||''} ${t.tipe||''}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonStr}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span><br>${subCatBadge}${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-300 hover:bg-gray-600 dark:hover:bg-lux-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button>${editDeleteBtns}</div></td></tr>`;
             });
         }
 
@@ -4606,7 +4621,14 @@
             const isRegionalSpv = currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang';
             Object.values(db.users)
                 .filter(u => (u.name && u.name.toLowerCase().includes(q)) || (u.nik && u.nik.toLowerCase().includes(q)))
-                .sort((a, b) => b.id - a.id)
+                .sort((a, b) => {
+                    const aOnline = isUserOnline(a) ? 1 : 0;
+                    const bOnline = isUserOnline(b) ? 1 : 0;
+                    if (aOnline !== bOnline) {
+                        return bOnline - aOnline;
+                    }
+                    return (a.name || '').localeCompare(b.name || '');
+                })
                 .forEach(u => {
                 if (currentUser.role !== 'owner') {
                     if(u.role === 'spv' && u.group === 'TSF/Gudang') return; 
@@ -5697,7 +5719,7 @@
             const statusVal = (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') ? "good" : "pending_auth";
             const descVal = document.getElementById('add-desc').value || "Alat Tanpa Nama"; const snVal = document.getElementById('add-sn').value || "-"; const merkVal = document.getElementById('add-merk').value || "-";
             const priceVal = document.getElementById('add-price').value || "";
-            const subCatVal = type === 'tool' ? document.getElementById('add-subcat').value : "";
+            const subCatVal = (type === 'tool' || type === 'demo') ? document.getElementById('add-subcat').value : "";
 
             const fileInput = document.getElementById('add-tool-photo');
             const file = fileInput ? fileInput.files[0] : null;
@@ -7366,7 +7388,14 @@
                 return matchesQuery && matchesStatus;
             });
 
-            filtered.sort((a, b) => b.id - a.id);
+            filtered.sort((a, b) => {
+                const prodA = a.unitProduct || 'Lainnya';
+                const prodB = b.unitProduct || 'Lainnya';
+                if (prodA !== prodB) {
+                    return prodA.localeCompare(prodB);
+                }
+                return b.id - a.id;
+            });
 
             if (filtered.length === 0) {
                 container.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest bg-white dark:bg-[#18181b]">Tidak ada tiket perbaikan ditemukan</td></tr>`;
@@ -7430,6 +7459,8 @@
 
                 const descStr = s.unitName || "Unit Customer";
                 
+                const prodBadge = s.unitProduct ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${s.unitProduct}</span>` : '';
+
                 container.innerHTML += `
                     <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
                         <td class="p-5 text-center"><input type="checkbox" value="${s.id}" class="service-ticket-checkbox w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer"></td>
@@ -7446,6 +7477,7 @@
                         <td class="p-5">
                             <p class="font-bold text-[12px] text-gray-900 dark:text-white">${descStr}</p>
                             <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-widest font-bold font-mono">${s.unitMerk || '-'} / ${s.unitTipe || '-'} (${s.unitSn || 'SN-'})</p>
+                            ${prodBadge}
                         </td>
                         <td class="p-5">
                             <p class="font-bold text-[12px] text-gray-900 dark:text-white">${ts}</p>
