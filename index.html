@@ -2100,6 +2100,18 @@
                     try { window.localStorage.clear(); return; } catch(e) {}
                 }
                 for (let key in virtualLocalStorage) delete virtualLocalStorage[key];
+            },
+            get length() {
+                if (storageAvailable) {
+                    try { return window.localStorage.length; } catch(e) {}
+                }
+                return Object.keys(virtualLocalStorage).length;
+            },
+            key: function(index) {
+                if (storageAvailable) {
+                    try { return window.localStorage.key(index); } catch(e) {}
+                }
+                return Object.keys(virtualLocalStorage)[index] || null;
             }
         };
 
@@ -2128,6 +2140,18 @@
                     try { window.sessionStorage.clear(); return; } catch(e) {}
                 }
                 for (let key in virtualSessionStorage) delete virtualSessionStorage[key];
+            },
+            get length() {
+                if (storageAvailable) {
+                    try { return window.sessionStorage.length; } catch(e) {}
+                }
+                return Object.keys(virtualSessionStorage).length;
+            },
+            key: function(index) {
+                if (storageAvailable) {
+                    try { return window.sessionStorage.key(index); } catch(e) {}
+                }
+                return Object.keys(virtualSessionStorage)[index] || null;
             }
         };
 
@@ -2543,8 +2567,7 @@
                                 }
                             });
                         }
-
-                        const nextVersion = Date.now();
+                        const nextVersion = Math.max(db.version || 0, Date.now()) + 1;
                         const uploadDb = JSON.parse(JSON.stringify(db));
                         uploadDb.version = nextVersion;
                         if (currentUser && uploadDb.messages) {
@@ -2596,6 +2619,7 @@
                                 }
                             });
 
+                            const hasLocalOnlyBeforeMerge = hasLocalOnlyItems(db, data.db_data);
                             db = mergeDatabases(db, data.db_data);
                             db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
 
@@ -2609,11 +2633,17 @@
                                 if (typeof updateChatBadge === 'function') updateChatBadge();
                             }
                             console.log("Sinkronisasi: Data awan berhasil diunduh ke LocalStorage (Versi: " + cloudVersion + ")");
+                            
+                            if (hasLocalOnlyBeforeMerge) {
+                                console.log("Sync: Local database had unsynced changes before merge. Triggering upload...");
+                                isSyncing = false;
+                                syncWithCloud(true);
+                                return;
+                            }
                         } else {
                             console.warn("Sinkronisasi: Data awan tidak valid atau tidak memiliki daftar pengguna, mengabaikan unduhan.");
                         }
-                    }
-                }
+                    }                }
             } catch (err) {
                 console.warn("Sinkronisasi Cloud ditunda (mode offline-first aktif / server down):", err.message);
             } finally {
@@ -2678,51 +2708,57 @@
                                         }
                                     });
 
+                                    const hasLocalOnlyBeforeMerge = hasLocalOnlyItems(db, cloudData.db_data);
                                     db = mergeDatabases(db, cloudData.db_data);
                                     db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
                                     safeSaveLocalStorage();
                                     loadDB(); // Enforce database migrations immediately on real-time downloaded cloud database!
                                     lastMsgCount = db.messages ? db.messages.length : 0;
-                                }
+                                
+                                    if (currentUser) {
+                                        const incomingUnreadFromOthers = [];
+                                        let hasIncomingUnreadForActiveChat = false;
 
-                                if (currentUser) {
-                                    const incomingUnreadFromOthers = [];
-                                    let hasIncomingUnreadForActiveChat = false;
-
-                                    if (db.messages) {
-                                        db.messages.forEach(m => {
-                                            if (m.to === currentUser.id && !m.read) {
-                                                const isChatActiveWithSender = (activeChatUser === m.from && !document.getElementById('chat-window').classList.contains('hidden'));
-                                                if (isChatActiveWithSender) {
-                                                    m.read = true;
-                                                    hasIncomingUnreadForActiveChat = true;
-                                                } else {
-                                                    incomingUnreadFromOthers.push(m);
+                                        if (db.messages) {
+                                            db.messages.forEach(m => {
+                                                if (m.to === currentUser.id && !m.read) {
+                                                    const isChatActiveWithSender = (activeChatUser === m.from && !document.getElementById('chat-window').classList.contains('hidden'));
+                                                    if (isChatActiveWithSender) {
+                                                        m.read = true;
+                                                        hasIncomingUnreadForActiveChat = true;
+                                                    } else {
+                                                        incomingUnreadFromOthers.push(m);
+                                                    }
                                                 }
+                                            });
+                                        }
+
+                                        if (hasIncomingUnreadForActiveChat) {
+                                            saveDB();
+                                        }
+
+                                        if (incomingUnreadFromOthers.length > 0) {
+                                            const m = incomingUnreadFromOthers[incomingUnreadFromOthers.length - 1];
+                                            const senderName = db.users[m.from] ? db.users[m.from].name : "Seseorang";
+                                            if (typeof showChatPopup === 'function' && !document.getElementById('chat-window').classList.contains('hidden')) {
+                                                showChatPopup(senderName, m.text);
                                             }
-                                        });
-                                    }
+                                        }
 
-                                    if (hasIncomingUnreadForActiveChat) {
-                                        saveDB();
-                                    }
-
-                                    if (incomingUnreadFromOthers.length > 0) {
-                                        const m = incomingUnreadFromOthers[incomingUnreadFromOthers.length - 1];
-                                        const senderName = db.users[m.from] ? db.users[m.from].name : "Seseorang";
-                                        if (typeof showChatPopup === 'function' && !document.getElementById('chat-window').classList.contains('hidden')) {
-                                            showChatPopup(senderName, m.text);
+                                        updateData();
+                                        if (typeof renderChatUsers === 'function') renderChatUsers();
+                                        if (typeof updateChatBadge === 'function') updateChatBadge();
+                                        if (activeChatUser && !document.getElementById('chat-window').classList.contains('hidden') && typeof renderChatMessages === 'function') {
+                                            renderChatMessages();
                                         }
                                     }
-
-                                    updateData();
-                                    if (typeof renderChatUsers === 'function') renderChatUsers();
-                                    if (typeof updateChatBadge === 'function') updateChatBadge();
-                                    if (activeChatUser && !document.getElementById('chat-window').classList.contains('hidden') && typeof renderChatMessages === 'function') {
-                                        renderChatMessages();
+                                    console.log("Real-time Sync: State database terupdate langsung dari Supabase Cloud (Versi: " + cloudVersion + ")");
+                                    
+                                    if (hasLocalOnlyBeforeMerge) {
+                                        console.log("Real-time Sync: Local database had unsynced changes before merge. Triggering upload...");
+                                        syncWithCloud(true);
                                     }
                                 }
-                                console.log("Real-time Sync: State database terupdate langsung dari Supabase Cloud (Versi: " + cloudVersion + ")");
                             }
                         }
                     }
@@ -3028,7 +3064,7 @@
 
             // Simpan versi tertinggi atau bump jika ada kontribusi lokal baru yang belum di cloud
             if (hasLocalOnlyItems(local, cloud)) {
-                merged.version = Date.now();
+                merged.version = Math.max(parseInt(local.version || 0), parseInt(cloud.version || 0), Date.now()) + 1;
             } else {
                 merged.version = Math.max(parseInt(local.version || 0), parseInt(cloud.version || 0));
             }
@@ -3197,7 +3233,7 @@
             if (updated) {
                 // Safeguard: only bump version if we are not on a fresh/default database template (version 1)
                 if (db.version > 1) {
-                    db.version = Date.now();
+                    db.version = Math.max(db.version || 0, Date.now()) + 1;
                 }
                 safeSaveLocalStorage();
             }
@@ -3223,7 +3259,7 @@
             }
         }
         function saveDB() { 
-            db.version = Date.now();
+            db.version = Math.max(db.version || 0, Date.now()) + 1;
             safeSaveLocalStorage();
             if (supabaseClient) {
                 syncWithCloud();
@@ -4006,8 +4042,7 @@
                     addNotif(item.id, html);
                 }
             };
-
-            loadDB();
+            
             if (db.tools && Array.isArray(db.tools)) {
                 db.tools.forEach(t => checkItem(t, 'Spesial Tools'));
             }
