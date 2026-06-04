@@ -2284,6 +2284,15 @@
             if(document.getElementById('theme-icon-dash')) document.getElementById('theme-icon-dash').className = isDark ? 'fa-solid fa-moon text-xl' : 'fa-solid fa-sun text-xl';
             if(document.getElementById('theme-icon-login')) document.getElementById('theme-icon-login').className = isDark ? 'fa-solid fa-moon text-xl' : 'fa-solid fa-sun text-xl';
             
+            // Tampilkan tombol instalasi jika dijalankan di dalam peramban (browser) biasa
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (!isStandalone) {
+                const btn1 = document.getElementById('pwa-install-btn');
+                if (btn1) btn1.classList.remove('hidden');
+                const btn2 = document.getElementById('pwa-install-btn-login');
+                if (btn2) btn2.classList.remove('hidden');
+            }
+
             // Register PWA Service Worker
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('sw.js')
@@ -2592,7 +2601,7 @@
                                 }
                             });
 
-                            db = data.db_data;
+                            db = mergeDatabases(db, data.db_data);
                             db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
 
                             localStorage.setItem(DB_KEY, JSON.stringify(db));
@@ -2674,7 +2683,7 @@
                                         }
                                     });
 
-                                    db = cloudData.db_data;
+                                    db = mergeDatabases(db, cloudData.db_data);
                                     db.messages = Array.from(mergedMap.values()).sort((a,b) => a.id - b.id);
                                     localStorage.setItem(DB_KEY, JSON.stringify(db));
                                     loadDB(); // Enforce database migrations immediately on real-time downloaded cloud database!
@@ -2761,8 +2770,145 @@
                 });
         }
 
+        function mergeRecord(localRec, cloudRec, type) {
+            if (!localRec) return cloudRec;
+            if (!cloudRec) return localRec;
+
+            let localTime = localRec.updatedAt ? new Date(localRec.updatedAt).getTime() : 0;
+            let cloudTime = cloudRec.updatedAt ? new Date(cloudRec.updatedAt).getTime() : 0;
+
+            // Fallbacks berdasarkan tipe data untuk mendeteksi stempel waktu modifikasi terakhir
+            if (type === 'user') {
+                const getUTime = (x) => Math.max(x.id || 0, x.lastOnline ? new Date(x.lastOnline).getTime() : 0, x.updatedAt ? new Date(x.updatedAt).getTime() : 0);
+                localTime = localTime || getUTime(localRec);
+                cloudTime = cloudTime || getUTime(cloudRec);
+            } else if (type === 'tool' || type === 'demoUnit') {
+                const getTTime = (x) => (x.history && x.history[0] ? new Date(x.history[0].t).getTime() : (x.id || 0));
+                localTime = localTime || getTTime(localRec);
+                cloudTime = cloudTime || getTTime(cloudRec);
+            } else if (type === 'request') {
+                const getRTime = (x) => Math.max(x.id || 0, x.completedAt ? new Date(x.completedAt).getTime() : 0, x.approvedAt ? new Date(x.approvedAt).getTime() : 0, x.shippedAt ? new Date(x.shippedAt).getTime() : 0);
+                localTime = localTime || getRTime(localRec);
+                cloudTime = cloudTime || getRTime(cloudRec);
+            } else if (type === 'serviceTicket') {
+                const getSTime = (x) => (x.history && x.history[0] ? new Date(x.history[0].t).getTime() : (x.id || 0));
+                localTime = localTime || getSTime(localRec);
+                cloudTime = cloudTime || getSTime(cloudRec);
+            }
+
+            return localTime >= cloudTime ? localRec : cloudRec;
+        }
+
+        function mergeDatabases(local, cloud) {
+            if (!local || typeof local !== 'object') return cloud;
+            if (!cloud || typeof cloud !== 'object') return local;
+
+            const merged = { ...local };
+            
+            // 1. Merge Users
+            const usersMap = new Map();
+            Object.keys(cloud.users || {}).forEach(k => {
+                usersMap.set(parseInt(k), cloud.users[k]);
+            });
+            Object.keys(local.users || {}).forEach(k => {
+                const keyInt = parseInt(k);
+                const localUser = local.users[k];
+                const cloudUser = usersMap.get(keyInt);
+                usersMap.set(keyInt, mergeRecord(localUser, cloudUser, 'user'));
+            });
+            merged.users = {};
+            usersMap.forEach((val, key) => {
+                merged.users[key] = val;
+            });
+
+            // 2. Merge Tools
+            const toolsMap = new Map();
+            (cloud.tools || []).forEach(t => toolsMap.set(t.id, t));
+            (local.tools || []).forEach(t => {
+                const ext = toolsMap.get(t.id);
+                toolsMap.set(t.id, mergeRecord(t, ext, 'tool'));
+            });
+            merged.tools = Array.from(toolsMap.values());
+
+            // 3. Merge Demo Units
+            const demoMap = new Map();
+            (cloud.demoUnits || []).forEach(d => demoMap.set(d.id, d));
+            (local.demoUnits || []).forEach(d => {
+                const ext = demoMap.get(d.id);
+                demoMap.set(d.id, mergeRecord(d, ext, 'demoUnit'));
+            });
+            merged.demoUnits = Array.from(demoMap.values());
+
+            // 4. Merge Requests
+            const reqMap = new Map();
+            (cloud.requests || []).forEach(r => reqMap.set(r.id, r));
+            (local.requests || []).forEach(r => {
+                const ext = reqMap.get(r.id);
+                reqMap.set(r.id, mergeRecord(r, ext, 'request'));
+            });
+            merged.requests = Array.from(reqMap.values());
+
+            // 5. Merge History Log
+            const historyMap = new Map();
+            (cloud.historyLog || []).forEach(h => historyMap.set(`${h.t}_${h.m}`, h));
+            (local.historyLog || []).forEach(h => historyMap.set(`${h.t}_${h.m}`, h));
+            merged.historyLog = Array.from(historyMap.values()).sort((a, b) => new Date(b.t) - new Date(a.t));
+
+            // 6. Merge Service Tickets
+            const ticketMap = new Map();
+            (cloud.serviceTickets || []).forEach(st => ticketMap.set(st.id, st));
+            (local.serviceTickets || []).forEach(st => {
+                const ext = ticketMap.get(st.id);
+                ticketMap.set(st.id, mergeRecord(st, ext, 'serviceTicket'));
+            });
+            merged.serviceTickets = Array.from(ticketMap.values());
+
+            // 7. Merge Messages
+            const msgMap = new Map();
+            (cloud.messages || []).forEach(m => msgMap.set(m.id, m));
+            (local.messages || []).forEach(m => msgMap.set(m.id, m));
+            merged.messages = Array.from(msgMap.values()).sort((a, b) => a.id - b.id);
+
+            // Simpan versi tertinggi
+            merged.version = Math.max(parseInt(local.version || 0), parseInt(cloud.version || 0));
+
+            return merged;
+        }
+
         function loadDB() {
-            const saved = localStorage.getItem(DB_KEY);
+            let saved = localStorage.getItem(DB_KEY);
+            if (!saved) {
+                // Cari kunci tms_enterprise_db_v* sebelumnya untuk migrasi
+                let bestKey = null;
+                let bestVer = -1;
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('tms_enterprise_db_v')) {
+                            const ver = parseInt(key.replace('tms_enterprise_db_v', ''));
+                            if (!isNaN(ver) && ver > bestVer) {
+                                bestVer = ver;
+                                bestKey = key;
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.warn("Gagal membaca daftar kunci localStorage:", e);
+                }
+                if (bestKey) {
+                    const oldData = localStorage.getItem(bestKey);
+                    if (oldData) {
+                        saved = oldData;
+                        try {
+                            localStorage.setItem(DB_KEY, saved);
+                            console.log(`Database berhasil dimigrasikan dari versi lama (${bestKey}) ke versi baru (${DB_KEY})`);
+                        } catch(e) {
+                            console.warn("Gagal menyalin data migrasi:", e);
+                        }
+                    }
+                }
+            }
+
             if (saved) {
                 try {
                     db = JSON.parse(saved);
@@ -2771,7 +2917,9 @@
                 }
             } else {
                 db.version = 1;
-                localStorage.setItem(DB_KEY, JSON.stringify(db));
+                try {
+                    localStorage.setItem(DB_KEY, JSON.stringify(db));
+                } catch(e) {}
             }
             
             if (!db || typeof db !== 'object') db = {};
@@ -3019,7 +3167,7 @@
                             const localVersion = parseInt(db.version || 0);
                             if (cloudVersion >= localVersion) {
                                 const nd = data.db_data;
-                                db = nd;
+                                db = mergeDatabases(db, nd);
                                 if (!db.users) db.users = {};
                                 if (!db.tools) db.tools = [];
                                 if (!db.requests) db.requests = [];
@@ -3238,6 +3386,7 @@
         function saveProfile(e) { 
             e.preventDefault(); loadDB(); 
             currentUser.name = document.getElementById('prof-name').value; currentUser.pass = document.getElementById('prof-pass').value; currentUser.nik = document.getElementById('prof-nik').value; currentUser.jabatan = document.getElementById('prof-jabatan').value; currentUser.email = document.getElementById('prof-email').value; currentUser.phone = document.getElementById('prof-phone').value; 
+            currentUser.updatedAt = new Date().toISOString();
             db.users[currentUser.id] = currentUser; saveDB(); sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser)); localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
             document.getElementById('nav-user-name').innerText = currentUser.name; document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); showToast("Profil Diperbarui", "Data berhasil diubah.", "success"); updateOwnerDropdown(); 
         }
@@ -4724,7 +4873,8 @@
                 requesterId: currentUser.id,
                 reqType: reqType,
                 status: status,
-                note: note
+                note: note,
+                updatedAt: new Date().toISOString()
             });
             
             addToHistory(`TS ${currentUser.name.split(' ')[0]} mengajukan ${isReturn ? 'pengembalian' : 'peminjaman'} untuk ${t.noInv}.`, t.id);
@@ -4919,6 +5069,11 @@
                 }
             }
             
+            r.updatedAt = new Date().toISOString();
+            if (t) {
+                t.updatedAt = new Date().toISOString();
+            }
+            
             saveDB(); updateData(); closeModal('handoverModal');
             showToast("Serah Terima Sukses", "Fisik alat sah Anda terima.", "success");
             let targetUser;
@@ -5022,7 +5177,8 @@
                 approvedBy: currentUser.name,
                 approvedAt: new Date().toISOString(),
                 shippedBy: currentUser.name,
-                shippedAt: new Date().toISOString()
+                shippedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             });
             
             addToHistory(`Aset ${t.noInv} ${actionVerb} oleh ${currentUser.name} ke ${recipientName}. Catatan: "${note}". Menunggu serah terima fisik.`, t.id);
@@ -5092,6 +5248,9 @@
                 t.condition = 'Rusak'; t.maintenanceStatus = status;
                 addToHistory(`Update Maintenance ${t.noInv}: ${status}.`, t.id);
                 showToast("Status Diperbarui", `Progres: ${status}`, "success");
+            }
+            if (t) {
+                t.updatedAt = new Date().toISOString();
             }
             saveDB(); updateData(); closeModal('maintModal');
         }
@@ -5248,6 +5407,16 @@
                 if (r.status === 'approved') {
                     r.approvedBy = currentUser.name;
                     r.approvedAt = new Date().toISOString();
+                }
+                r.updatedAt = new Date().toISOString();
+                if (t) {
+                    t.updatedAt = new Date().toISOString();
+                }
+                if (r.reqType === 'verify_user') {
+                    const targetUser = db.users[r.toolId];
+                    if (targetUser) {
+                        targetUser.updatedAt = new Date().toISOString();
+                    }
                 }
                 saveDB(); updateData();
             }
@@ -5433,7 +5602,8 @@
                 phone: document.getElementById('add-tech-hp').value, 
                 group: groupVal, 
                 status: statusVal,
-                products: productsVal
+                products: productsVal,
+                updatedAt: new Date().toISOString()
             };
             
             if(editMode) { 
@@ -5451,7 +5621,8 @@
                         requesterId: currentUser.id,
                         reqType: 'verify_user',
                         status: 'pending_spv',
-                        note: `Registrasi personel baru: ${data.name} (${data.jabatan})`
+                        note: `Registrasi personel baru: ${data.name} (${data.jabatan})`,
+                        updatedAt: new Date().toISOString()
                     });
                     addToHistory(`SPV ${currentUser.name.split(' ')[0]} mengajukan registrasi personel baru: ${data.name}.`, null);
                     showToast("Menunggu Persetujuan", "Registrasi personel dikirim ke Direktur.", "success");
@@ -5486,15 +5657,15 @@
                     // Keep original photo if no new photo was selected
                     const photoToSave = photoBase64 !== null ? photoBase64 : (arr[index].photo || null);
                     
-                    const data = { id: currentEditId, noInv: document.getElementById('add-inv').value, artNo: document.getElementById('add-art').value, desc: descVal, merk: merkVal, tipe: document.getElementById('add-tipe').value, sn: snVal, ownerId: ownerIdVal, condition: document.getElementById('add-kondisi').value, buyDate: document.getElementById('add-buydate').value, price: priceVal, calDate: document.getElementById('add-caldate').value, status: originalStatus, category: type==='tool' ? 'standard' : 'demo', subCategory: subCatVal, reason: originalReason, maintenanceStatus: originalMaint, history: originalHistory, photo: photoToSave };
+                    const data = { id: currentEditId, noInv: document.getElementById('add-inv').value, artNo: document.getElementById('add-art').value, desc: descVal, merk: merkVal, tipe: document.getElementById('add-tipe').value, sn: snVal, ownerId: ownerIdVal, condition: document.getElementById('add-kondisi').value, buyDate: document.getElementById('add-buydate').value, price: priceVal, calDate: document.getElementById('add-caldate').value, status: originalStatus, category: type==='tool' ? 'standard' : 'demo', subCategory: subCatVal, reason: originalReason, maintenanceStatus: originalMaint, history: originalHistory, photo: photoToSave, updatedAt: new Date().toISOString() };
                     arr[index] = data; 
                     addToHistory(`${currentUser.name.split(' ')[0]} memperbarui data: ${data.noInv}.`, data.id); showToast("Berhasil", "Data aset diperbarui.", "success"); 
                 } else { 
                     const newId = Date.now(); 
-                    const data = { id: newId, noInv: document.getElementById('add-inv').value, artNo: document.getElementById('add-art').value, desc: descVal, merk: merkVal, tipe: document.getElementById('add-tipe').value, sn: snVal, ownerId: ownerIdVal, condition: document.getElementById('add-kondisi').value, buyDate: document.getElementById('add-buydate').value, price: priceVal, calDate: document.getElementById('add-caldate').value, status: statusVal, category: type==='tool' ? 'standard' : 'demo', subCategory: subCatVal, reason: type==='demo' ? 'Standby Gudang' : '', maintenanceStatus: "", history: [{t: new Date().toISOString(), m: "Alat didaftarkan ke sistem."}], photo: photoBase64 };
+                    const data = { id: newId, noInv: document.getElementById('add-inv').value, artNo: document.getElementById('add-art').value, desc: descVal, merk: merkVal, tipe: document.getElementById('add-tipe').value, sn: snVal, ownerId: ownerIdVal, condition: document.getElementById('add-kondisi').value, buyDate: document.getElementById('add-buydate').value, price: priceVal, calDate: document.getElementById('add-caldate').value, status: statusVal, category: type==='tool' ? 'standard' : 'demo', subCategory: subCatVal, reason: type==='demo' ? 'Standby Gudang' : '', maintenanceStatus: "", history: [{t: new Date().toISOString(), m: "Alat didaftarkan ke sistem."}], photo: photoBase64, updatedAt: new Date().toISOString() };
                     arr.push(data); 
                     if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') { addToHistory(`${currentUser.role.toUpperCase()} menambahkan Spesial Tools: ${data.noInv}.`, newId); showToast("Tersimpan", "Aset masuk ke database Spesial Tools.", "success"); } 
-                    else { db.requests.push({ id: Date.now() + 1, toolId: newId, toolType: type, requesterId: currentUser.id, reqType: 'verify_tool', status: 'pending_spv', note: 'Registrasi aset baru' }); addToHistory(`TS ${currentUser.name.split(' ')[0]} mengajukan aset ${data.noInv} untuk diverifikasi.`, newId); showToast("Terkirim", "Menunggu Verifikasi SPV.", "success"); }
+                    else { db.requests.push({ id: Date.now() + 1, toolId: newId, toolType: type, requesterId: currentUser.id, reqType: 'verify_tool', status: 'pending_spv', note: 'Registrasi aset baru', updatedAt: new Date().toISOString() }); addToHistory(`TS ${currentUser.name.split(' ')[0]} mengajukan aset ${data.noInv} untuk diverifikasi.`, newId); showToast("Terkirim", "Menunggu Verifikasi SPV.", "success"); }
                 }
                 saveDB(); updateData(); closeModal('toolModal');
             };
@@ -5580,6 +5751,7 @@
                 u.status = 'suspended';
                 showToast("Akun Dinonaktifkan", `Akun ${u.name} berhasil dinonaktifkan sementara.`, "error");
             }
+            u.updatedAt = new Date().toISOString();
             saveDB();
             renderSpvPersonnel();
         }
@@ -6295,7 +6467,8 @@
                 approvedBy: isTsfRecipient ? currentUser.name : (sender ? sender.name : 'Warehouse Pool'),
                 approvedAt: new Date().toISOString(),
                 shippedBy: isTsfRecipient ? (sender ? sender.name : 'Teknisi') : (sender ? sender.name : 'Warehouse Pool'),
-                shippedAt: new Date().toISOString()
+                shippedAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             });
             
             addToHistory(`Serah terima QR langsung dimulai untuk ${t.noInv} (${isTsfRecipient ? 'Pengembalian' : 'Peminjaman'}).`, t.id);
@@ -7454,7 +7627,8 @@
                 history: [{
                     t: new Date().toISOString(),
                     m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) dan ditugaskan ke Teknisi Lapangan.`
-                }]
+                }],
+                updatedAt: new Date().toISOString()
             };
 
             db.serviceTickets = db.serviceTickets || [];
@@ -7991,6 +8165,7 @@
                 showToast("Diterima Lapangan", "Unit siap diserahkan ke customer dan TTD disimpan.", "success");
             }
 
+            s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
             updateData();
@@ -8025,6 +8200,7 @@
             
             addToHistory(`Analisa Awal Disubmit: ${s.noService} dianalisa oleh ${currentUser.name}.`);
             notifyServiceUpdate(s, 'initial_analyzed');
+            s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
             updateData();
@@ -8083,6 +8259,7 @@
             
             addToHistory(`Penawaran TSF Dibuat: ${s.noService} dinilai Rp ${price.toLocaleString('id-ID')} oleh ${currentUser.name}.`);
             notifyServiceUpdate(s, 'quoted');
+            s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
             updateData();
@@ -8137,6 +8314,7 @@
             
             addToHistory(`Purchase Order Di-input: ${s.noService} dengan PO No. ${poNumber} oleh ${currentUser.name}.`);
             notifyServiceUpdate(s, 'po_issued');
+            s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
             updateData();
@@ -8179,6 +8357,7 @@
             
             addToHistory(`Perbaikan Selesai: TSF (${currentUser.name}) menyelesaikan perbaikan ${s.noService}.`);
             notifyServiceUpdate(s, 'repaired');
+            s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
             updateData();
@@ -8232,6 +8411,7 @@
             
             addToHistory(`Unit Diserahkan BAST: ${s.noService} diserahkan ke customer oleh ${currentUser.name}. BAST Sah!`, null, sigReceiver);
             notifyServiceUpdate(s, 'completed');
+            s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
             updateData();
