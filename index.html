@@ -2196,7 +2196,7 @@
                         const btn1 = document.getElementById('pwa-install-btn');
                         if (btn1) btn1.classList.add('hidden');
                         const btn2 = document.getElementById('pwa-install-btn-login');
-                        if (btn2) btn2.classList.remove('hidden');
+                        if (btn2) btn2.classList.add('hidden');
                     }
                     deferredPrompt = null;
                 });
@@ -2285,7 +2285,7 @@
             if(document.getElementById('theme-icon-login')) document.getElementById('theme-icon-login').className = isDark ? 'fa-solid fa-moon text-xl' : 'fa-solid fa-sun text-xl';
             
             // Tampilkan tombol instalasi jika dijalankan di dalam peramban (browser) biasa
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            const isStandalone = !!(window.matchMedia('(display-mode: standalone)').matches || (window.navigator && window.navigator.standalone));
             if (!isStandalone) {
                 const btn1 = document.getElementById('pwa-install-btn');
                 if (btn1) btn1.classList.remove('hidden');
@@ -2324,15 +2324,6 @@
                         showSystemUpdateBanner();
                     }
                 });
-            }
-            
-            // Show PWA installation buttons if not already running in standalone mode (installed)
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            if (!isStandalone) {
-                const btn1 = document.getElementById('pwa-install-btn');
-                if (btn1) btn1.classList.remove('hidden');
-                const btn2 = document.getElementById('pwa-install-btn-login');
-                if (btn2) btn2.classList.remove('hidden');
             }
 
             initBrowserNotifications();
