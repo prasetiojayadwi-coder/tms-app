@@ -530,10 +530,6 @@
                     </button>
                 </form>
 
-                <button type="button" onclick="resetLocalDatabase()" class="w-full mt-3 flex items-center justify-center gap-2 py-3 border border-red-200 dark:border-red-900/40 bg-red-50/50 dark:bg-red-950/20 rounded-xl text-red-500 dark:text-red-400 hover:bg-red-500 hover:text-white transition text-[10px] font-black uppercase tracking-[0.15em]">
-                    <i class="fa-solid fa-arrows-rotate"></i> Reset Database (Jika Tidak Bisa Login)
-                </button>
-
                 <button id="pwa-install-btn-login" onclick="triggerPwaInstall()" class="w-full hidden flex items-center justify-center gap-2 py-3.5 mt-4 border border-gold-400/50 dark:border-gold-500/30 bg-gold-50/20 dark:bg-gold-500/10 rounded-xl text-gold-600 dark:text-gold-400 hover:bg-gold-500 hover:text-white dark:hover:text-black transition text-[11px] font-black uppercase tracking-[0.15em]"><i class="fa-solid fa-mobile-screen-button"></i> Instal Aplikasi HP</button>
             </div>
             <button onclick="toggleTheme()" class="absolute top-6 right-6 w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 text-gray-600 dark:text-gold-400 hover:bg-gray-100 transition shadow-sm"><i id="theme-icon-login" class="fa-solid fa-moon"></i></button>
@@ -2348,15 +2344,6 @@
         // --- 1. LOCAL STORAGE DATABASE & SUPABASE CONFIGURATION (HYBRID CLOUD SYNC) ---
         const DB_KEY = 'tms_enterprise_db_v23'; 
         
-        function resetLocalDatabase() {
-            if(confirm("Apakah Anda yakin ingin menyetel ulang database lokal ke pengaturan bawaan? Semua data lokal Anda akan dikembalikan ke kondisi awal.")) {
-                localStorage.removeItem('tms_enterprise_db_v23');
-                sessionStorage.clear();
-                alert("Database lokal telah berhasil disetel ulang! Halaman akan dimuat ulang.");
-                location.reload();
-            }
-        }
-        
         // KREDENSIAL CLOUD SYNC SUPABASE
         const SUPABASE_URL = "https://mezuatmcjqjxfsvepizv.supabase.co"; // Silakan masukkan URL proyek Supabase Anda di sini
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lenVhdG1janFqeGZzdmVwaXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNDMyMjEsImV4cCI6MjA5NTgxOTIyMX0.nR9goOaEtGAU6VWr52oifMWlY6uORSsh46G8SCbEsKY"; // Silakan masukkan Anon Key proyek Supabase Anda di sini
@@ -3125,7 +3112,7 @@
                     if (usernameInDB) {
                         showLoginError('Sandi salah untuk username "' + u + '". Silakan coba lagi.');
                     } else {
-                        showLoginError('Username "' + u + '" tidak ditemukan. Periksa ejaan atau klik Reset Database.');
+                        showLoginError('Username "' + u + '" tidak ditemukan. Periksa ejaan Anda.');
                     }
                     const form = document.getElementById('loginForm');
                     if (form) { form.style.animation = 'none'; form.offsetHeight; form.style.animation = 'shake 0.4s ease'; }
@@ -3134,11 +3121,38 @@
             } catch(err) {
                 console.error('handleLogin error:', err);
                 if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
-                showLoginError('Terjadi error: ' + (err.message || err) + '. Coba klik Reset Database.');
+                showLoginError('Terjadi error: ' + (err.message || err) + '.');
             }
         }
         
-        function handleLogout() { currentUser = null; knownRequestIds = null; sessionStorage.removeItem('tms_current_user'); localStorage.removeItem('tms_current_user'); if ("clearAppBadge" in navigator) { navigator.clearAppBadge().catch(e => {}); } document.getElementById('app-wrapper').classList.add('hidden'); const ls = document.getElementById('login-screen'); ls.classList.remove('hidden'); setTimeout(() => { ls.classList.remove('opacity-0', 'pointer-events-none'); }, 50); document.getElementById('loginForm').reset(); initRealtimeSync(); }
+        function handleLogout() {
+            currentUser = null;
+            knownRequestIds = null;
+            sessionStorage.removeItem('tms_current_user');
+            localStorage.removeItem('tms_current_user');
+            if ("clearAppBadge" in navigator) { navigator.clearAppBadge().catch(e => {}); }
+            
+            // Tutup sidebar dan overlay agar bersih saat login kembali (terutama untuk HP)
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.add('-translate-x-full');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (overlay) overlay.classList.add('hidden');
+
+            document.getElementById('app-wrapper').classList.add('hidden');
+            const ls = document.getElementById('login-screen');
+            if (ls) {
+                ls.classList.remove('hidden');
+                // Bersihkan inline styles agar login screen muncul kembali
+                ls.style.opacity = '';
+                ls.style.pointerEvents = '';
+                setTimeout(() => {
+                    ls.classList.remove('opacity-0', 'pointer-events-none');
+                }, 50);
+            }
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) loginForm.reset();
+            initRealtimeSync();
+        }
 
         function initAppUI() {
             document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); document.getElementById('nav-user-name').innerText = currentUser.name; 
@@ -3747,28 +3761,28 @@
                 const hasPendingReturn = db.requests.some(r => r.toolId === t.id && r.reqType === 'return' && (r.status === 'pending_spv' || r.status === 'pending_tsf'));
                 const isInProcess = hasActiveRequest(t.id);
                 
-                const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-zinc-700/50 hover:text-white border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500/50 hover:shadow-[0_0_15px_rgba(234,179,8,0.15)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
+                const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
                 
                 let sendBtn;
                 if (isInProcess) {
-                    sendBtn = `<button disabled class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center gap-1 opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
+                    sendBtn = `<button disabled class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] flex items-center justify-center gap-1 opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
                 } else if (t.condition !== 'Rusak') {
-                    sendBtn = `<button onclick="openDistributeModal(${t.id}, 'tool')" class="flex-1 min-w-[5.2rem] bg-emerald-500/10 border border-emerald-500/30 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-650 hover:text-black text-emerald-600 dark:text-emerald-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
+                    sendBtn = `<button onclick="openDistributeModal(${t.id}, 'tool')" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
                 } else {
                     sendBtn = '';
                 }
                 
                 let returnBtn;
                 if (isInProcess) {
-                    returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center text-center leading-none opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
+                    returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] flex items-center justify-center text-center leading-none opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
                 } else if (hasPendingReturn) {
-                    returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-900/60 text-[8.5px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.08em] flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>SPV/TSF</span>`;
+                    returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-900/60 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>SPV/TSF</span>`;
                 } else {
-                    returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5.2rem] bg-amber-500/10 border border-amber-500/30 hover:bg-gradient-to-r hover:from-amber-500 hover:to-gold-600 hover:text-black text-amber-600 dark:text-amber-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(245,158,11,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan alat ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
+                    returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan alat ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
                 }
                 
                 const reportBtn = t.condition !== 'Rusak' 
-                    ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5.2rem] bg-rose-500/10 border border-rose-500/30 hover:bg-gradient-to-r hover:from-rose-500 hover:to-red-650 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(244,63,94,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
+                    ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
                     : '';
                 
                 mcTools.innerHTML += `
@@ -3852,28 +3866,28 @@
                     const descStr = t.desc || "Unit Tanpa Nama";
                     const hasPendingReturn = db.requests.some(r => r.toolId === t.id && r.reqType === 'return' && r.status === 'pending_tsf');
                     const isInProcess = hasActiveRequest(t.id);
-                    const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-zinc-700/50 hover:text-white border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
+                    const detailBtn = `<button onclick="showToolDetail(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Tampilkan Info Detail"><i class="fa-solid fa-circle-info text-[11px]"></i> Detail</button>`;
                     
                     let sendBtn;
                     if (isInProcess) {
-                        sendBtn = `<button disabled class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center gap-1 opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
+                        sendBtn = `<button disabled class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] flex items-center justify-center gap-1 opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-lock text-[10px]"></i> Diproses</button>`;
                     } else if (t.condition !== 'Rusak') {
-                        sendBtn = `<button onclick="openDistributeModal(${t.id}, 'demo')" class="flex-1 min-w-[5.2rem] bg-emerald-500/10 border border-emerald-500/30 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-650 hover:text-black text-emerald-600 dark:text-emerald-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
+                        sendBtn = `<button onclick="openDistributeModal(${t.id}, 'demo')" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Kirim/Transfer ke teknisi lain"><i class="fa-solid fa-paper-plane text-[10px]"></i> Kirim</button>`;
                     } else {
                         sendBtn = '';
                     }
                     
                     let returnBtn;
                     if (isInProcess) {
-                        returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[9px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.1em] flex items-center justify-center text-center leading-none opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
+                        returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-900/60 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] flex items-center justify-center text-center leading-none opacity-60 cursor-not-allowed" title="Alat sedang dalam proses"><i class="fa-solid fa-clock text-[10px] mr-1"></i>Menunggu</span>`;
                     } else if (hasPendingReturn) {
-                        returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-900/60 text-[8.5px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.08em] flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>SPV/TSF</span>`;
+                        returnBtn = `<span class="flex-1 min-w-[5.2rem] bg-zinc-800/10 dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-900/60 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] flex items-center justify-center text-center leading-none" title="Menunggu persetujuan gudang"><i class="fa-solid fa-clock text-[10px] mr-1"></i>SPV/TSF</span>`;
                     } else {
-                        returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5.2rem] bg-emerald-500/10 border border-emerald-500/30 hover:bg-gradient-to-r hover:from-emerald-500 hover:to-teal-600 hover:text-white border border-emerald-500/20 text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(16,185,129,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan unit ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
+                        returnBtn = `<button onclick="requestReturn(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Kembalikan unit ke gudang"><i class="fa-solid fa-box-archive text-[11px]"></i> Ke Gudang</button>`;
                     }
                     
                     const reportBtn = t.condition !== 'Rusak' 
-                        ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5.2rem] bg-rose-500/10 border border-rose-500/30 hover:bg-gradient-to-r hover:from-rose-500 hover:to-red-650 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 hover:shadow-[0_0_15px_rgba(244,63,94,0.35)] flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
+                        ? `<button onclick="openReportModal(${t.id})" class="flex-1 min-w-[5.2rem] bg-zinc-800/5 dark:bg-zinc-900/60 hover:bg-gold-500 hover:text-black dark:hover:text-black border border-zinc-200 dark:border-zinc-800/80 text-zinc-700 dark:text-zinc-300 hover:border-gold-500 hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] text-[10px] font-extrabold py-2.5 rounded-xl uppercase tracking-[0.12em] transition duration-300 flex items-center justify-center gap-1.5 shadow-sm" title="Laporkan Kerusakan"><i class="fa-solid fa-triangle-exclamation text-[11px]"></i> Lapor Rusak</button>` 
                         : '';
  
                     mcDemo.innerHTML += `
