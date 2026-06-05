@@ -1,5 +1,7 @@
-# Kredensial Supabase — salin dari config.example.js
+# Kredensial lokal (jangan commit)
 config.js
+
+# config.deploy.js = untuk GitHub Pages (anon key public, dilindungi RLS)
 
 # Python cache
 __pycache__/

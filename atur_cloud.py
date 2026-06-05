@@ -27,7 +27,20 @@ window.TMS_CONFIG = {{
 }};
 """
 
+deploy_content = f"""/**
+ * TMS Cloud — konfigurasi deploy online (GitHub Pages).
+ */
+window.TMS_CONFIG = {{
+    supabase: {{
+        url: '{URL}',
+        anonKey: '{key}'
+    }}
+}};
+"""
+
 Path('config.js').write_text(content, encoding='utf-8')
-print('\n[OK] config.js berhasil disimpan!')
-print('     Jalankan Mulai_Server.bat lalu login.')
-print('     Badge "Cloud Live" (hijau) = berhasil.')
+Path('config.deploy.js').write_text(deploy_content, encoding='utf-8')
+print('\n[OK] config.js + config.deploy.js berhasil disimpan!')
+print('     Lokal  : jalankan Mulai_Server.bat')
+print('     Online : push ke GitHub untuk update config.deploy.js')
+print('     Badge "Cloud Live" (hijau) = cloud aktif.')

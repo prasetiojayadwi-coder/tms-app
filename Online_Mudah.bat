@@ -52,10 +52,14 @@ pause
 start https://github.com/prasetiojayadwi-coder/tms-app/settings/secrets/actions
 start https://github.com/prasetiojayadwi-coder/tms-app/settings/pages
 echo.
-echo  Setelah secrets + Pages aktif, push kode ke GitHub.
+echo  LANGKAH TERAKHIR (otomatis):
+echo   Double-click Selesaikan_Online.bat
+echo.
 echo  URL aplikasi online:
 echo   https://prasetiojayadwi-coder.github.io/tms-app/
 echo.
 echo  Bagikan URL itu ke semua user di tim Anda.
 echo.
+set /p FINISH="Jalankan Selesaikan_Online.bat sekarang? (Y/N): "
+if /i "%FINISH%"=="Y" call "%~dp0Selesaikan_Online.bat"
 pause
