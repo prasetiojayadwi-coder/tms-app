@@ -1,6 +1,7 @@
-const CACHE_NAME = 'tms-cache-v51';
+const CACHE_NAME = 'tms-cache-v53';
 const ASSETS = [
   'index.html',
+  'config.js',
   'manifest.json',
   'tms_pwa_icon.png',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap',

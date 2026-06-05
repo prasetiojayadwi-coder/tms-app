@@ -18,6 +18,8 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>window.TMS_CONFIG = window.TMS_CONFIG || {};</script>
+    <script src="config.js" onerror="console.warn('TMS: config.js tidak ditemukan. Salin config.example.js menjadi config.js lalu isi kredensial Supabase.')"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <script>
@@ -641,23 +643,23 @@
                     <!-- Sebaran Kategori Spesial Tools -->
                     <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl flex flex-col justify-between min-w-0">
                         <div>
-                            <h3 class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-[0.15em] border-b border-gray-150 dark:border-lux-800 pb-3 mb-4"><i class="fa-solid fa-chart-pie text-gold-500 mr-2"></i> Kategori Spesial Tools</h3>
+                            <h3 class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-[0.15em] border-b border-gray-200 dark:border-lux-800 pb-3 mb-4"><i class="fa-solid fa-chart-pie text-gold-500 mr-2"></i> Kategori Spesial Tools</h3>
                             <div class="space-y-4">
-                                <div id="spec-cat-avitum-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
+                                <div id="spec-cat-avitum-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-800">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-amber-500"></span>
                                         <span class="text-xs font-bold text-gray-800 dark:text-lux-300">Avitum Special Tools</span>
                                     </div>
                                     <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-avitum">0 Unit</span>
                                 </div>
-                                <div id="spec-cat-ais-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
+                                <div id="spec-cat-ais-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-800">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-blue-500"></span>
                                         <span class="text-xs font-bold text-gray-800 dark:text-lux-300">AIS Special Tools</span>
                                     </div>
                                     <span class="text-sm font-black text-gray-900 dark:text-white" id="spec-cat-ais">0 Unit</span>
                                 </div>
-                                <div id="spec-cat-aesculap-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-850">
+                                <div id="spec-cat-aesculap-row" class="flex justify-between items-center bg-gray-50 dark:bg-lux-950 p-3 rounded-xl border border-gray-100 dark:border-lux-800">
                                     <div class="flex items-center gap-2">
                                         <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
                                         <span class="text-xs font-bold text-gray-800 dark:text-lux-300">Aesculap Special Tools</span>
@@ -666,14 +668,14 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-6 pt-4 border-t border-gray-150 dark:border-lux-800 flex justify-center">
+                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-lux-800 flex justify-center">
                             <button onclick="switchTab('spv-assets')" class="w-full py-3 bg-gold-500 text-white dark:text-black font-black text-[11px] uppercase tracking-widest rounded-xl hover:bg-gold-600 transition shadow-md shadow-gold-500/10"><i class="fa-solid fa-list mr-1.5"></i> Kelola Spesial Tools</button>
                         </div>
                     </div>
 
                     <!-- Log Pergerakan Spesial Tools -->
                     <div class="lg:col-span-2 bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 p-6 sm:p-8 rounded-2xl shadow-sm dark:shadow-xl">
-                        <h3 class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-[0.15em] border-b border-gray-150 dark:border-lux-800 pb-3 mb-6"><i class="fa-solid fa-clock-rotate-left text-gold-500 mr-2"></i> Log Riwayat Spesial Tools</h3>
+                        <h3 class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-[0.15em] border-b border-gray-200 dark:border-lux-800 pb-3 mb-6"><i class="fa-solid fa-clock-rotate-left text-gold-500 mr-2"></i> Log Riwayat Spesial Tools</h3>
                         <div class="relative border-l-2 border-gray-200 dark:border-lux-700 ml-3 space-y-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2" id="spec-history-log">
                             <!-- Riwayat khusus ditabulasikan disini -->
                         </div>
@@ -1092,7 +1094,7 @@
                         <div class="flex-1 w-full max-w-md">
                             <input type="text" id="search-ticket" onkeyup="renderTicketsLog()" class="input-field w-full" placeholder="Cari Tiket: Nama Alat, No Inv, Peminjam...">
                         </div>
-                        <div class="text-[11px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest bg-gray-50 dark:bg-lux-950 px-4 py-2 rounded-xl border border-gray-200 dark:border-lux-850">
+                        <div class="text-[11px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest bg-gray-50 dark:bg-lux-950 px-4 py-2 rounded-xl border border-gray-200 dark:border-lux-800">
                             Total Tiket: <span id="total-tickets-count" class="text-gold-600 dark:text-gold-500 font-black">0</span>
                         </div>
                     </div>
@@ -1163,7 +1165,7 @@
                     <div><label class="input-label">Nomor HP</label><input type="text" id="add-tech-hp" class="input-field"></div>
                     <div class="md:col-span-2">
                         <label class="input-label">Tanggung Jawab Produk (Akses Aset/Repair) <span class="text-gold-500">*</span></label>
-                        <div class="flex flex-wrap gap-5 mt-2 p-3 bg-gray-50 dark:bg-[#131316] rounded-xl border border-gray-200 dark:border-lux-850">
+                        <div class="flex flex-wrap gap-5 mt-2 p-3 bg-gray-50 dark:bg-[#131316] rounded-xl border border-gray-200 dark:border-lux-800">
                             <label class="flex items-center gap-2 text-[13px] font-semibold text-gray-700 dark:text-lux-300 cursor-pointer">
                                 <input type="checkbox" id="add-prod-avitum" checked class="w-4 h-4 rounded border-gray-300 dark:border-lux-700 accent-gold-500 dark:accent-gold-500 cursor-pointer">
                                 Avitum
@@ -1455,7 +1457,7 @@
                     </div>
                     <div class="sm:col-span-2 pt-4 border-t border-gray-200 dark:border-lux-700 hidden" id="det-photo-wrapper">
                         <p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid fa-image text-gold-500 mr-1.5"></i> Foto Unit Aset</p>
-                        <div class="w-full flex justify-center bg-gray-100 dark:bg-lux-950 p-2 rounded-2xl border border-gray-200 dark:border-lux-850">
+                        <div class="w-full flex justify-center bg-gray-100 dark:bg-lux-950 p-2 rounded-2xl border border-gray-200 dark:border-lux-800">
                             <img id="det-photo" class="max-w-full max-h-[300px] rounded-xl object-contain cursor-pointer hover:scale-[1.01] transition shadow-md" onclick="window.open(this.src, '_blank')" alt="Foto Aset">
                         </div>
                     </div>
@@ -1551,15 +1553,15 @@
                     Aplikasi TMS dapat diinstal langsung ke layar utama iPhone Anda menggunakan peramban <strong>Safari</strong>. Ikuti langkah mudah berikut:
                 </p>
                 <div class="flex flex-col gap-4 text-[12px]">
-                    <div class="flex gap-4 items-start bg-gray-50 dark:bg-[#131316] p-4 rounded-xl border border-gray-200 dark:border-lux-850">
+                    <div class="flex gap-4 items-start bg-gray-50 dark:bg-[#131316] p-4 rounded-xl border border-gray-200 dark:border-lux-800">
                         <div class="w-8 h-8 rounded-lg bg-gold-500 text-white dark:text-black flex items-center justify-center font-black shrink-0">1</div>
                         <p class="leading-relaxed">Ketuk tombol <strong>Bagikan (Share)</strong> <i class="fa-solid fa-arrow-up-from-bracket text-gold-500 mx-1"></i> yang terletak di bar navigasi bawah Safari.</p>
                     </div>
-                    <div class="flex gap-4 items-start bg-gray-50 dark:bg-[#131316] p-4 rounded-xl border border-gray-200 dark:border-lux-850">
+                    <div class="flex gap-4 items-start bg-gray-50 dark:bg-[#131316] p-4 rounded-xl border border-gray-200 dark:border-lux-800">
                         <div class="w-8 h-8 rounded-lg bg-gold-500 text-white dark:text-black flex items-center justify-center font-black shrink-0">2</div>
                         <p class="leading-relaxed">Gulir ke bawah dan ketuk menu <strong>Tambahkan ke Layar Utama (Add to Home Screen)</strong> <i class="fa-solid fa-square-plus text-gold-500 mx-1"></i>.</p>
                     </div>
-                    <div class="flex gap-4 items-start bg-gray-50 dark:bg-[#131316] p-4 rounded-xl border border-gray-200 dark:border-lux-850">
+                    <div class="flex gap-4 items-start bg-gray-50 dark:bg-[#131316] p-4 rounded-xl border border-gray-200 dark:border-lux-800">
                         <div class="w-8 h-8 rounded-lg bg-gold-500 text-white dark:text-black flex items-center justify-center font-black shrink-0">3</div>
                         <p class="leading-relaxed">Ketuk <strong>Tambah (Add)</strong> di sudut kanan atas untuk mengonfirmasi instalasi.</p>
                     </div>
@@ -2397,7 +2399,7 @@
                         <p class="text-[12px] text-gray-600 dark:text-lux-400 font-semibold mt-1 leading-relaxed">Versi aplikasi terbaru telah berhasil diinstal untuk meningkatkan kinerja dan perbaikan fitur. Silakan muat ulang halaman Anda.</p>
                     </div>
                 </div>
-                <div class="flex justify-end gap-3 pt-2 border-t border-gray-150 dark:border-lux-850">
+                <div class="flex justify-end gap-3 pt-2 border-t border-gray-200 dark:border-lux-800">
                     <button onclick="document.getElementById('system-update-banner').remove()" class="px-4 py-2 border border-gray-200 dark:border-lux-700 hover:bg-gray-50 dark:hover:bg-lux-800 text-gray-500 dark:text-lux-400 text-[10px] font-black uppercase tracking-wider rounded-lg transition">Nanti</button>
                     <button onclick="window.location.reload()" class="px-5 py-2 bg-gold-500 hover:bg-gold-600 text-white dark:text-black text-[10px] font-black uppercase tracking-wider rounded-lg shadow-md shadow-gold-500/10 transition">Muat Ulang</button>
                 </div>
@@ -2460,7 +2462,7 @@
             if (isLocalProtocol) {
                 // Create elegant floating banner element at top-center
                 const banner = document.createElement('div');
-                banner.className = "fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-red-650/90 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider py-3.5 px-6 rounded-2xl z-[10000] flex items-center justify-center gap-3 border border-red-500/20 shadow-[0_10px_35px_rgba(239,68,68,0.25)] no-print transition-all duration-500";
+                banner.className = "fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xl bg-red-600/90 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider py-3.5 px-6 rounded-2xl z-[10000] flex items-center justify-center gap-3 border border-red-500/20 shadow-[0_10px_35px_rgba(239,68,68,0.25)] no-print transition-all duration-500";
                 banner.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base animate-pulse text-red-200"></i> <span class="leading-relaxed text-center">Perhatian: Dibuka sebagai File Lokal. Agar bisa diinstal di HP, silakan buka aplikasi melalui URL Server Web HTTPS!</span>`;
                 
                 // Append directly to body so it floats beautifully on top without breaking layout flows
@@ -2471,9 +2473,13 @@
         // --- 1. LOCAL STORAGE DATABASE & SUPABASE CONFIGURATION (HYBRID CLOUD SYNC) ---
         const DB_KEY = 'tms_enterprise_db_v23'; 
         
-        // KREDENSIAL CLOUD SYNC SUPABASE
-        const SUPABASE_URL = "https://mezuatmcjqjxfsvepizv.supabase.co"; // Silakan masukkan URL proyek Supabase Anda di sini
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lenVhdG1janFqeGZzdmVwaXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNDMyMjEsImV4cCI6MjA5NTgxOTIyMX0.nR9goOaEtGAU6VWr52oifMWlY6uORSsh46G8SCbEsKY"; // Silakan masukkan Anon Key proyek Supabase Anda di sini
+        // KREDENSIAL CLOUD SYNC SUPABASE (dari config.js — salin config.example.js jika belum ada)
+        const _tmsCfg = (window.TMS_CONFIG && window.TMS_CONFIG.supabase) || {};
+        const SUPABASE_URL = (_tmsCfg.url || '').trim();
+        const SUPABASE_KEY = (_tmsCfg.anonKey || '').trim();
+        if (!SUPABASE_URL || !SUPABASE_KEY) {
+            console.warn('TMS: config.js belum dikonfigurasi. Cloud sync dinonaktifkan. Salin config.example.js menjadi config.js lalu isi kredensial Supabase.');
+        }
         let supabaseClient = null;
         let isSyncing = false;
         let syncPending = false;
@@ -5457,7 +5463,7 @@
                         userActivities.forEach(act => {
                             const actTime = new Date(act.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                             const actDate = new Date(act.time).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'});
-                            activitiesHtml += `<div class="text-[10px] text-gray-600 dark:text-lux-400 leading-relaxed bg-white dark:bg-[#1c1c20] border border-gray-100 dark:border-lux-850/80 rounded-lg p-2.5 flex items-start justify-between gap-1.5 shadow-sm"><span class="font-medium truncate flex-1">${act.action}</span><span class="text-[9px] font-bold text-gray-400 dark:text-lux-500 whitespace-nowrap shrink-0">${actDate}, ${actTime}</span></div>`;
+                            activitiesHtml += `<div class="text-[10px] text-gray-600 dark:text-lux-400 leading-relaxed bg-white dark:bg-[#1c1c20] border border-gray-100 dark:border-lux-800/80 rounded-lg p-2.5 flex items-start justify-between gap-1.5 shadow-sm"><span class="font-medium truncate flex-1">${act.action}</span><span class="text-[9px] font-bold text-gray-400 dark:text-lux-500 whitespace-nowrap shrink-0">${actDate}, ${actTime}</span></div>`;
                         });
                         activitiesHtml += `</div>`;
                     } else {
@@ -5836,7 +5842,7 @@
             if(!r) return;
             
             const cvs = document.getElementById('sig-canvas');
-            if(isCanvasBlank(cvs)) {
+            if(!cvs || isCanvasBlank(cvs)) {
                 showToast("Verifikasi Gagal", "Tanda tangan wajib diisi sebelum menerima fisik.", "error");
                 return;
             }
@@ -7768,9 +7774,9 @@
                     <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-5 rounded-2xl shadow-inner">
                         <p class="text-[10px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-widest mb-3.5"><i class="fa-solid fa-user text-gold-500 mr-1.5"></i> ${clientLabel}</p>
                         <table class="w-full text-left text-[12px] border-collapse">
-                            <tr class="border-b border-gray-100 dark:border-lux-850"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2 w-24">Nama</td><td class="font-bold text-gray-900 dark:text-white py-2 truncate print:text-black">${u.name}</td></tr>
-                            <tr class="border-b border-gray-100 dark:border-lux-850"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">NIK</td><td class="font-mono text-gray-900 dark:text-white py-2 print:text-black">${u.nik || '-'}</td></tr>
-                            <tr class="border-b border-gray-100 dark:border-lux-850"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">Jabatan</td><td class="font-bold text-gray-700 dark:text-lux-300 py-2 print:text-black">${u.jabatan || '-'}</td></tr>
+                            <tr class="border-b border-gray-100 dark:border-lux-800"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2 w-24">Nama</td><td class="font-bold text-gray-900 dark:text-white py-2 truncate print:text-black">${u.name}</td></tr>
+                            <tr class="border-b border-gray-100 dark:border-lux-800"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">NIK</td><td class="font-mono text-gray-900 dark:text-white py-2 print:text-black">${u.nik || '-'}</td></tr>
+                            <tr class="border-b border-gray-100 dark:border-lux-800"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">Jabatan</td><td class="font-bold text-gray-700 dark:text-lux-300 py-2 print:text-black">${u.jabatan || '-'}</td></tr>
                             <tr><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">Grup Wilayah</td><td class="font-black text-gold-600 dark:text-gold-500 py-2">${u.group}</td></tr>
                         </table>
                     </div>
@@ -7778,9 +7784,9 @@
                     <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-5 rounded-2xl shadow-inner">
                         <p class="text-[10px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-widest mb-3.5"><i class="fa-solid fa-wrench text-gold-500 mr-1.5"></i> Spesifikasi Aset (Asset)</p>
                         <table class="w-full text-left text-[12px] border-collapse">
-                            <tr class="border-b border-gray-100 dark:border-lux-850"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2 w-28">Nama Alat</td><td class="font-bold text-gray-900 dark:text-white py-2 truncate print:text-black">${t.desc}</td></tr>
+                            <tr class="border-b border-gray-100 dark:border-lux-800"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2 w-28">Nama Alat</td><td class="font-bold text-gray-900 dark:text-white py-2 truncate print:text-black">${t.desc}</td></tr>
                             <tr class="border-b border-gray-100 dark:border-emerald-500/20"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">No. Inventaris</td><td class="font-mono font-bold text-emerald-600 dark:text-emerald-500 py-2">${t.noInv}</td></tr>
-                            <tr class="border-b border-gray-100 dark:border-lux-850"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">Merk / Seri</td><td class="font-bold text-gray-700 dark:text-lux-300 py-2 print:text-black">${t.merk || '-'} / ${t.sn || '-'}</td></tr>
+                            <tr class="border-b border-gray-100 dark:border-lux-800"><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">Merk / Seri</td><td class="font-bold text-gray-700 dark:text-lux-300 py-2 print:text-black">${t.merk || '-'} / ${t.sn || '-'}</td></tr>
                             <tr><td class="text-gray-400 dark:text-lux-500 font-bold uppercase tracking-wider text-[9px] py-2">Tipe / Model</td><td class="font-bold text-gray-700 dark:text-lux-300 py-2 print:text-black">${t.tipe || '-'}</td></tr>
                         </table>
                     </div>
@@ -7803,7 +7809,7 @@
                     </p>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-[11px] text-gray-700 dark:text-lux-300">
                         <!-- Kolom Otoritas (Approval) -->
-                        <div class="flex flex-col gap-1 border-b md:border-b-0 md:border-r border-gray-200/50 dark:border-lux-850 pb-4 md:pb-0 md:pr-4">
+                        <div class="flex flex-col gap-1 border-b md:border-b-0 md:border-r border-gray-200/50 dark:border-lux-800 pb-4 md:pb-0 md:pr-4">
                             <span class="text-gray-400 dark:text-lux-500 uppercase text-[8.5px] font-black tracking-wider leading-none">${col1Title}</span>
                             <span class="font-bold text-gray-900 dark:text-white print:text-black mt-1.5">${approverName}</span>
                             <span class="text-gray-500 dark:text-lux-400 text-[10px] font-mono mt-0.5">${formatDateTime(approvedTime)}</span>
@@ -7812,7 +7818,7 @@
                             </span>
                         </div>
                         <!-- Kolom Pengiriman (Shipping) -->
-                        <div class="flex flex-col gap-1 border-b md:border-b-0 md:border-r border-gray-200/50 dark:border-lux-850 pb-4 md:pb-0 md:pr-4">
+                        <div class="flex flex-col gap-1 border-b md:border-b-0 md:border-r border-gray-200/50 dark:border-lux-800 pb-4 md:pb-0 md:pr-4">
                             <span class="text-gray-400 dark:text-lux-500 uppercase text-[8.5px] font-black tracking-wider leading-none">${col2Title}</span>
                             <span class="font-bold text-gray-900 dark:text-white print:text-black mt-1.5">${col2Name}</span>
                             <span class="text-gray-500 dark:text-lux-400 text-[10px] font-mono mt-0.5">${formatDateTime(r.shippedAt || r.id)}</span>
@@ -7835,7 +7841,7 @@
 
                 <!-- Signatures -->
                 <div class="grid grid-cols-2 gap-6 pt-4 border-t border-gray-200 dark:border-lux-800">
-                    <div class="text-center border-r border-gray-100 dark:border-lux-850 pr-3">
+                    <div class="text-center border-r border-gray-100 dark:border-lux-800 pr-3">
                         <p class="text-[10px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-widest mb-2">${leftSigTitle}</p>
                         <div class="h-20 flex flex-col items-center justify-center">
                             <p class="text-[11px] font-black text-gray-900 dark:text-white print:text-black leading-none"><i class="fa-solid fa-circle-check text-emerald-500 mr-1"></i> ${leftSigSub}</p>
@@ -7853,7 +7859,7 @@
                 </div>
 
                 <!-- Footer / Barcode Simulation -->
-                <div class="mt-6 flex flex-col items-center justify-center border-t border-gray-100 dark:border-lux-850 pt-6">
+                <div class="mt-6 flex flex-col items-center justify-center border-t border-gray-100 dark:border-lux-800 pt-6">
                     <div class="w-full max-w-xs h-8 flex items-center justify-center relative overflow-hidden rounded px-2 opacity-80">
                         <div class="w-full h-full flex justify-center items-center">
                             ${barcodeBars}
@@ -7976,10 +7982,59 @@
             showNotificationModal(waUrl, mailtoUrl, recipientName);
         }
 
-        const canvas = document.getElementById('sig-canvas'); const ctx = canvas.getContext('2d'); let isDrawing = false;
-        function resizeCanvas() { const rect = canvas.parentElement.getBoundingClientRect(); if(rect.width === 0) return; const temp = document.createElement('canvas'); const tCtx = temp.getContext('2d'); temp.width = canvas.width; temp.height = canvas.height; tCtx.drawImage(canvas, 0, 0); canvas.width = rect.width; canvas.height = rect.height; ctx.strokeStyle = '#eab308'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.drawImage(temp, 0, 0); } window.addEventListener('resize', resizeCanvas);
-        function startPosition(e) { isDrawing = true; draw(e); } function endPosition() { isDrawing = false; ctx.beginPath(); } function draw(e) { if (!isDrawing) return; e.preventDefault(); const rect = canvas.getBoundingClientRect(); let x, y; if (e.type.includes('touch')) { x = e.touches[0].clientX - rect.left; y = e.touches[0].clientY - rect.top; } else { x = e.clientX - rect.left; y = e.clientY - rect.top; } ctx.lineTo(x, y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x, y); } function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.beginPath(); }
-        canvas.addEventListener('mousedown', startPosition); canvas.addEventListener('mouseup', endPosition); canvas.addEventListener('mousemove', draw); canvas.addEventListener('touchstart', startPosition, { passive: false }); canvas.addEventListener('touchend', endPosition); canvas.addEventListener('touchmove', draw, { passive: false });
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+        let isDrawing = false;
+        function resizeCanvas() {
+            if (!canvas || !ctx) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            if (rect.width === 0) return;
+            const temp = document.createElement('canvas');
+            const tCtx = temp.getContext('2d');
+            temp.width = canvas.width;
+            temp.height = canvas.height;
+            tCtx.drawImage(canvas, 0, 0);
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.drawImage(temp, 0, 0);
+        }
+        function clearSignature() {
+            if (!canvas || !ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+        }
+        if (canvas && ctx) {
+            window.addEventListener('resize', resizeCanvas);
+            function startPosition(e) { isDrawing = true; draw(e); }
+            function endPosition() { isDrawing = false; ctx.beginPath(); }
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                let x, y;
+                if (e.type.includes('touch')) {
+                    x = e.touches[0].clientX - rect.left;
+                    y = e.touches[0].clientY - rect.top;
+                } else {
+                    x = e.clientX - rect.left;
+                    y = e.clientY - rect.top;
+                }
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            }
+            canvas.addEventListener('mousedown', startPosition);
+            canvas.addEventListener('mouseup', endPosition);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchstart', startPosition, { passive: false });
+            canvas.addEventListener('touchend', endPosition);
+            canvas.addEventListener('touchmove', draw, { passive: false });
+        }
 
         // ==========================================
         // CUSTOMER SERVICE & WORKFLOW FUNCTIONS
@@ -9010,82 +9065,7 @@
             updateData();
         }
 
-        // --- HANDOVER SIGNATURE CANVAS LOGIC ---
-        let handoverCanvas, handoverCtx;
-        let handoverIsDrawing = false;
         let handoverSigStep = 1;
-
-        function initHandoverCanvas() {
-            handoverCanvas = document.getElementById('handover-sig-canvas');
-            if (!handoverCanvas) return;
-            handoverCtx = handoverCanvas.getContext('2d');
-            
-            handoverCanvas.removeEventListener('mousedown', startHandoverPosition);
-            handoverCanvas.removeEventListener('mouseup', endHandoverPosition);
-            handoverCanvas.removeEventListener('mousemove', drawHandover);
-            handoverCanvas.removeEventListener('touchstart', startHandoverPosition);
-            handoverCanvas.removeEventListener('touchend', endHandoverPosition);
-            handoverCanvas.removeEventListener('touchmove', drawHandover);
-
-            handoverCanvas.addEventListener('mousedown', startHandoverPosition);
-            handoverCanvas.addEventListener('mouseup', endHandoverPosition);
-            handoverCanvas.addEventListener('mousemove', drawHandover);
-            handoverCanvas.addEventListener('touchstart', startHandoverPosition, { passive: false });
-            handoverCanvas.addEventListener('touchend', endHandoverPosition);
-            handoverCanvas.addEventListener('touchmove', drawHandover, { passive: false });
-        }
-
-        function startHandoverPosition(e) { handoverIsDrawing = true; drawHandover(e); }
-        function endHandoverPosition() { handoverIsDrawing = false; handoverCtx.beginPath(); }
-        function drawHandover(e) {
-            if (!handoverIsDrawing) return;
-            e.preventDefault();
-            const rect = handoverCanvas.getBoundingClientRect();
-            let x, y;
-            if (e.type.includes('touch')) {
-                x = e.touches[0].clientX - rect.left;
-                y = e.touches[0].clientY - rect.top;
-            } else {
-                x = e.clientX - rect.left;
-                y = e.clientY - rect.top;
-            }
-            handoverCtx.lineTo(x, y);
-            handoverCtx.stroke();
-            handoverCtx.beginPath();
-            handoverCtx.moveTo(x, y);
-        }
-
-        function resizeHandoverCanvas() {
-            if (!handoverCanvas) return;
-            const rect = handoverCanvas.parentElement.getBoundingClientRect();
-            if (rect.width === 0) return;
-            const temp = document.createElement('canvas');
-            const tCtx = temp.getContext('2d');
-            temp.width = handoverCanvas.width;
-            temp.height = handoverCanvas.height;
-            tCtx.drawImage(handoverCanvas, 0, 0);
-            handoverCanvas.width = rect.width;
-            handoverCanvas.height = rect.height;
-            handoverCtx.strokeStyle = '#eab308';
-            handoverCtx.lineWidth = 3;
-            handoverCtx.lineCap = 'round';
-            handoverCtx.lineJoin = 'round';
-            handoverCtx.drawImage(temp, 0, 0);
-        }
-
-        function clearHandoverSignature() {
-            if (!handoverCtx || !handoverCanvas) return;
-            handoverCtx.clearRect(0, 0, handoverCanvas.width, handoverCanvas.height);
-            handoverCtx.beginPath();
-        }
-
-        function isHandoverCanvasBlank() {
-            if (!handoverCanvas) return true;
-            const blank = document.createElement('canvas');
-            blank.width = handoverCanvas.width;
-            blank.height = handoverCanvas.height;
-            return handoverCanvas.toDataURL() === blank.toDataURL();
-        }
 
         function openHandoverSignatureModal(id, action) {
             loadDB();
@@ -10474,7 +10454,6 @@
             }
         }
 
-        canvas.addEventListener('mousedown', startPosition); canvas.addEventListener('mouseup', endPosition); canvas.addEventListener('mousemove', draw); canvas.addEventListener('touchstart', startPosition, { passive: false }); canvas.addEventListener('touchend', endPosition); canvas.addEventListener('touchmove', draw, { passive: false });
     </script>
 </body>
 </html>
