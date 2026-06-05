@@ -836,6 +836,7 @@
                     <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-end">
                         <button id="btn-bulk-delete-service" onclick="bulkDeleteServiceTickets()" class="hidden bg-red-600 hover:bg-red-700 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-2"></i> Hapus Terpilih</button>
                         <button onclick="exportServiceTicketsCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(5,150,105,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-2"></i> Ekspor Excel</button>
+                        <button id="btn-bulk-bast" onclick="openBulkBastModal()" class="hidden bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(20,184,166,0.3)] hover:from-teal-500 hover:to-emerald-500 transition whitespace-nowrap"><i class="fa-solid fa-layer-group mr-2"></i> Gabungkan BAST</button>
                         <button id="btn-register-service" onclick="openServiceModal()" class="hidden bg-gold-500 text-white dark:text-black font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Unit Customer</button>
                     </div>
                 </div>
@@ -1628,9 +1629,15 @@
                     <div><label class="input-label">Merk / Brand <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-merk" required class="input-field" placeholder="Contoh: Mindray, B. Braun..."></div>
                     <div><label class="input-label">Tipe / Model <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-tipe" required class="input-field" placeholder="Contoh: BeneHeart D3, Infusomat..."></div>
                     <div class="md:col-span-2"><label class="input-label">Deskripsi Keluhan / Masalah Alat <span class="text-gold-500">*</span></label><textarea id="svc-complaint" required rows="3" class="input-field" placeholder="Jelaskan kendala atau keluhan kerusakan alat..."></textarea></div>
-                    <div class="md:col-span-2"><label class="input-label">Pilih Teknisi Lapangan untuk Pickup <span class="text-gold-500">*</span></label>
+                    <div><label class="input-label">Pilih Teknisi Lapangan untuk Pickup <span class="text-gold-500">*</span></label>
                         <select id="svc-assigned-ts" required class="input-field">
                             <!-- Populated with 'ts' role technicians -->
+                        </select>
+                    </div>
+                    <div><label class="input-label">Lokasi Perbaikan <span class="text-gold-500">*</span></label>
+                        <select id="svc-repair-loc" required class="input-field">
+                            <option value="tsf" selected>Workshop TSF (Bawa ke Workshop)</option>
+                            <option value="onsite">On-Site (Perbaikan di Tempat / RS)</option>
                         </select>
                     </div>
                     <div class="md:col-span-2">
@@ -1654,7 +1661,13 @@
                         <p id="service-duplicate-msg" class="text-gray-600 dark:text-lux-300 text-[11px] mt-1 leading-relaxed"></p>
                     </div>
                 </div>
-                <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-lux-800"><button type="submit" id="btn-save-service" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Daftarkan Unit</button></div>
+                <div class="flex justify-between items-center pt-6 border-t border-gray-200 dark:border-lux-800">
+                    <label class="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-lux-400 cursor-pointer">
+                        <input type="checkbox" id="svc-register-another" class="w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer">
+                        Input unit lain untuk Customer ini
+                    </label>
+                    <button type="submit" id="btn-save-service" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Daftarkan Unit</button>
+                </div>
             </form>
         </div>
     </div>
@@ -1786,7 +1799,7 @@
                         <p class="text-sm font-black text-gray-900 dark:text-white" id="svc-repair-unit-name">-</p>
                         <p class="text-[10px] text-gold-600 dark:text-gold-500 font-mono mt-0.5" id="svc-repair-no-service">-</p>
                     </div>
-                    <div>
+                    <div class="hidden">
                         <label class="input-label">Status Hasil Perbaikan <span class="text-gold-500">*</span></label>
                         <select id="svc-repair-status" required class="input-field">
                             <option value="repaired" selected>Repaired (Selesai Diperbaiki)</option>
@@ -1835,30 +1848,102 @@
                 <div class="border-t border-gray-200 dark:border-lux-800 pt-4">
                     <p id="svc-delivery-statement" class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4">Saya selaku perwakilan customer/RS menyatakan telah menerima kembali unit tersebut di atas dengan kondisi hasil perbaikan yang telah berfungsi normal. Serah terima ini sah secara hukum.</p>
                     
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Pihak Penyerah (Teknisi)</label>
-                                <button type="button" id="btn-clear-svc-giver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                    <div id="svc-delivery-step1" class="flex flex-col gap-3">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-5 shadow-inner">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-[11px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Tanda Tangan Pihak Penyerah (Teknisi) <span class="text-gold-500">*</span></label>
+                                <button type="button" id="btn-clear-svc-giver" class="text-[10px] text-red-650 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 px-3 py-1 rounded hover:bg-red-100 transition">Hapus</button>
                             </div>
-                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-44 relative shadow-inner">
                                 <canvas id="svc-sig-canvas-giver" class="w-full h-full rounded-xl"></canvas>
                             </div>
                         </div>
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Pihak Penerima (Customer)</label>
-                                <button type="button" id="btn-clear-svc-receiver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                        <div class="flex gap-3 mt-2">
+                            <button type="button" onclick="closeModal('serviceDeliveryModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
+                            <button type="button" onclick="nextSvcDeliveryStep()" class="flex-1 px-6 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-widest rounded-xl shadow-md hover:bg-gold-600 transition flex items-center justify-center gap-2">Lanjut ke Penerima <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="svc-delivery-step2" class="hidden flex-col gap-3">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-5 shadow-inner">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-[11px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Tanda Tangan Pihak Penerima (Customer) <span class="text-gold-500">*</span></label>
+                                <button type="button" id="btn-clear-svc-receiver" class="text-[10px] text-red-650 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 px-3 py-1 rounded hover:bg-red-100 transition">Hapus</button>
                             </div>
-                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-44 relative shadow-inner">
                                 <canvas id="svc-sig-canvas-receiver" class="w-full h-full rounded-xl"></canvas>
                             </div>
                         </div>
+                        <div class="flex gap-3 mt-2">
+                            <button type="button" onclick="prevSvcDeliveryStep()" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 transition flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                            <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan BAST</button>
+                        </div>
+                    </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form: BAST Gabungan (Bulk BAST) -->
+    <div id="serviceBulkBastModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/40 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] sticky top-0 z-20">
+                <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-layer-group mr-3"></i> BAST Gabungan (Multi-Unit Service)</h3>
+                <button type="button" onclick="closeModal('serviceBulkBastModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitServiceBulkBast(event)" class="p-6 sm:p-8 flex flex-col gap-6">
+                <!-- Customer Details Card -->
+                <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 p-5 rounded-2xl shadow-inner">
+                    <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase mb-1">Customer / Rumah Sakit</p>
+                    <p class="text-sm font-black text-gray-900 dark:text-white" id="bulk-bast-cust-name">-</p>
+                    <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase" id="bulk-bast-cust-info">-</p>
+                </div>
+                
+                <!-- Selected Units List -->
+                <div class="border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden">
+                    <div class="bg-gray-50 dark:bg-[#0c0c0e] p-3 border-b border-gray-200 dark:border-lux-800">
+                        <p class="text-[9.5px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-wider">Daftar Unit Alat Medis Terpilih</p>
+                    </div>
+                    <div class="divide-y divide-gray-200 dark:divide-lux-800 max-h-60 overflow-y-auto custom-scrollbar" id="bulk-bast-units-list">
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
-                <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-lux-800">
-                    <button type="button" onclick="closeModal('serviceDeliveryModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
-                    <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan BAST</button>
+
+                <div class="border-t border-gray-200 dark:border-lux-800 pt-4">
+                    <p class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4">Saya selaku perwakilan customer/RS menyatakan telah menerima kembali seluruh unit alat medis tersebut di atas dengan kondisi hasil perbaikan yang telah berfungsi normal dan diuji fungsi bersama dengan baik. Serah terima ini sah secara hukum.</p>
+                    
+                    <!-- Step 1: Giver (Technician) Signature -->
+                    <div id="bulk-bast-step1" class="flex flex-col gap-3">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-5 shadow-inner">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-[11px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Tanda Tangan Pihak Penyerah (Teknisi) <span class="text-gold-500">*</span></label>
+                                <button type="button" id="btn-clear-bulk-giver" class="text-[10px] text-red-650 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 px-3 py-1 rounded hover:bg-red-100 transition">Hapus</button>
+                            </div>
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-44 relative shadow-inner">
+                                <canvas id="bulk-sig-canvas-giver" class="w-full h-full rounded-xl"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-2">
+                            <button type="button" onclick="closeModal('serviceBulkBastModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
+                            <button type="button" onclick="nextBulkBastStep()" class="flex-1 px-6 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-widest rounded-xl shadow-md hover:bg-gold-600 transition flex items-center justify-center gap-2">Lanjut ke Penerima <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Receiver (Customer) Signature -->
+                    <div id="bulk-bast-step2" class="hidden flex-col gap-3">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-5 shadow-inner">
+                            <div class="flex justify-between items-center mb-3">
+                                <label class="text-[11px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider">Tanda Tangan Pihak Penerima (Customer) <span class="text-gold-500">*</span></label>
+                                <button type="button" id="btn-clear-bulk-receiver" class="text-[10px] text-red-650 dark:text-red-400 font-bold bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 px-3 py-1 rounded hover:bg-red-100 transition">Hapus</button>
+                            </div>
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-44 relative shadow-inner">
+                                <canvas id="bulk-sig-canvas-receiver" class="w-full h-full rounded-xl"></canvas>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 mt-2">
+                            <button type="button" onclick="prevBulkBastStep()" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 transition flex items-center justify-center gap-2"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                            <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan BAST Gabungan</button>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -1881,23 +1966,22 @@
                 </div>
                 <div class="border-t border-gray-200 dark:border-lux-800 pt-4">
                     <p class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4" id="handover-sig-statement">Silakan bubuhkan tanda tangan digital untuk memvalidasi proses serah terima unit ini.</p>
-
                     <div class="grid grid-cols-2 gap-4" id="handover-sig-grid">
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner" id="handover-sig-giver-container">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider" id="handover-sig-giver-label">Pihak Pengirim/Pemberi</label>
-                                <button type="button" id="btn-clear-handover-giver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                                <button type="button" id="btn-clear-handover-giver" class="text-[9px] text-red-650 dark:text-red-400 font-bold hover:underline">Hapus</button>
                             </div>
-                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-44 relative shadow-inner">
                                 <canvas id="handover-sig-canvas-giver" class="w-full h-full rounded-xl"></canvas>
                             </div>
                         </div>
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner" id="handover-sig-receiver-container">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider" id="handover-sig-receiver-label">Pihak Penerima</label>
-                                <button type="button" id="btn-clear-handover-receiver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
+                                <button type="button" id="btn-clear-handover-receiver" class="text-[9px] text-red-650 dark:text-red-400 font-bold hover:underline">Hapus</button>
                             </div>
-                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-32 relative shadow-inner">
+                            <div class="border border-gray-300 dark:border-lux-700 bg-white dark:bg-[#0f0f11] rounded-xl h-44 relative shadow-inner">
                                 <canvas id="handover-sig-canvas-receiver" class="w-full h-full rounded-xl"></canvas>
                             </div>
                         </div>
@@ -1905,8 +1989,9 @@
                 </div>
                 <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-lux-800">
                     <button type="button" onclick="closeModal('handoverSignatureModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
+                    <button type="button" id="btn-back-handover-sig" onclick="backHandoverSigStep()" class="hidden flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 transition"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
                     <button type="submit" id="btn-submit-handover-sig" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan</button>
-                </div>
+                </div>          </div>
             </form>
         </div>
     </div>
@@ -2433,7 +2518,7 @@
             if (onlineUserIds.has(u.id)) return true;
             if (u.lastOnline) {
                 const diff = Date.now() - new Date(u.lastOnline).getTime();
-                if (diff > 0 && diff < 5 * 60 * 1000) {
+                if (diff > 0 && diff < 60 * 1000) {
                     return true;
                 }
             }
@@ -3498,7 +3583,7 @@
                 if (typeof renderChatUsers === 'function') renderChatUsers();
                 if (activeTab === 'spv-personnel' && typeof renderSpvPersonnel === 'function') renderSpvPersonnel();
                 
-                // 2. Periodically update lastOnline in database (every 2 minutes) to stay fresh
+                // 2. Periodically update lastOnline in database (every 1 minute) to stay fresh
                 if (supabaseClient) {
                     // Refresh presence track just to make sure it's active in Supabase
                     if (realtimeChannel && typeof realtimeChannel.track === 'function') {
@@ -3513,7 +3598,7 @@
                     }
                     
                     const now = Date.now();
-                    if (!window._lastDbOnlineUpdate || now - window._lastDbOnlineUpdate > 2 * 60 * 1000) {
+                    if (!window._lastDbOnlineUpdate || now - window._lastDbOnlineUpdate > 60 * 1000) {
                         window._lastDbOnlineUpdate = now;
                         loadDB();
                         if (db.users && db.users[currentUser.id]) {
@@ -3523,7 +3608,21 @@
                     }
                 }
             }
-        }, 30000); // Check every 30 seconds
+        }, 10000); // Check every 10 seconds
+
+        document.addEventListener('visibilitychange', async () => {
+            if (document.visibilityState === 'visible' && currentUser && supabaseClient) {
+                if (realtimeChannel && typeof realtimeChannel.track === 'function') {
+                    try {
+                        await realtimeChannel.track({
+                            user_id: currentUser.id,
+                            online_at: new Date().toISOString()
+                        });
+                        console.log("Real-time Sync: Presence tracked instantly on page focus.");
+                    } catch(e) {}
+                }
+            }
+        });
         
         const sessionUser = localStorage.getItem('tms_current_user');
         if(sessionUser) {
@@ -7883,6 +7982,7 @@
 
         let handoverGiverDraw, handoverReceiverDraw;
         let svcGiverDraw, svcReceiverDraw;
+        let bulkGiverDraw, bulkReceiverDraw;
 
         function initServiceSignatureCanvas() {
             svcGiverDraw = setupSignatureDrawing('svc-sig-canvas-giver', 'btn-clear-svc-giver');
@@ -7892,6 +7992,11 @@
         function initHandoverSignatureCanvas() {
             handoverGiverDraw = setupSignatureDrawing('handover-sig-canvas-giver', 'btn-clear-handover-giver');
             handoverReceiverDraw = setupSignatureDrawing('handover-sig-canvas-receiver', 'btn-clear-handover-receiver');
+        }
+
+        function initBulkSignatureCanvas() {
+            bulkGiverDraw = setupSignatureDrawing('bulk-sig-canvas-giver', 'btn-clear-bulk-giver');
+            bulkReceiverDraw = setupSignatureDrawing('bulk-sig-canvas-receiver', 'btn-clear-bulk-receiver');
         }
 
         function getBase64(file) {
@@ -7987,6 +8092,15 @@
                 }
             }
 
+            const bulkBastBtn = document.getElementById('btn-bulk-bast');
+            if (bulkBastBtn) {
+                if (currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
+                    bulkBastBtn.classList.remove('hidden');
+                } else {
+                    bulkBastBtn.classList.add('hidden');
+                }
+            }
+
             const bulkDelBtn = document.getElementById('btn-bulk-delete-service');
             if (bulkDelBtn) {
                 if (currentUser.role === 'owner') {
@@ -8062,7 +8176,11 @@
                 } else if (s.status === 'picked_up') {
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
                     if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                        actionBtn = `<button onclick="openAnalysisModal(${s.id})" class="px-3 py-1.5 bg-blue-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-blue-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-waveform mr-1"></i> Analisa Awal</button>`;
+                        if (s.repairLoc === 'onsite') {
+                            actionBtn = `<button onclick="openOnsiteRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Perbaikan & BAST</button>`;
+                        } else {
+                            actionBtn = `<button onclick="openAnalysisModal(${s.id})" class="px-3 py-1.5 bg-blue-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-blue-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-waveform mr-1"></i> Analisa Awal</button>`;
+                        }
                     }
                 } else if (s.status === 'initial_analyzed') {
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 whitespace-nowrap">Kirim ke TSF</span>`;
@@ -8346,6 +8464,7 @@
                 unitTipe: document.getElementById('svc-unit-tipe').value,
                 complaint: document.getElementById('svc-complaint').value,
                 assignedTsId: assignedTsId,
+                repairLoc: document.getElementById('svc-repair-loc').value || 'tsf',
                 unitPhotoBefore: unitPhotosBefore.length > 0 ? unitPhotosBefore : null,
                 status: 'registered',
                 history: [{
@@ -8363,8 +8482,36 @@
             playNotificationSound();
             saveDB();
             updateData();
-            closeModal('serviceModal');
-            showToast("Unit Didaftarkan", `Tiket perbaikan ${noSvc} berhasil dibuat.`, "success");
+
+            const registerAnother = document.getElementById('svc-register-another').checked;
+            if (registerAnother) {
+                // Clear only unit-specific fields
+                document.getElementById('svc-unit-art-no').value = '';
+                document.getElementById('svc-unit-product').value = '';
+                document.getElementById('svc-unit-name').value = '';
+                document.getElementById('svc-unit-sn').value = '';
+                document.getElementById('svc-unit-merk').value = '';
+                document.getElementById('svc-unit-tipe').value = '';
+                document.getElementById('svc-complaint').value = '';
+                
+                const photoInput = document.getElementById('svc-unit-photo-before');
+                if (photoInput) photoInput.value = '';
+                const previewDiv = document.getElementById('svc-photo-before-preview');
+                if (previewDiv) {
+                    previewDiv.innerHTML = `
+                        <i class="fa-solid fa-image text-2xl"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Klik atau seret foto di sini</span>
+                        <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
+                    `;
+                }
+                const warningEl = document.getElementById('service-duplicate-warning');
+                if (warningEl) warningEl.classList.add('hidden');
+                
+                showToast("Unit Didaftarkan", `Unit ${newTicket.unitName} (${noSvc}) berhasil didaftarkan. Silakan input unit berikutnya.`, "success");
+            } else {
+                closeModal('serviceModal');
+                showToast("Unit Didaftarkan", `Tiket perbaikan ${noSvc} berhasil dibuat.`, "success");
+            }
         }
 
         function openServiceReceiptModal(id) {
@@ -8376,8 +8523,8 @@
             
             // Manage tabs availability based on status
             const hasPickup = s.status !== 'registered';
-            const hasTsf = ['received_tsf', 'quoted', 'po_issued', 'repaired', 'received_field', 'completed'].includes(s.status);
-            const hasField = ['received_field', 'completed'].includes(s.status);
+            const hasTsf = s.repairLoc !== 'onsite' && ['received_tsf', 'quoted', 'po_issued', 'repaired', 'received_field', 'completed'].includes(s.status);
+            const hasField = s.repairLoc !== 'onsite' && ['received_field', 'completed'].includes(s.status);
             const hasCompleted = s.status === 'completed';
             
             // Set tab disabled state and visual class
@@ -8476,12 +8623,18 @@
                 rightSigLabel = "Yang Menerima (Teknisi)";
                 rightSigName = tsUser.name;
             } else if (docType === 'completed') {
-                docTitle = "BERITA ACARA SERAH TERIMA (BAST)";
-                docSub = "No. Dokumen: BAST/" + s.noService;
-                if (s.toolStatus === 'unrepaired') {
-                    descHandover = `Menyatakan bahwa unit alat medis tersebut di bawah ini dikembalikan kepada pihak Customer/Rumah Sakit dengan kondisi tidak berhasil diperbaiki (unrepaired) dan diserahkan kembali secara resmi.`;
+                if (s.bulkBastId) {
+                    docTitle = "BAST GABUNGAN (MULTI-UNIT)";
+                    docSub = "No. Dokumen: " + s.bulkBastId;
+                    descHandover = `Menyatakan bahwa perbaikan seluruh unit alat medis tersebut di bawah ini telah selesai dilaksanakan oleh pihak TMS dan diserahkan kembali kepada pihak Customer/Rumah Sakit dalam kondisi baik, terkalibrasi/siap guna, serta telah diuji fungsi bersama dengan hasil baik.`;
                 } else {
-                    descHandover = `Menyatakan bahwa perbaikan unit alat medis tersebut di bawah ini telah selesai dilaksanakan oleh pihak TMS dan diserahkan kembali kepada pihak Customer/Rumah Sakit dalam kondisi baik, terkalibrasi/siap guna, serta telah diuji fungsi bersama dengan hasil baik.`;
+                    docTitle = "BERITA ACARA SERAH TERIMA (BAST)";
+                    docSub = "No. Dokumen: BAST/" + s.noService;
+                    if (s.toolStatus === 'unrepaired') {
+                        descHandover = `Menyatakan bahwa unit alat medis tersebut di bawah ini dikembalikan kepada pihak Customer/Rumah Sakit dengan kondisi tidak berhasil diperbaiki (unrepaired) dan diserahkan kembali secara resmi.`;
+                    } else {
+                        descHandover = `Menyatakan bahwa perbaikan unit alat medis tersebut di bawah ini telah selesai dilaksanakan oleh pihak TMS dan diserahkan kembali kepada pihak Customer/Rumah Sakit dalam kondisi baik, terkalibrasi/siap guna, serta telah diuji fungsi bersama dengan hasil baik.`;
+                    }
                 }
                 leftSigLabel = "Pihak Penyerah (Teknisi TMS)";
                 leftSigName = tsUser.name;
@@ -8489,23 +8642,23 @@
                 rightSigName = s.picName || s.customerName;
             }
 
-            let sigHtmlLeft = `<div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2"><p class="text-[9px] text-gray-300 italic font-bold">Fisik / Basah</p></div>`;
-            let sigHtmlRight = `<div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2"><p class="text-[9px] text-gray-300 italic font-bold">Fisik / Basah</p></div>`;
+            let sigHtmlLeft = `<div class="h-20 flex items-center justify-center mt-2"><p class="text-[9px] text-gray-305 italic font-bold">Fisik / Basah</p></div>`;
+            let sigHtmlRight = `<div class="h-20 flex items-center justify-center mt-2"><p class="text-[9px] text-gray-305 italic font-bold">Fisik / Basah</p></div>`;
 
             if (docType === 'pickup') {
                 const sigGiver = s.signaturePickupGiver || s.signaturePickup;
                 const sigReceiver = s.signaturePickupReceiver;
                 if (sigGiver) {
                     sigHtmlLeft = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigGiver}" class="h-20 max-w-full object-contain" alt="Signature Giver">
                         </div>
                     `;
                 }
                 if (sigReceiver) {
                     sigHtmlRight = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigReceiver}" class="h-20 max-w-full object-contain" alt="Signature Receiver">
                         </div>
                     `;
                 }
@@ -8514,15 +8667,15 @@
                 const sigReceiver = s.signatureTsfReceiver || s.signatureTsf;
                 if (sigGiver) {
                     sigHtmlLeft = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigGiver}" class="h-20 max-w-full object-contain" alt="Signature Giver">
                         </div>
                     `;
                 }
                 if (sigReceiver) {
                     sigHtmlRight = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigReceiver}" class="h-20 max-w-full object-contain" alt="Signature Receiver">
                         </div>
                     `;
                 }
@@ -8531,15 +8684,15 @@
                 const sigReceiver = s.signatureFieldReceiver || s.signatureField;
                 if (sigGiver) {
                     sigHtmlLeft = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigGiver}" class="h-20 max-w-full object-contain" alt="Signature Giver">
                         </div>
                     `;
                 }
                 if (sigReceiver) {
                     sigHtmlRight = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigReceiver}" class="h-20 max-w-full object-contain" alt="Signature Receiver">
                         </div>
                     `;
                 }
@@ -8548,18 +8701,117 @@
                 const sigReceiver = s.signatureDeliveryReceiver || s.signature;
                 if (sigGiver) {
                     sigHtmlLeft = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigGiver}" class="h-20 max-w-full object-contain" alt="Signature Giver">
                         </div>
                     `;
                 }
                 if (sigReceiver) {
                     sigHtmlRight = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
-                            <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
+                        <div class="h-20 flex items-center justify-center mt-2">
+                            <img src="${sigReceiver}" class="h-20 max-w-full object-contain" alt="Signature Receiver">
                         </div>
                     `;
                 }
+            }
+
+            let middleContentHtml = "";
+            if (docType === 'completed' && s.bulkBastId) {
+                const bulkTickets = db.serviceTickets.filter(x => x.bulkBastId === s.bulkBastId);
+                let tableRows = "";
+                bulkTickets.forEach((bt, idx) => {
+                    tableRows += `
+                        <tr class="border-b border-gray-200 text-[10px]">
+                            <td class="p-2.5 font-mono font-bold text-gray-850">${idx + 1}</td>
+                            <td class="p-2.5 font-mono font-bold text-gold-600">${bt.noService}</td>
+                            <td class="p-2.5">
+                                <p class="font-bold text-gray-900">${bt.unitName}</p>
+                                <p class="text-[9px] text-gray-500 font-mono">${bt.unitMerk || '-'} / ${bt.unitTipe || '-'} | SN: ${bt.unitSn || '-'}</p>
+                            </td>
+                            <td class="p-2.5 text-gray-650 italic">"${bt.complaint || '-'}"</td>
+                            <td class="p-2.5 font-bold text-emerald-700">${bt.repairNote || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                middleContentHtml = `
+                    <!-- Informasi Transaksi Gabungan -->
+                    <div class="grid grid-cols-1 gap-4 mb-6 text-[11px] leading-relaxed">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">IDENTITAS CUSTOMER</p>
+                            <table class="w-full">
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-24">Rumah Sakit</td><td class="py-1 font-bold text-gray-800">${s.customerName}</td></tr>
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">PIC Customer</td><td class="py-1 font-bold text-gray-800">${s.picName || '-'}</td></tr>
+                                <tr><td class="py-1 text-gray-500 font-bold">Kontak / HP</td><td class="py-1 font-mono text-gray-800 font-bold">${s.customerContact}</td></tr>
+                            </table>
+                        </div>
+                        
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="bg-gray-50 p-3 border-b border-gray-200">
+                                <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider">DAFTAR ALAT & TINDAKAN PERBAIKAN (GABUNGAN)</p>
+                            </div>
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50/50 text-[9px] font-black text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                                        <th class="p-2.5 w-10">No</th>
+                                        <th class="p-2.5 w-28">No Layanan</th>
+                                        <th class="p-2.5">Nama Alat & Detail</th>
+                                        <th class="p-2.5">Keluhan</th>
+                                        <th class="p-2.5">Tindakan Perbaikan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mb-6 text-[11px] leading-relaxed">
+                        <p class="text-[11px] text-gray-650 leading-relaxed text-justify mt-3">${descHandover}</p>
+                    </div>
+                `;
+            } else {
+                middleContentHtml = `
+                    <!-- Informasi Transaksi -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-[11px] leading-relaxed print:grid-cols-2">
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">IDENTITAS CUSTOMER</p>
+                            <table class="w-full">
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-20">Rumah Sakit</td><td class="py-1 font-bold text-gray-800">${s.customerName}</td></tr>
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">PIC Customer</td><td class="py-1 font-bold text-gray-800">${s.picName || '-'}</td></tr>
+                                <tr><td class="py-1 text-gray-500 font-bold">Kontak / HP</td><td class="py-1 font-mono text-gray-800 font-bold">${s.customerContact}</td></tr>
+                            </table>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">DETAIL ALAT MEDIS</p>
+                            <table class="w-full">
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-20">Deskripsi Alat</td><td class="py-1 font-bold text-gray-800 truncate">${s.unitName}</td></tr>
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Art No / Brand</td><td class="py-1 font-bold text-gray-800">${s.unitArtNo || '-'} / ${s.unitMerk || '-'}</td></tr>
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Model / SN</td><td class="py-1 font-bold text-gray-800">${s.unitTipe || '-'} / ${s.unitSn || '-'}</td></tr>
+                                <tr><td class="py-1 text-gray-500 font-bold">Product Cat</td><td class="py-1 font-bold text-gray-800">${s.unitProduct || '-'}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Keluhan & Deskripsi Handover -->
+                    <div class="space-y-4 mb-6 text-[11px] leading-relaxed">
+                        <div class="bg-yellow-50/10 border border-yellow-200 p-4 rounded-xl">
+                            <p class="text-[9px] text-yellow-600 font-black uppercase tracking-wider mb-1">KELUHAN / KERUSAKAN AWAL</p>
+                            <p class="font-mono text-gray-700 italic">"${s.complaint || 'Tidak ada keluhan tertulis.'}"</p>
+                        </div>
+
+                        ${docType === 'completed' && s.quotePrice ? `
+                        <div class="bg-emerald-50/10 border border-emerald-200 p-4 rounded-xl">
+                            <p class="text-[9px] text-emerald-600 font-black uppercase tracking-wider mb-1">DETAIL PERBAIKAN & BIAYA DAMAGE</p>
+                            <p class="text-gray-700 font-bold mb-1">${s.quoteDetails || '-'}</p>
+                            <p class="text-gray-500 text-[10px]">Total Penawaran TSF: <span class="font-mono font-bold text-emerald-600 text-xs mr-3">Rp ${s.quotePrice.toLocaleString('id-ID')}</span> | Nilai Nominal PO: <span class="font-mono font-bold text-emerald-600 text-xs">Rp ${(s.poAmount || 0).toLocaleString('id-ID')}</span></p>
+                        </div>
+                        ` : ''}
+
+                        <p class="text-[11px] text-gray-600 leading-relaxed text-justify mt-3">${descHandover}</p>
+                    </div>
+                `;
             }
 
             container.innerHTML = `
@@ -8584,44 +8836,7 @@
                     </div>
                 </div>
 
-                <!-- Informasi Transaksi -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-[11px] leading-relaxed print:grid-cols-2">
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">IDENTITAS CUSTOMER</p>
-                        <table class="w-full">
-                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-20">Rumah Sakit</td><td class="py-1 font-bold text-gray-800">${s.customerName}</td></tr>
-                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">PIC Customer</td><td class="py-1 font-bold text-gray-800">${s.picName || '-'}</td></tr>
-                            <tr><td class="py-1 text-gray-500 font-bold">Kontak / HP</td><td class="py-1 font-mono text-gray-800 font-bold">${s.customerContact}</td></tr>
-                        </table>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                        <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">DETAIL ALAT MEDIS</p>
-                        <table class="w-full">
-                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-20">Deskripsi Alat</td><td class="py-1 font-bold text-gray-800 truncate">${s.unitName}</td></tr>
-                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Art No / Brand</td><td class="py-1 font-bold text-gray-800">${s.unitArtNo || '-'} / ${s.unitMerk || '-'}</td></tr>
-                            <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Model / SN</td><td class="py-1 font-bold text-gray-800">${s.unitTipe || '-'} / ${s.unitSn || '-'}</td></tr>
-                            <tr><td class="py-1 text-gray-500 font-bold">Product Cat</td><td class="py-1 font-bold text-gray-800">${s.unitProduct || '-'}</td></tr>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Keluhan & Deskripsi Handover -->
-                <div class="space-y-4 mb-6 text-[11px] leading-relaxed">
-                    <div class="bg-yellow-50/10 border border-yellow-200 p-4 rounded-xl">
-                        <p class="text-[9px] text-yellow-600 font-black uppercase tracking-wider mb-1">KELUHAN / KERUSAKAN AWAL</p>
-                        <p class="font-mono text-gray-700 italic">"${s.complaint || 'Tidak ada keluhan tertulis.'}"</p>
-                    </div>
-
-                    ${docType === 'completed' && s.quotePrice ? `
-                    <div class="bg-emerald-50/10 border border-emerald-200 p-4 rounded-xl">
-                        <p class="text-[9px] text-emerald-600 font-black uppercase tracking-wider mb-1">DETAIL PERBAIKAN & BIAYA DAMAGE</p>
-                        <p class="text-gray-700 font-bold mb-1">${s.quoteDetails || '-'}</p>
-                        <p class="text-gray-500 text-[10px]">Total Penawaran TSF: <span class="font-mono font-bold text-emerald-600 text-xs mr-3">Rp ${s.quotePrice.toLocaleString('id-ID')}</span> | Nilai Nominal PO: <span class="font-mono font-bold text-emerald-600 text-xs">Rp ${(s.poAmount || 0).toLocaleString('id-ID')}</span></p>
-                    </div>
-                    ` : ''}
-
-                    <p class="text-[11px] text-gray-600 leading-relaxed text-justify mt-3">${descHandover}</p>
-                </div>
+                ${middleContentHtml}
 
                 <!-- Tanda Tangan -->
                 <div class="mt-8 pt-4 border-t border-gray-200">
@@ -8811,6 +9026,7 @@
             const giverCol = document.getElementById('handover-sig-giver-container');
             const receiverCol = document.getElementById('handover-sig-receiver-container');
             const btnSubmit = document.getElementById('btn-submit-handover-sig');
+            const btnBack = document.getElementById('btn-back-handover-sig');
 
             if (grid) {
                 grid.classList.remove('grid-cols-2');
@@ -8819,6 +9035,7 @@
             if (giverCol) giverCol.classList.remove('hidden');
             if (receiverCol) receiverCol.classList.remove('hidden');
             if (btnSubmit) btnSubmit.innerText = "Sahkan";
+            if (btnBack) btnBack.classList.add('hidden');
 
             handoverSigStep = 1;
 
@@ -8902,8 +9119,13 @@
                 const receiverCol = document.getElementById('handover-sig-receiver-container');
                 if (giverCol) giverCol.classList.add('hidden');
                 if (receiverCol) receiverCol.classList.remove('hidden');
+                
                 const btnSubmit = document.getElementById('btn-submit-handover-sig');
                 if (btnSubmit) btnSubmit.innerText = "Sahkan";
+                
+                const btnBack = document.getElementById('btn-back-handover-sig');
+                if (btnBack) btnBack.classList.remove('hidden');
+                
                 setTimeout(() => {
                     if (handoverReceiverDraw) handoverReceiverDraw.resize();
                 }, 100);
@@ -9229,6 +9451,29 @@
             document.getElementById('svc-repair-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
             document.getElementById('svc-repair-no-service').innerText = s.noService;
             document.getElementById('svc-repair-note-text').value = '';
+            
+            const submitBtn = document.querySelector('#serviceRepairModal button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerText = "Selesaikan & Kirim ke Teknisi Lapangan";
+            }
+            
+            openModal('serviceRepairModal');
+        }
+
+        function openOnsiteRepair(id) {
+            loadDB();
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('svc-repair-id').value = id;
+            document.getElementById('svc-repair-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-repair-no-service').innerText = s.noService;
+            document.getElementById('svc-repair-note-text').value = '';
+            
+            const submitBtn = document.querySelector('#serviceRepairModal button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerText = "Selesaikan & BAST Penyerahan";
+            }
+            
             openModal('serviceRepairModal');
         }
 
@@ -9240,8 +9485,9 @@
             if (!s) return;
             
             const text = document.getElementById('svc-repair-note-text').value;
+            const statusVal = document.getElementById('svc-repair-status') ? document.getElementById('svc-repair-status').value : 'repaired';
             s.tempRepairNote = text;
-            s.tempToolStatus = document.getElementById('svc-repair-status').value;
+            s.tempToolStatus = statusVal;
 
             // Save photo after temporarily (multiple)
             const photoAfterInput = document.getElementById('svc-unit-photo-after');
@@ -9256,8 +9502,36 @@
             }
             s.tempUnitPhotoAfter = unitPhotosAfter.length > 0 ? unitPhotosAfter : null;
 
-            closeModal('serviceRepairModal');
-            openHandoverSignatureModal(id, 'send_field');
+            if (s.repairLoc === 'onsite') {
+                s.status = 'received_field';
+                s.repairNote = text;
+                s.toolStatus = 'repaired';
+                if (unitPhotosAfter.length > 0) {
+                    s.unitPhotoAfter = unitPhotosAfter;
+                }
+                
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Perbaikan On-Site selesai oleh Teknisi Lapangan (${currentUser.name}). Catatan: "${s.repairNote}". Siap dilakukan penyerahan & uji fungsi bersama.`,
+                });
+                
+                addToHistory(`Perbaikan On-Site Selesai: Teknisi Lapangan (${currentUser.name}) menyelesaikan perbaikan ${s.noService} di lokasi.`, null, null);
+                
+                s.updatedAt = new Date().toISOString();
+                delete s.tempRepairNote;
+                delete s.tempToolStatus;
+                delete s.tempUnitPhotoAfter;
+                
+                saveDB();
+                updateData();
+                closeModal('serviceRepairModal');
+                
+                // Immediately open BAST signature modal
+                openServiceDeliveryModal(id);
+            } else {
+                closeModal('serviceRepairModal');
+                openHandoverSignatureModal(id, 'send_field');
+            }
         }
 
         function openServiceDeliveryModal(id) {
@@ -9277,6 +9551,9 @@
                 }
             }
 
+            document.getElementById('svc-delivery-step1').style.display = 'flex';
+            document.getElementById('svc-delivery-step2').style.display = 'none';
+
             initServiceSignatureCanvas();
             if (svcGiverDraw) svcGiverDraw.clear();
             if (svcReceiverDraw) svcReceiverDraw.clear();
@@ -9284,7 +9561,6 @@
             openModal('serviceDeliveryModal');
             setTimeout(() => {
                 if (svcGiverDraw) svcGiverDraw.resize();
-                if (svcReceiverDraw) svcReceiverDraw.resize();
             }, 200);
         }
 
@@ -9324,6 +9600,232 @@
             updateData();
             closeModal('serviceDeliveryModal');
             showToast("BAST Sah!", "Unit resmi diserahkan kembali ke customer.", "success");
+        }
+
+        let svcDeliveryStep = 1;
+
+        function nextSvcDeliveryStep() {
+            if (!svcGiverDraw || svcGiverDraw.isBlank()) {
+                showToast("Tanda Tangan Wajib", "Silakan bubuhkan tanda tangan Penyerah terlebih dahulu.", "error");
+                return;
+            }
+            svcDeliveryStep = 2;
+            document.getElementById('svc-delivery-step1').style.display = 'none';
+            document.getElementById('svc-delivery-step2').style.display = 'flex';
+            setTimeout(() => {
+                if (svcReceiverDraw) svcReceiverDraw.resize();
+            }, 100);
+        }
+
+        function prevSvcDeliveryStep() {
+            svcDeliveryStep = 1;
+            document.getElementById('svc-delivery-step2').style.display = 'none';
+            document.getElementById('svc-delivery-step1').style.display = 'flex';
+            setTimeout(() => {
+                if (svcGiverDraw) svcGiverDraw.resize();
+            }, 100);
+        }
+
+        function backHandoverSigStep() {
+            const action = document.getElementById('handover-sig-action').value;
+            if (action === 'pickup' && handoverSigStep === 2) {
+                handoverSigStep = 1;
+                const giverCol = document.getElementById('handover-sig-giver-container');
+                const receiverCol = document.getElementById('handover-sig-receiver-container');
+                if (giverCol) giverCol.classList.remove('hidden');
+                if (receiverCol) receiverCol.classList.add('hidden');
+                
+                const btnSubmit = document.getElementById('btn-submit-handover-sig');
+                if (btnSubmit) btnSubmit.innerText = "Lanjut ke Teknisi";
+                
+                const btnBack = document.getElementById('btn-back-handover-sig');
+                if (btnBack) btnBack.classList.add('hidden');
+                
+                setTimeout(() => {
+                    if (handoverGiverDraw) handoverGiverDraw.resize();
+                }, 100);
+            }
+        function openBulkBastModal() {
+            loadDB();
+            const checkedBoxes = document.querySelectorAll('.service-ticket-checkbox:checked');
+            if (checkedBoxes.length < 2) {
+                showToast("Pilih Tiket", "Silakan pilih minimal 2 tiket perbaikan untuk digabungkan ke dalam satu BAST.", "error");
+                return;
+            }
+            
+            const selectedIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
+            const tickets = db.serviceTickets.filter(s => selectedIds.includes(s.id));
+            
+            // Validate same customer
+            const firstCust = tickets[0].customerName;
+            const differentCust = tickets.some(s => s.customerName !== firstCust);
+            if (differentCust) {
+                showToast("Beda Customer", "Seluruh tiket yang digabungkan harus berasal dari Customer / Rumah Sakit yang sama.", "error");
+                return;
+            }
+            
+            // Validate status: received_field OR (picked_up AND repairLoc === 'onsite')
+            const invalidTickets = tickets.filter(s => {
+                return !(s.status === 'received_field' || (s.status === 'picked_up' && s.repairLoc === 'onsite'));
+            });
+            if (invalidTickets.length > 0) {
+                showToast("Status Tidak Sesuai", "Seluruh tiket harus berstatus 'Siap Penyerahan' atau 'Dipegang Teknisi' (khusus On-Site).", "error");
+                return;
+            }
+            
+            // Populate Customer Info
+            document.getElementById('bulk-bast-cust-name').innerText = firstCust;
+            document.getElementById('bulk-bast-cust-info').innerText = tickets[0].customerContact;
+            
+            // Populate Units List
+            const container = document.getElementById('bulk-bast-units-list');
+            container.innerHTML = '';
+            
+            tickets.forEach(s => {
+                const isValOnsite = s.repairLoc === 'onsite';
+                const currentNote = s.repairNote || s.tempRepairNote || '';
+                
+                container.innerHTML += `
+                    <div class="p-4 bg-white dark:bg-lux-900/40 hover:bg-gray-50/50 dark:hover:bg-lux-850/50 transition flex flex-col gap-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-[12.5px] text-gray-900 dark:text-white">${s.unitName}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-0.5">${s.unitMerk || '-'} / ${s.unitTipe || '-'} | SN: ${s.unitSn || '-'}</p>
+                                <p class="text-[9.5px] text-gold-600 dark:text-gold-500 font-mono mt-1 font-bold">${s.noService}</p>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[8.5px] font-black uppercase ${isValOnsite ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20' : 'bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20'}">${isValOnsite ? 'On-Site' : 'Workshop'}</span>
+                        </div>
+                        <div class="bg-yellow-50/10 border border-yellow-250/30 p-2.5 rounded-lg text-[10.5px]">
+                            <p class="text-[8.5px] text-yellow-600 font-black uppercase mb-0.5">Keluhan Awal:</p>
+                            <p class="text-gray-650 dark:text-lux-300 italic font-medium">"${s.complaint || '-'}"</p>
+                        </div>
+                        <div>
+                            <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider mb-1 block">Catatan Tindakan / Perbaikan <span class="text-gold-500">*</span></label>
+                            <input type="text" data-ticket-id="${s.id}" class="bulk-repair-note-input w-full input-field text-xs py-2 px-3" required placeholder="Masukkan detail perbaikan untuk alat ini..." value="${currentNote}">
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Reset steps
+            document.getElementById('bulk-bast-step1').style.display = 'flex';
+            document.getElementById('bulk-bast-step2').style.display = 'none';
+            
+            initBulkSignatureCanvas();
+            if (bulkGiverDraw) bulkGiverDraw.clear();
+            if (bulkReceiverDraw) bulkReceiverDraw.clear();
+            
+            openModal('serviceBulkBastModal');
+            setTimeout(() => {
+                if (bulkGiverDraw) bulkGiverDraw.resize();
+            }, 200);
+        }
+
+        function submitServiceBulkBast(e) {
+            e.preventDefault();
+            if (!bulkGiverDraw || !bulkReceiverDraw || bulkGiverDraw.isBlank() || bulkReceiverDraw.isBlank()) {
+                showToast("Tanda Tangan Wajib", "Kedua belah pihak (penyerah & penerima) wajib menandatangani BAST.", "error");
+                return;
+            }
+            
+            // Check if all repair notes are filled
+            const noteInputs = document.querySelectorAll('.bulk-repair-note-input');
+            let allFilled = true;
+            noteInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                    input.classList.add('border-red-500');
+                } else {
+                    input.classList.remove('border-red-500');
+                }
+            });
+            if (!allFilled) {
+                showToast("Catatan Perbaikan Wajib", "Harap isi semua Catatan Perbaikan / Tindakan untuk setiap alat.", "error");
+                return;
+            }
+            
+            loadDB();
+            const sigGiver = bulkGiverDraw.canvas.toDataURL();
+            const sigReceiver = bulkReceiverDraw.canvas.toDataURL();
+            const bulkBastId = "BAST-GBK-" + Date.now();
+            
+            const ticketIds = Array.from(noteInputs).map(input => parseInt(input.getAttribute('data-ticket-id')));
+            
+            ticketIds.forEach(id => {
+                const s = db.serviceTickets.find(x => x.id === id);
+                if (!s) return;
+                
+                const repairNoteText = Array.from(noteInputs).find(input => parseInt(input.getAttribute('data-ticket-id')) === id).value.trim();
+                
+                s.bulkBastId = bulkBastId;
+                s.signatureDeliveryGiver = sigGiver;
+                s.signatureDeliveryReceiver = sigReceiver;
+                s.signature = sigReceiver; // Fallback compatibility
+                s.status = 'completed';
+                s.repairNote = repairNoteText;
+                s.toolStatus = 'repaired'; // Always repaired
+                
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Unit diserahkan secara fisik ke Customer dengan BAST GABUNGAN (ID: ${bulkBastId}). Kondisi: Selesai Diperbaiki (Repaired). Catatan Tindakan: "${repairNoteText}".`,
+                    sigGiver: sigGiver,
+                    sigReceiver: sigReceiver
+                });
+                
+                addToHistory(`BAST Gabungan Sah: ${s.noService} diserahkan ke customer oleh ${currentUser.name} (${s.unitName}).`, null, sigReceiver);
+                notifyServiceUpdate(s, 'completed');
+                s.updatedAt = new Date().toISOString();
+            });
+            
+            // Uncheck master checkbox and items
+            const masterCheckbox = document.getElementById('select-all-service-tickets');
+            if (masterCheckbox) masterCheckbox.checked = false;
+            
+            playNotificationSound();
+            saveDB();
+            updateData();
+            closeModal('serviceBulkBastModal');
+            showToast("BAST Gabungan Sah!", `${ticketIds.length} unit resmi diserahkan kembali ke customer.`, "success");
+        }
+
+        let bulkBastStep = 1;
+        function nextBulkBastStep() {
+            if (!bulkGiverDraw || bulkGiverDraw.isBlank()) {
+                showToast("Tanda Tangan Wajib", "Silakan bubuhkan tanda tangan Penyerah terlebih dahulu.", "error");
+                return;
+            }
+            
+            // Validate that notes are filled in step 1
+            const noteInputs = document.querySelectorAll('.bulk-repair-note-input');
+            let allFilled = true;
+            noteInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                    input.classList.add('border-red-500');
+                } else {
+                    input.classList.remove('border-red-500');
+                }
+            });
+            if (!allFilled) {
+                showToast("Catatan Perbaikan Wajib", "Harap isi semua Catatan Perbaikan / Tindakan untuk setiap alat.", "error");
+                return;
+            }
+
+            bulkBastStep = 2;
+            document.getElementById('bulk-bast-step1').style.display = 'none';
+            document.getElementById('bulk-bast-step2').style.display = 'flex';
+            setTimeout(() => {
+                if (bulkReceiverDraw) bulkReceiverDraw.resize();
+            }, 100);
+        }
+        
+        function prevBulkBastStep() {
+            bulkBastStep = 1;
+            document.getElementById('bulk-bast-step2').style.display = 'none';
+            document.getElementById('bulk-bast-step1').style.display = 'flex';
+            setTimeout(() => {
+                if (bulkGiverDraw) bulkGiverDraw.resize();
+            }, 100);
         }
 
         // ====================================================================
