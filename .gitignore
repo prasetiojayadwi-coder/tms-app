@@ -1,2 +1,5 @@
 # Kredensial Supabase — salin dari config.example.js
 config.js
+
+# Python cache
+__pycache__/

@@ -10,17 +10,36 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="tms_pwa_icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        html, body { margin: 0; min-height: 100vh; }
+        html.dark, html.dark body { background: #09090b; }
+        html:not(.dark) body { background: #f9fafb; }
+        #app-boot-loader {
+            position: fixed; inset: 0; z-index: 999999;
+            display: flex; align-items: center; justify-content: center;
+            background: inherit; transition: opacity 0.35s ease;
+        }
+        #app-boot-loader.hide { opacity: 0; pointer-events: none; }
+        .boot-spinner {
+            width: 36px; height: 36px; border-radius: 50%;
+            border: 3px solid rgba(234,179,8,0.2);
+            border-top-color: #eab308;
+            animation: boot-spin 0.7s linear infinite;
+        }
+        @keyframes boot-spin { to { transform: rotate(360deg); } }
+    </style>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>window.TMS_CONFIG = window.TMS_CONFIG || {};</script>
     <script src="config.js" onerror="console.warn('TMS: config.js tidak ditemukan. Salin config.example.js menjadi config.js lalu isi kredensial Supabase.')"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -463,6 +482,7 @@
     </style>
 </head>
 <body class="font-sans min-h-screen flex overflow-hidden">
+    <div id="app-boot-loader" aria-hidden="true"><div class="boot-spinner"></div></div>
 
     <!-- Area Tersembunyi untuk Cetak Stiker QR -->
     <div id="sticker-print-area" class="hidden"></div>
@@ -2409,6 +2429,9 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+            const boot = document.getElementById('app-boot-loader');
+            if (boot) { boot.classList.add('hide'); setTimeout(() => boot.remove(), 400); }
+
             const isDark = document.documentElement.classList.contains('dark');
             if(document.getElementById('theme-icon-dash')) document.getElementById('theme-icon-dash').className = isDark ? 'fa-solid fa-moon text-xl' : 'fa-solid fa-sun text-xl';
             if(document.getElementById('theme-icon-login')) document.getElementById('theme-icon-login').className = isDark ? 'fa-solid fa-moon text-xl' : 'fa-solid fa-sun text-xl';
@@ -2471,7 +2494,32 @@
         });
 
         // --- 1. LOCAL STORAGE DATABASE & SUPABASE CONFIGURATION (HYBRID CLOUD SYNC) ---
-        const DB_KEY = 'tms_enterprise_db_v23'; 
+        const DB_KEY = 'tms_enterprise_db_v23';
+
+        // Lazy-load library berat hanya saat dibutuhkan (percepat startup)
+        const TMS_SCRIPT_URLS = {
+            chart: 'https://cdn.jsdelivr.net/npm/chart.js',
+            qrcode: 'https://unpkg.com/html5-qrcode',
+            qrious: 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js',
+            pdf: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+        };
+        const _tmsScriptPromises = {};
+        function loadTmsScript(key) {
+            if (_tmsScriptPromises[key]) return _tmsScriptPromises[key];
+            _tmsScriptPromises[key] = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = TMS_SCRIPT_URLS[key];
+                s.async = true;
+                s.onload = () => resolve();
+                s.onerror = () => reject(new Error('Gagal memuat: ' + key));
+                document.head.appendChild(s);
+            });
+            return _tmsScriptPromises[key];
+        }
+
+        let _updateDataQueued = false;
+        let _syncDebounceTimer = null;
+        let _imagesCleanedThisSession = false; 
         
         // KREDENSIAL CLOUD SYNC SUPABASE (dari config.js — salin config.example.js jika belum ada)
         const _tmsCfg = (window.TMS_CONFIG && window.TMS_CONFIG.supabase) || {};
@@ -2764,6 +2812,7 @@
         }
 
         function initRealtimeSync() {
+            stopOnlineHeartbeat();
             if (!supabaseClient) {
                 updateCloudStatusUI('local');
                 updateOnlineStatusUI(null);
@@ -2889,13 +2938,14 @@
                     updateCloudStatusUI(status);
                     
                     if (status === 'SUBSCRIBED') {
+                        startOnlineHeartbeat();
+                        syncWithCloud();
                         if (currentUser) {
                             try {
                                 await realtimeChannel.track({
                                     user_id: currentUser.id,
                                     online_at: new Date().toISOString()
                                 });
-                                // Update lastOnline status locally and save
                                 if (db.users && db.users[currentUser.id]) {
                                     db.users[currentUser.id].lastOnline = new Date().toISOString();
                                     saveDB();
@@ -2905,6 +2955,7 @@
                             }
                         }
                     } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+                        stopOnlineHeartbeat();
                         updateOnlineStatusUI(null);
                     }
                 });
@@ -3181,8 +3232,16 @@
             return merged;
         }
 
-        function loadDB() {
-            let saved = localStorage.getItem(DB_KEY);
+        function loadDB(forceReload = false) {
+            const saved = localStorage.getItem(DB_KEY);
+            if (!forceReload && saved && db && db.version) {
+                try {
+                    const peekVer = JSON.parse(saved).version;
+                    if (peekVer === db.version) return;
+                } catch (e) {}
+            }
+
+            let savedData = saved;
             if (!saved) {
                 // Cari kunci tms_enterprise_db_v* sebelumnya untuk migrasi
                 let bestKey = null;
@@ -3204,7 +3263,7 @@
                 if (bestKey) {
                     const oldData = localStorage.getItem(bestKey);
                     if (oldData) {
-                        saved = oldData;
+                        savedData = oldData;
                         console.log(`Menemukan versi lama untuk migrasi: ${bestKey}`);
                     }
                 }
@@ -3228,18 +3287,18 @@
             }
 
             // Jika sedang migrasi, simpan ke DB_KEY setelah membersihkan legacy keys
-            if (!localStorage.getItem(DB_KEY) && saved) {
+            if (!localStorage.getItem(DB_KEY) && savedData) {
                 try {
-                    localStorage.setItem(DB_KEY, saved);
+                    localStorage.setItem(DB_KEY, savedData);
                     console.log(`Database berhasil dimigrasikan ke versi baru (${DB_KEY})`);
                 } catch(e) {
                     console.warn("Gagal menyimpan database migrasi:", e);
                 }
             }
 
-            if (saved) {
+            if (savedData) {
                 try {
-                    const parsed = JSON.parse(saved);
+                    const parsed = JSON.parse(savedData);
                     if (parsed && typeof parsed === 'object') {
                         const localVer = Number(parsed.version) || 0;
                         const memVer = Number(db && db.version) || 0;
@@ -3307,8 +3366,6 @@
             
             if (!db.version) { db.version = 1; }
 
-            safeSaveLocalStorage();
-
             let updated = false;
 
             // Enforce specialist accounts roles and products migration
@@ -3347,10 +3404,21 @@
                 safeSaveLocalStorage();
             }
 
-            if (supabaseClient) {
-                syncWithCloud();
+            if (!_imagesCleanedThisSession) {
+                _imagesCleanedThisSession = true;
+                setTimeout(() => cleanExistingLargeImages(), 3000);
             }
-            cleanExistingLargeImages();
+        }
+
+        function scheduleSyncWithCloud(forceUpload = false) {
+            if (!supabaseClient) return;
+            if (forceUpload) {
+                clearTimeout(_syncDebounceTimer);
+                syncWithCloud(true);
+                return;
+            }
+            clearTimeout(_syncDebounceTimer);
+            _syncDebounceTimer = setTimeout(() => syncWithCloud(false), 2500);
         }
         function safeSaveLocalStorage() {
             try {
@@ -3367,11 +3435,27 @@
                 });
             }
         }
-        function saveDB() { 
+        function saveDB() {
             db.version = Math.max(db.version || 0, Date.now()) + 1;
             safeSaveLocalStorage();
             if (supabaseClient) {
+                syncWithCloud(true);
+            }
+        }
+
+        let _onlineHeartbeatTimer = null;
+        function startOnlineHeartbeat() {
+            if (_onlineHeartbeatTimer) clearInterval(_onlineHeartbeatTimer);
+            if (!supabaseClient) return;
+            _onlineHeartbeatTimer = setInterval(() => {
+                if (!currentUser || document.hidden || !supabaseClient) return;
                 syncWithCloud();
+            }, 25000);
+        }
+        function stopOnlineHeartbeat() {
+            if (_onlineHeartbeatTimer) {
+                clearInterval(_onlineHeartbeatTimer);
+                _onlineHeartbeatTimer = null;
             }
         }
         function recordDeletion(id) {
@@ -3536,7 +3620,7 @@
         }
         
         let lastMsgCount = 0;
-        window.addEventListener('storage', (e) => { 
+        window.addEventListener('storage', (e) => {
             if(e.key === DB_KEY && e.newValue) { 
                 try {
                     const parsed = JSON.parse(e.newValue);
@@ -3584,40 +3668,37 @@
         
         // Periodically refresh online status UI and update currentUser.lastOnline in database
         setInterval(async () => {
-            if (currentUser) {
-                // 1. Refresh local UI elements to update relative time / offline status
-                if (typeof renderChatUsers === 'function') renderChatUsers();
-                if (activeTab === 'spv-personnel' && typeof renderSpvPersonnel === 'function') renderSpvPersonnel();
-                
-                // 2. Periodically update lastOnline in database (every 1 minute) to stay fresh
-                if (supabaseClient) {
-                    // Refresh presence track just to make sure it's active in Supabase
-                    if (realtimeChannel && typeof realtimeChannel.track === 'function') {
-                        try {
-                            await realtimeChannel.track({
-                                user_id: currentUser.id,
-                                online_at: new Date().toISOString()
-                            });
-                        } catch(e) {
-                            console.warn("Gagal update presence track:", e);
-                        }
+            if (!currentUser || document.hidden) return;
+
+            if (activeTab === 'chat' && typeof renderChatUsers === 'function') renderChatUsers();
+            if (activeTab === 'spv-personnel' && typeof renderSpvPersonnel === 'function') renderSpvPersonnel();
+
+            if (supabaseClient) {
+                if (realtimeChannel && typeof realtimeChannel.track === 'function') {
+                    try {
+                        await realtimeChannel.track({
+                            user_id: currentUser.id,
+                            online_at: new Date().toISOString()
+                        });
+                    } catch(e) {
+                        console.warn("Gagal update presence track:", e);
                     }
-                    
-                    const now = Date.now();
-                    if (!window._lastDbOnlineUpdate || now - window._lastDbOnlineUpdate > 60 * 1000) {
-                        window._lastDbOnlineUpdate = now;
-                        loadDB();
-                        if (db.users && db.users[currentUser.id]) {
-                            db.users[currentUser.id].lastOnline = new Date().toISOString();
-                            saveDB();
-                        }
+                }
+
+                const now = Date.now();
+                if (!window._lastDbOnlineUpdate || now - window._lastDbOnlineUpdate > 60 * 1000) {
+                    window._lastDbOnlineUpdate = now;
+                    if (db.users && db.users[currentUser.id]) {
+                        db.users[currentUser.id].lastOnline = new Date().toISOString();
+                        saveDB();
                     }
                 }
             }
-        }, 10000); // Check every 10 seconds
+        }, 15000);
 
         document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible' && currentUser && supabaseClient) {
+                syncWithCloud();
                 if (realtimeChannel && typeof realtimeChannel.track === 'function') {
                     try {
                         await realtimeChannel.track({
@@ -3912,6 +3993,7 @@
                 saveDB();
             }
             currentUser = null;
+            stopOnlineHeartbeat();
             knownRequestIds = null;
             previousRequestStates = null;
             previousServiceTicketStates = null;
@@ -4569,6 +4651,14 @@
 
         // --- 4. VIEW RENDERING ---
         function updateData() {
+            if (_updateDataQueued) return;
+            _updateDataQueued = true;
+            requestAnimationFrame(() => {
+                _updateDataQueued = false;
+                _updateDataImpl();
+            });
+        }
+        function _updateDataImpl() {
             if(!currentUser) return;
 
             if (!previousRequestStates) {
@@ -4758,11 +4848,11 @@
             document.getElementById('ts-stat-active').innerText = myT.filter(t => t.status === 'good').length;
             document.getElementById('ts-stat-pending').innerText = myT.filter(t => t.status === 'pending_auth').length;
             document.getElementById('ts-stat-global').innerText = db.tools.length + db.demoUnits.length;
-            const hc = document.getElementById('ts-history-log'); hc.innerHTML = '';
-            db.historyLog.slice(0, 10).forEach(l => {
+            const hc = document.getElementById('ts-history-log');
+            hc.innerHTML = db.historyLog.slice(0, 10).map(l => {
                 const date = new Date(l.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short'});
-                hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${l.action}</p></div>`;
-            });
+                return `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${l.action}</p></div>`;
+            }).join('');
         }
         function renderTsToolbox() {
             const mcTools = document.getElementById('ts-tools-container'); 
@@ -5763,13 +5853,14 @@
             showToast("Berhasil", "Permohonan telah diajukan ke SPV", "success");
         }
 
-        function generateHandoverQR() {
+        async function generateHandoverQR() {
             const sel = document.getElementById('ho-select-tool');
             if(!sel.value) { showToast("Gagal", "Pilih aset terlebih dahulu", "error"); return; }
             
             const toolId = parseInt(sel.value);
             const t = db.tools.find(x=>x.id===toolId) || db.demoUnits.find(x=>x.id===toolId);
             
+            try { await loadTmsScript('qrious'); } catch(e) { showToast("Gagal", "Library QR gagal dimuat.", "error"); return; }
             const qrData = `HO_${toolId}_${currentUser.id}`;
             const qrImg = document.querySelector('#qr-display-area img');
             const qr = new QRious({
@@ -7120,12 +7211,11 @@
             // Polling setiap 30 detik
             if (_svcPollingTimer) clearInterval(_svcPollingTimer);
             _svcPollingTimer = setInterval(() => {
-                _checkSvcStatusChanges();
-            }, 30000);
+                if (!document.hidden) _checkSvcStatusChanges();
+            }, 45000);
         }
 
         function _buildSvcSnapshot(notify = true) {
-            loadDB();
             const tickets = db.serviceTickets || [];
             tickets.forEach(t => {
                 const prevStatus = _svcNotifSnapshot[t.id];
@@ -7166,10 +7256,11 @@
 
         // --- 5. FITUR PREMIUM ADVANCED ---
         var spvChart = null;
-        function updateSpvChart(good, broken, maint) {
+        async function updateSpvChart(good, broken, maint) {
             const ctx = document.getElementById('spv-chart-condition');
             if(!ctx) return;
-            
+            try { await loadTmsScript('chart'); } catch(e) { return; }
+
             const isDark = document.documentElement.classList.contains('dark');
             const labelColor = isDark ? '#a1a1aa' : '#3f3f46';
 
@@ -7215,7 +7306,12 @@
             qrScanMode = mode;
             openModal('qrScannerModal');
             
-            setTimeout(() => {
+            setTimeout(async () => {
+                try { await loadTmsScript('qrcode'); } catch(e) {
+                    showToast("Kamera Gagal", "Library scanner gagal dimuat.", "error");
+                    closeQrScanner();
+                    return;
+                }
                 html5QrCode = new Html5Qrcode("qr-reader");
                 const config = { fps: 10, qrbox: { width: 220, height: 220 } };
                 
@@ -7437,7 +7533,11 @@
             return `No. Inventaris: ${t.noInv}\nNama Alat: ${t.desc || '-'}\nSN: ${t.sn || '-'}`;
         }
 
-        function printStickers(stickerList) {
+        async function printStickers(stickerList) {
+            try { await loadTmsScript('qrious'); } catch(e) {
+                showToast("Gagal Cetak", "Library QR gagal dimuat.", "error");
+                return;
+            }
             const printArea = document.getElementById('sticker-print-area');
             printArea.innerHTML = '';
             
@@ -9007,7 +9107,8 @@
             `;
 
             // Initialize QR Code dynamically using QRious
-            setTimeout(() => {
+            setTimeout(async () => {
+                try { await loadTmsScript('qrious'); } catch(e) { return; }
                 const qrCanvas = document.getElementById('receipt-qr');
                 if (qrCanvas) {
                     new QRious({
@@ -9025,11 +9126,16 @@
             document.body.classList.remove('print-svc-receipt');
         }
 
-        function downloadServiceReceiptPDF() {
+        async function downloadServiceReceiptPDF() {
             const id = parseInt(document.getElementById('svc-receipt-active-id').value);
             loadDB();
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
+
+            try { await loadTmsScript('pdf'); } catch(e) {
+                showToast("Gagal Unduh PDF", "Library PDF gagal dimuat.", "error");
+                return;
+            }
 
             const element = document.getElementById('svc-receipt-print-area');
             const options = {
@@ -9900,7 +10006,8 @@
         let svcMonthlyChart = null;
         let svcStatusChart = null;
 
-        function renderServiceStatsDash() {
+        async function renderServiceStatsDash() {
+            try { await loadTmsScript('chart'); } catch(e) { return; }
             const tickets = db.serviceTickets || [];
             const now = new Date();
             const thisMonth = now.getMonth();
