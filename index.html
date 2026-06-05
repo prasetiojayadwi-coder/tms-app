@@ -118,7 +118,7 @@
             }
 
             /* Sembunyikan semua kontainer utama aplikasi */
-            body > *:not(#sticker-print-area):not(#ticketModal):not(#handoverModal) {
+            body > *:not(#sticker-print-area):not(#ticketModal):not(#handoverModal):not(#serviceReceiptModal) {
                 display: none !important;
             }
             /* Jika sedang mencetak stiker */
@@ -1515,7 +1515,7 @@
                 <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-2">Kirim pemberitahuan profesional mengenai transaksi aset kepada <strong id="notif-recipient-name" class="text-gold-600 dark:text-gold-500"></strong>.</p>
             </div>
             <div class="flex flex-col gap-3">
-                <a id="notif-wa-btn" href="#" target="_blank" onclick="closeModal('notifChoicesModal')" class="w-full py-3.5 bg-emerald-600 text-white font-black rounded-xl text-[11px] uppercase tracking-widest hover:bg-emerald-700 transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim via WhatsApp</a>
+                <a id="notif-wa-btn" href="#" target="_blank" onclick="closeModal('notifChoicesModal')" class="w-full py-3.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-500 hover:text-white dark:hover:text-black font-black rounded-xl text-[11px] uppercase tracking-widest transition flex items-center justify-center gap-2 shadow-sm"><i class="fa-brands fa-whatsapp text-sm"></i> Kirim via WhatsApp</a>
                 <a id="notif-email-btn" href="#" target="_blank" onclick="closeModal('notifChoicesModal')" class="w-full py-3.5 bg-blue-600 text-white font-black rounded-xl text-[11px] uppercase tracking-widest hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]"><i class="fa-solid fa-envelope text-sm"></i> Kirim via Email</a>
                 <button type="button" onclick="closeModal('notifChoicesModal')" class="w-full py-3 border border-gray-300 dark:border-lux-700 text-gray-700 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-lux-800 transition">Tutup</button>
             </div>
@@ -1575,7 +1575,7 @@
             <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] no-print">
                 <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-print mr-2.5"></i> Dokumen Tanda Terima Layanan</h3>
                 <div class="flex flex-wrap gap-2">
-                    <button type="button" onclick="sendWhatsAppNotification(parseInt(document.getElementById('svc-receipt-active-id').value))" class="px-4 py-2 bg-[#25D366] text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#1aa850] transition flex items-center gap-1.5 shadow-md"><i class="fa-brands fa-whatsapp"></i> Kirim WA</button>
+                    <button type="button" onclick="sendWhatsAppNotification(parseInt(document.getElementById('svc-receipt-active-id').value))" class="px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-500 hover:text-white dark:hover:text-black rounded-lg text-[10px] font-black uppercase tracking-widest transition flex items-center gap-1.5 shadow-md"><i class="fa-brands fa-whatsapp"></i> Kirim WA</button>
                     <button type="button" onclick="downloadServiceReceiptPDF()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-md"><i class="fa-solid fa-download"></i> Unduh PDF</button>
                     <button type="button" onclick="printServiceReceipt()" class="px-4 py-2 bg-gold-500 text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-gold-600 transition flex items-center gap-1.5 shadow-md"><i class="fa-solid fa-print"></i> Cetak</button>
                     <button type="button" onclick="closeModal('serviceReceiptModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white text-lg ml-2"><i class="fa-solid fa-xmark"></i></button>
@@ -1745,6 +1745,10 @@
                         <input type="text" id="svc-po-number" required class="input-field font-mono font-bold" placeholder="Contoh: PO/RS-JAYA/2026/06/0012">
                     </div>
                     <div>
+                        <label class="input-label">Nilai Nominal PO (Rupiah) <span class="text-gold-500">*</span></label>
+                        <input type="number" id="svc-po-amount" required class="input-field font-mono font-bold" placeholder="Contoh: 500000">
+                    </div>
+                    <div>
                         <label class="input-label">Tanggal Terbit PO <span class="text-gold-500">*</span></label>
                         <input type="date" id="svc-po-date" required class="input-field">
                     </div>
@@ -1774,6 +1778,13 @@
                         <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase mb-1">Aset Customer</p>
                         <p class="text-sm font-black text-gray-900 dark:text-white" id="svc-repair-unit-name">-</p>
                         <p class="text-[10px] text-gold-600 dark:text-gold-500 font-mono mt-0.5" id="svc-repair-no-service">-</p>
+                    </div>
+                    <div>
+                        <label class="input-label">Status Hasil Perbaikan <span class="text-gold-500">*</span></label>
+                        <select id="svc-repair-status" required class="input-field">
+                            <option value="repaired" selected>Repaired (Selesai Diperbaiki)</option>
+                            <option value="unrepaired">Unrepaired (Gagal / Tidak Diperbaiki)</option>
+                        </select>
                     </div>
                     <div>
                         <label class="input-label">Catatan Pengerjaan / Tindakan Perbaikan <span class="text-gold-500">*</span></label>
@@ -1815,7 +1826,7 @@
                     <p class="text-[10px] text-gray-505 dark:text-lux-400 mt-1 uppercase" id="svc-delivery-cust-info">-</p>
                 </div>
                 <div class="border-t border-gray-200 dark:border-lux-800 pt-4">
-                    <p class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4">Saya selaku perwakilan customer/RS menyatakan telah menerima kembali unit tersebut di atas dengan kondisi hasil perbaikan yang telah berfungsi normal. Serah terima ini sah secara hukum.</p>
+                    <p id="svc-delivery-statement" class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4">Saya selaku perwakilan customer/RS menyatakan telah menerima kembali unit tersebut di atas dengan kondisi hasil perbaikan yang telah berfungsi normal. Serah terima ini sah secara hukum.</p>
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
@@ -1864,8 +1875,8 @@
                 <div class="border-t border-gray-200 dark:border-lux-800 pt-4">
                     <p class="text-[12px] font-medium text-gray-600 dark:text-lux-300 leading-relaxed mb-4" id="handover-sig-statement">Silakan bubuhkan tanda tangan digital untuk memvalidasi proses serah terima unit ini.</p>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
+                    <div class="grid grid-cols-2 gap-4" id="handover-sig-grid">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner" id="handover-sig-giver-container">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider" id="handover-sig-giver-label">Pihak Pengirim/Pemberi</label>
                                 <button type="button" id="btn-clear-handover-giver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
@@ -1874,7 +1885,7 @@
                                 <canvas id="handover-sig-canvas-giver" class="w-full h-full rounded-xl"></canvas>
                             </div>
                         </div>
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 rounded-2xl p-4 shadow-inner" id="handover-sig-receiver-container">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="text-[9.5px] font-black text-gray-500 dark:text-lux-400 uppercase tracking-wider" id="handover-sig-receiver-label">Pihak Penerima</label>
                                 <button type="button" id="btn-clear-handover-receiver" class="text-[9px] text-red-600 dark:text-red-400 font-bold hover:underline">Hapus</button>
@@ -1887,7 +1898,7 @@
                 </div>
                 <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-lux-800">
                     <button type="button" onclick="closeModal('handoverSignatureModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
-                    <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan</button>
+                    <button type="submit" id="btn-submit-handover-sig" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Sahkan</button>
                 </div>
             </form>
         </div>
@@ -1959,7 +1970,7 @@
 
                 <!-- WA Notification Button -->
                 <div class="mt-4 flex justify-end">
-                    <button id="svc-det-wa-btn" class="flex items-center gap-2 px-4 py-2.5 bg-[#25D366] hover:bg-[#1aa850] text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition shadow-md">
+                    <button id="svc-det-wa-btn" class="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-500 hover:text-white dark:hover:text-black font-black rounded-xl text-[10px] uppercase tracking-widest transition shadow-md">
                         <i class="fa-brands fa-whatsapp text-base"></i> Kirim Notifikasi WA ke Customer
                     </button>
                 </div>
@@ -3995,6 +4006,23 @@
             return { text: "VALID", badge: "text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30", isAlert: false };
         }
 
+        function markNotifAsRead(e, notifId) {
+            if (e) e.stopPropagation();
+            loadDB();
+            if (!currentUser) return;
+            const u = db.users[currentUser.id];
+            if (!u) return;
+            u.readNotifications = u.readNotifications || [];
+            if (!u.readNotifications.includes(notifId)) {
+                u.readNotifications.push(notifId);
+            }
+            currentUser.readNotifications = u.readNotifications;
+            saveDB();
+            sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+            localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+            checkNotifications();
+        }
+
         function checkNotifications() {
             if(!currentUser) return;
             const notifList = document.getElementById('notif-list');
@@ -4009,6 +4037,8 @@
                 allNotifs.push({ time: new Date(time).getTime() || 0, html: html });
             };
 
+            const userReadNotifs = (currentUser && currentUser.readNotifications) || [];
+
             const checkItem = (item, typeStr) => {
                 if (currentUser.role === 'ts') {
                     if (item.ownerId !== currentUser.id) return;
@@ -4021,25 +4051,41 @@
                 
                 const loc = item.ownerId === 0 ? 'Gudang (Pool)' : (db.users[item.ownerId] ? `${db.users[item.ownerId].name} (${db.users[item.ownerId].group})` : 'Gudang (Pool)');
                 if(item.condition === 'Rusak' && (!item.maintenanceStatus || item.maintenanceStatus === 'Menunggu Tindakan')) { 
-                    alertCount++; 
-                    const html = `<div onclick="showToolDetail(${item.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                        <p class="text-[10px] text-red-600 dark:text-red-500 font-black uppercase mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Alat Rusak</p>
-                        <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
-                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Lokasi: ${loc}</span></p>
-                    </div>`; 
-                    addNotif(item.id, html);
+                    const notifId = `tool-damaged-${item.id}`;
+                    if (!userReadNotifs.includes(notifId)) {
+                        alertCount++; 
+                        const html = `<div onclick="showToolDetail(${item.id}); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                            <div class="pr-6">
+                                <p class="text-[10px] text-red-600 dark:text-red-500 font-black uppercase mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Alat Rusak</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Lokasi: ${loc}</span></p>
+                            </div>
+                            <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                <i class="fa-solid fa-xmark text-[10px]"></i>
+                            </button>
+                        </div>`; 
+                        addNotif(item.id, html);
+                    }
                 }
                 const calStat = getCalibrationStatus(item.calDate);
                 if(calStat.isAlert) { 
-                    alertCount++; 
-                    const color = calStat.text==='KADALUARSA' ? 'text-red-600 dark:text-red-500' : 'text-amber-600 dark:text-amber-500';
-                    const icon = calStat.text==='KADALUARSA' ? 'fa-calendar-xmark' : 'fa-calendar-check';
-                    const html = `<div onclick="showToolDetail(${item.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                        <p class="text-[10px] ${color} font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> Kalibrasi ${calStat.text}</p>
-                        <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
-                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">${calStat.msg} (${item.calDate || '-'})</span></p>
-                    </div>`;
-                    addNotif(item.id, html);
+                    const notifId = `tool-cal-${item.id}-${item.calDate}`;
+                    if (!userReadNotifs.includes(notifId)) {
+                        alertCount++; 
+                        const color = calStat.text==='KADALUARSA' ? 'text-red-600 dark:text-red-500' : 'text-amber-600 dark:text-amber-500';
+                        const icon = calStat.text==='KADALUARSA' ? 'fa-calendar-xmark' : 'fa-calendar-check';
+                        const html = `<div onclick="showToolDetail(${item.id}); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                            <div class="pr-6">
+                                <p class="text-[10px] ${color} font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> Kalibrasi ${calStat.text}</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">${calStat.msg} (${item.calDate || '-'})</span></p>
+                            </div>
+                            <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                <i class="fa-solid fa-xmark text-[10px]"></i>
+                            </button>
+                        </div>`;
+                        addNotif(item.id, html);
+                    }
                 }
             };
             
@@ -4056,13 +4102,21 @@
                         if (currentUser.role === 'owner' && (r.status === 'pending_spv' || r.status === 'pending_tsf')) {
                             const newPersonel = db.users[r.toolId];
                             if (newPersonel) {
-                                alertCount++;
-                                const html = `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                    <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-user-plus"></i> Verifikasi Personel</p>
-                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Personel Baru: ${newPersonel.name}</p>
-                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Peran: ${newPersonel.role.toUpperCase()} | Wilayah: ${newPersonel.group}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu Owner</span></p>
-                                </div>`;
-                                addNotif(r.id, html);
+                                const notifId = `req-verify-${r.id}`;
+                                if (!userReadNotifs.includes(notifId)) {
+                                    alertCount++;
+                                    const html = `<div onclick="switchTab('spv-approvals'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                        <div class="pr-6">
+                                            <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-user-plus"></i> Verifikasi Personel</p>
+                                            <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Personel Baru: ${newPersonel.name}</p>
+                                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Peran: ${newPersonel.role.toUpperCase()} | Wilayah: ${newPersonel.group}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu Owner</span></p>
+                                        </div>
+                                        <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                                        </button>
+                                    </div>`;
+                                    addNotif(r.id, html);
+                                }
                             }
                         }
                         return;
@@ -4075,53 +4129,84 @@
 
                     let shouldAlert = false;
                     let html = '';
+                    const notifId = `req-handover-${r.id}-${r.status}`;
 
                     if (currentUser.role === 'ts' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
                         if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') {
                             shouldAlert = true;
-                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Butuh Tanda Terima Fisik</p>
+                            html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <div class="pr-6">
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Butuh Tanda Terima Fisik</p>
+                                </div>
+                                <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </button>
                             </div>`;
                         }
                     } else if (currentUser.role === 'tsf') {
                         if (r.reqType === 'return' && r.status === 'approved') {
                             shouldAlert = true;
-                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Pengembalian</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                            html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <div class="pr-6">
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Pengembalian</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                                </div>
+                                <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </button>
                             </div>`;
                         } else if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') {
                             shouldAlert = true;
-                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
+                            html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <div class="pr-6">
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
+                                </div>
+                                <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </button>
                             </div>`;
                         }
                     } else if (currentUser.role === 'spv') {
                         if (r.requesterId === currentUser.id && r.reqType === 'borrow' && r.status === 'approved') {
                             shouldAlert = true;
-                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
+                            html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <div class="pr-6">
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Peminjaman</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
+                                </div>
+                                <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </button>
                             </div>`;
                         } else if (!isRegionalSpv && r.reqType === 'return' && r.status === 'approved') {
                             shouldAlert = true;
-                            html = `<div onclick="switchTab('ts-handover'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Pengembalian</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                            html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <div class="pr-6">
+                                    <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Serah Terima Fisik: Pengembalian</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                                </div>
+                                <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </button>
                             </div>`;
                         } else if (isRegionalSpv && r.status === 'pending_spv' && r.reqType !== 'verify_user' && u.group === currentUser.group) {
                             shouldAlert = true;
-                            html = `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                                <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Otorisasi Peminjaman/Pengembalian</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu SPV: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: pending_spv</span></p>
+                            html = `<div onclick="switchTab('spv-approvals'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                                <div class="pr-6">
+                                    <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Otorisasi Peminjaman/Pengembalian</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu SPV: ${t.desc}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: pending_spv</span></p>
+                                </div>
+                                <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                                </button>
                             </div>`;
                         }
                     }
@@ -4129,14 +4214,19 @@
                     if (currentUser.role === 'owner' && (r.status === 'pending_spv' || r.status === 'pending_tsf')) {
                         shouldAlert = true;
                         const reqTypeLabel = r.reqType === 'borrow' ? 'Peminjaman' : (r.reqType === 'return' ? 'Pengembalian' : 'Verifikasi Aset');
-                        html = `<div onclick="switchTab('spv-approvals'); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                            <p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Audit Otorisasi: ${reqTypeLabel}</p>
-                            <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu: ${t.desc}</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${r.status}</span></p>
+                        html = `<div onclick="switchTab('spv-approvals'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                            <div class="pr-6">
+                                <p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Audit Otorisasi: ${reqTypeLabel}</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu: ${t.desc}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${r.status}</span></p>
+                            </div>
+                            <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                <i class="fa-solid fa-xmark text-[10px]"></i>
+                            </button>
                         </div>`;
                     }
 
-                    if (shouldAlert) {
+                    if (shouldAlert && !userReadNotifs.includes(notifId)) {
                         alertCount++;
                         addNotif(r.id, html);
                     }
@@ -4158,20 +4248,28 @@
                 });
 
                 relevantTickets.forEach(t => {
-                    alertCount++;
-                    const cfg = SVC_NOTIF_CONFIG[t.status] || {};
-                    const lastUpdate = t.history && t.history.length > 0 ? new Date(t.history[0].t) : new Date(t.id);
-                    const tsUser = db.users[t.assignedTsId] || { name: '-' };
-                    const color = cfg.color || 'blue';
-                    const icon = cfg.icon || 'fa-screwdriver-wrench';
-                    const label = cfg.label || t.status.toUpperCase();
-                    
-                    const html = `<div onclick="showServiceDetail(${t.id}); toggleNotifications()" class="p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
-                        <p class="text-[10px] text-${color}-600 dark:text-${color}-500 font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> ${label}</p>
-                        <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${t.unitName} — ${t.customerName}</p>
-                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${t.noService} | TS: ${tsUser.name}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${label}</span></p>
-                    </div>`;
-                    addNotif(lastUpdate.getTime(), html);
+                    const notifId = `service-ticket-${t.id}-${t.status}`;
+                    if (!userReadNotifs.includes(notifId)) {
+                        alertCount++;
+                        const cfg = SVC_NOTIF_CONFIG[t.status] || {};
+                        const lastUpdate = t.history && t.history.length > 0 ? new Date(t.history[0].t) : new Date(t.id);
+                        const tsUser = db.users[t.assignedTsId] || { name: '-' };
+                        const color = cfg.color || 'blue';
+                        const icon = cfg.icon || 'fa-screwdriver-wrench';
+                        const label = cfg.label || t.status.toUpperCase();
+                        
+                        const html = `<div onclick="showServiceDetail(${t.id}); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
+                            <div class="pr-6">
+                                <p class="text-[10px] text-${color}-600 dark:text-${color}-500 font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> ${label}</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${t.unitName} — ${t.customerName}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${t.noService} | TS: ${tsUser.name}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${label}</span></p>
+                            </div>
+                            <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
+                                <i class="fa-solid fa-xmark text-[10px]"></i>
+                            </button>
+                        </div>`;
+                        addNotif(lastUpdate.getTime(), html);
+                    }
                 });
             }
 
@@ -7918,6 +8016,7 @@
                     }
                 } else if (s.status === 'completed') {
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 whitespace-nowrap">Selesai & BAST</span>`;
+                    actionBtn = `<span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wider"><i class="fa-solid fa-check-double mr-1"></i> Alur Selesai</span>`;
                 }
 
                 const descStr = s.unitName || "Unit Customer";
@@ -8293,7 +8392,11 @@
             } else if (docType === 'completed') {
                 docTitle = "BERITA ACARA SERAH TERIMA (BAST)";
                 docSub = "No. Dokumen: BAST/" + s.noService;
-                descHandover = `Menyatakan bahwa perbaikan unit alat medis tersebut di bawah ini telah selesai dilaksanakan oleh pihak TMS dan diserahkan kembali kepada pihak Customer/Rumah Sakit dalam kondisi baik, terkalibrasi/siap guna, serta telah diuji fungsi bersama dengan hasil baik.`;
+                if (s.toolStatus === 'unrepaired') {
+                    descHandover = `Menyatakan bahwa unit alat medis tersebut di bawah ini dikembalikan kepada pihak Customer/Rumah Sakit dengan kondisi tidak berhasil diperbaiki (unrepaired) dan diserahkan kembali secara resmi.`;
+                } else {
+                    descHandover = `Menyatakan bahwa perbaikan unit alat medis tersebut di bawah ini telah selesai dilaksanakan oleh pihak TMS dan diserahkan kembali kepada pihak Customer/Rumah Sakit dalam kondisi baik, terkalibrasi/siap guna, serta telah diuji fungsi bersama dengan hasil baik.`;
+                }
                 leftSigLabel = "Pihak Penyerah (Teknisi TMS)";
                 leftSigName = tsUser.name;
                 rightSigLabel = "Pihak Penerima (Customer)";
@@ -8427,7 +8530,7 @@
                     <div class="bg-emerald-50/10 border border-emerald-200 p-4 rounded-xl">
                         <p class="text-[9px] text-emerald-600 font-black uppercase tracking-wider mb-1">DETAIL PERBAIKAN & BIAYA DAMAGE</p>
                         <p class="text-gray-700 font-bold mb-1">${s.quoteDetails || '-'}</p>
-                        <p class="text-gray-500 text-[10px]">Total Biaya Perbaikan (PO): <span class="font-mono font-bold text-emerald-600 text-xs">Rp ${s.quotePrice.toLocaleString('id-ID')}</span></p>
+                        <p class="text-gray-500 text-[10px]">Total Penawaran TSF: <span class="font-mono font-bold text-emerald-600 text-xs mr-3">Rp ${s.quotePrice.toLocaleString('id-ID')}</span> | Nilai Nominal PO: <span class="font-mono font-bold text-emerald-600 text-xs">Rp ${(s.poAmount || 0).toLocaleString('id-ID')}</span></p>
                     </div>
                     ` : ''}
 
@@ -8524,6 +8627,7 @@
         // --- HANDOVER SIGNATURE CANVAS LOGIC ---
         let handoverCanvas, handoverCtx;
         let handoverIsDrawing = false;
+        let handoverSigStep = 1;
 
         function initHandoverCanvas() {
             handoverCanvas = document.getElementById('handover-sig-canvas');
@@ -8616,21 +8720,69 @@
             let giverLabel = "Pihak Pengirim/Pemberi";
             let receiverLabel = "Pihak Penerima";
 
+            // Reset layout classes
+            const grid = document.getElementById('handover-sig-grid');
+            const giverCol = document.getElementById('handover-sig-giver-container');
+            const receiverCol = document.getElementById('handover-sig-receiver-container');
+            const btnSubmit = document.getElementById('btn-submit-handover-sig');
+
+            if (grid) {
+                grid.classList.remove('grid-cols-2');
+                grid.classList.add('grid-cols-1');
+            }
+            if (giverCol) giverCol.classList.remove('hidden');
+            if (receiverCol) receiverCol.classList.remove('hidden');
+            if (btnSubmit) btnSubmit.innerText = "Sahkan";
+
+            handoverSigStep = 1;
+
             if (action === 'pickup') {
                 title = "Tanda Tangan Pickup (RS \u2192 TS)";
                 statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan oleh perwakilan Customer/RS (${s.picName || s.customerName}) kepada Teknisi Lapangan TMS untuk dikirim ke workshop TSF.`;
                 giverLabel = "PIC Customer (Pengirim)";
                 receiverLabel = "Teknisi TMS (Penerima)";
+                
+                // Turn-by-turn: hide receiver initially
+                if (receiverCol) receiverCol.classList.add('hidden');
+                if (btnSubmit) btnSubmit.innerText = "Lanjut ke Tanda Tangan Teknisi";
+                handoverSigStep = 1;
+            } else if (action === 'send_tsf') {
+                title = "Tanda Tangan Kirim ke Workshop (TS \u2192 TSF)";
+                statement = `Silakan bubuhkan tanda tangan digital Teknisi Lapangan untuk memvalidasi penyerahan unit perbaikan ke Workshop TSF.`;
+                giverLabel = "Teknisi Lapangan (Penyerah)";
+                receiverLabel = "";
+                
+                // Giver only: hide receiver
+                if (receiverCol) receiverCol.classList.add('hidden');
+                handoverSigStep = 1;
             } else if (action === 'receive_tsf') {
                 title = "Tanda Tangan Terima Workshop (TS \u2192 TSF)";
-                statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan oleh Teknisi Lapangan dan diterima oleh Petugas Workshop TSF untuk dilakukan tindakan perbaikan lanjutan.`;
-                giverLabel = "Teknisi TMS (Penyerah)";
+                statement = `Silakan bubuhkan tanda tangan digital Petugas Workshop TSF untuk memvalidasi penerimaan fisik unit perbaikan di workshop.`;
+                giverLabel = "";
                 receiverLabel = "Staff TSF (Penerima)";
+                
+                // Receiver only: hide giver
+                if (giverCol) giverCol.classList.add('hidden');
+                handoverSigStep = 2;
+            } else if (action === 'send_field') {
+                title = "Tanda Tangan Kirim Balik (TSF \u2192 TS)";
+                statement = `Silakan bubuhkan tanda tangan digital Staff Workshop TSF untuk memvalidasi pengiriman unit perbaikan kembali ke Teknisi Lapangan.`;
+                giverLabel = "Staff TSF (Pengirim/Penyerah)";
+                receiverLabel = "";
+                
+                // Giver only: hide receiver
+                if (receiverCol) receiverCol.classList.add('hidden');
+                handoverSigStep = 1;
             } else if (action === 'receive_field') {
-                title = "Tanda Tangan Kirim Lapangan (TSF \u2192 TS)";
-                statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan kembali oleh Workshop TSF dan diterima oleh Teknisi Lapangan dalam kondisi telah selesai diperbaiki.`;
-                giverLabel = "Staff TSF (Penyerah)";
-                receiverLabel = "Teknisi TMS (Penerima)";
+                title = "Tanda Tangan Terima di Lapangan (TSF \u2192 TS)";
+                const condText = s.toolStatus === 'unrepaired' ? 'Gagal Diperbaiki (Unrepaired)' : 'Selesai Diperbaiki';
+                statement = `Silakan bubuhkan tanda tangan digital Teknisi Lapangan untuk memvalidasi serah terima unit yang dikembalikan dari Workshop (${condText}).`;
+                giverLabel = "";
+                receiverLabel = "Teknisi Lapangan (Penerima)";
+                
+                // Receiver only: hide giver
+                if (giverCol) giverCol.classList.add('hidden');
+                handoverSigStep = 2;
             }
 
             document.getElementById('handover-sig-title').innerHTML = `<i class="fa-solid fa-signature mr-3"></i> ${title}`;
@@ -8647,18 +8799,45 @@
 
         function submitHandoverSignature(e) {
             e.preventDefault();
-            if (!handoverGiverDraw || !handoverReceiverDraw || handoverGiverDraw.isBlank() || handoverReceiverDraw.isBlank()) {
-                showToast("Tanda Tangan Wajib", "Kedua belah pihak (pengirim & penerima) wajib menandatangani canvas.", "error");
-                return;
-            }
             loadDB();
             const id = parseInt(document.getElementById('handover-sig-ticket-id').value);
             const action = document.getElementById('handover-sig-action').value;
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
 
-            const sigGiver = handoverGiverDraw.canvas.toDataURL();
-            const sigReceiver = handoverReceiverDraw.canvas.toDataURL();
+            if (action === 'pickup' && handoverSigStep === 1) {
+                if (!handoverGiverDraw || handoverGiverDraw.isBlank()) {
+                    showToast("Tanda Tangan PIC Customer Wajib", "PIC Customer wajib menandatangani canvas.", "error");
+                    return;
+                }
+                // Transition to stage 2:
+                handoverSigStep = 2;
+                const giverCol = document.getElementById('handover-sig-giver-container');
+                const receiverCol = document.getElementById('handover-sig-receiver-container');
+                if (giverCol) giverCol.classList.add('hidden');
+                if (receiverCol) receiverCol.classList.remove('hidden');
+                const btnSubmit = document.getElementById('btn-submit-handover-sig');
+                if (btnSubmit) btnSubmit.innerText = "Sahkan";
+                setTimeout(() => {
+                    if (handoverReceiverDraw) handoverReceiverDraw.resize();
+                }, 100);
+                return;
+            }
+
+            const needsGiver = (action === 'pickup' || action === 'send_tsf' || action === 'send_field');
+            const needsReceiver = (action === 'pickup' || action === 'receive_tsf' || action === 'receive_field');
+
+            if (needsGiver && (!handoverGiverDraw || handoverGiverDraw.isBlank())) {
+                showToast("Tanda Tangan Penyerah Wajib", "Pihak Pengirim/Pemberi wajib menandatangani canvas.", "error");
+                return;
+            }
+            if (needsReceiver && (!handoverReceiverDraw || handoverReceiverDraw.isBlank())) {
+                showToast("Tanda Tangan Penerima Wajib", "Pihak Penerima wajib menandatangani canvas.", "error");
+                return;
+            }
+
+            const sigGiver = needsGiver ? handoverGiverDraw.canvas.toDataURL() : null;
+            const sigReceiver = needsReceiver ? handoverReceiverDraw.canvas.toDataURL() : null;
 
             if (action === 'pickup') {
                 s.status = 'picked_up';
@@ -8674,32 +8853,65 @@
                 addToHistory(`Service Unit Pickup: ${s.noService} diambil oleh ${currentUser.name}.`, null, sigReceiver);
                 notifyServiceUpdate(s, 'picked_up');
                 showToast("Unit Di-pickup", "Status berhasil diperbarui dan TTD disimpan.", "success");
-            } else if (action === 'receive_tsf') {
-                s.status = 'received_tsf';
-                s.signatureTsfGiver = sigGiver;
-                s.signatureTsfReceiver = sigReceiver;
-                s.signatureTsf = sigReceiver; // Fallback
+            } else if (action === 'send_tsf') {
+                s.status = 'initial_analyzed';
+                s.signatureSendTsfGiver = sigGiver;
+                s.initialAnalysis = s.tempInitialAnalysis || '';
+                delete s.tempInitialAnalysis;
+
                 s.history.unshift({
                     t: new Date().toISOString(),
-                    m: `Unit diterima di workshop TSF. Serah terima divalidasi oleh tanda tangan digital penyerah (Teknisi) dan penerima (Staff TSF).`,
-                    sigGiver: sigGiver,
+                    m: `Analisa Awal Teknisi: "${s.initialAnalysis}". Unit dikirimkan ke TSF Workshop.`,
+                    sigGiver: sigGiver
+                });
+                addToHistory(`Analisa Awal Disubmit: ${s.noService} dianalisa oleh ${currentUser.name}.`, null, sigGiver);
+                notifyServiceUpdate(s, 'initial_analyzed');
+                showToast("Analisa & TTD Dikirim", "Unit terkirim ke TSF Workshop.", "success");
+            } else if (action === 'receive_tsf') {
+                s.status = 'received_tsf';
+                s.signatureTsfReceiver = sigReceiver;
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Unit diterima di workshop TSF. Penerimaan divalidasi oleh tanda tangan digital Staff TSF.`,
                     sigReceiver: sigReceiver
                 });
                 addToHistory(`Service Unit Diterima TSF: ${s.noService} diterima di workshop oleh ${currentUser.name}.`, null, sigReceiver);
                 notifyServiceUpdate(s, 'received_tsf');
                 showToast("Diterima TSF Workshop", "Status berhasil diperbarui dan TTD disimpan.", "success");
-            } else if (action === 'receive_field') {
-                s.status = 'received_field';
-                s.signatureFieldGiver = sigGiver;
-                s.signatureFieldReceiver = sigReceiver;
-                s.signatureField = sigReceiver; // Fallback
+            } else if (action === 'send_field') {
+                s.status = 'repaired';
+                s.repairNote = s.tempRepairNote || '';
+                s.toolStatus = s.tempToolStatus || 'repaired';
+                if (s.tempUnitPhotoAfter) {
+                    s.unitPhotoAfter = s.tempUnitPhotoAfter;
+                }
+                s.signatureSendFieldGiver = sigGiver;
+
+                delete s.tempRepairNote;
+                delete s.tempToolStatus;
+                delete s.tempUnitPhotoAfter;
+
+                const statusText = s.toolStatus === 'unrepaired' ? 'Gagal Diperbaiki (Unrepaired)' : 'Selesai Diperbaiki (Repaired)';
+
                 s.history.unshift({
                     t: new Date().toISOString(),
-                    m: `Unit selesai diperbaiki dan diterima kembali oleh Teknisi Lapangan. Serah terima divalidasi oleh tanda tangan digital penyerah (Staff TSF) dan penerima (Teknisi).`,
-                    sigGiver: sigGiver,
+                    m: `Laporan Kerja TSF: "${s.repairNote}". Unit dikirim kembali ke Teknisi Lapangan. Kondisi: ${statusText}.`,
+                    sigGiver: sigGiver
+                });
+                addToHistory(`Perbaikan Selesai: TSF (${currentUser.name}) menyelesaikan perbaikan ${s.noService} dengan kondisi ${statusText}.`, null, sigGiver);
+                notifyServiceUpdate(s, 'repaired');
+                showToast("Perbaikan Disubmit", "Status berhasil diperbarui.", "success");
+            } else if (action === 'receive_field') {
+                s.status = 'received_field';
+                s.signatureFieldReceiver = sigReceiver;
+
+                const condText = s.toolStatus === 'unrepaired' ? 'Gagal Diperbaiki (Unrepaired)' : 'Selesai Diperbaiki';
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Unit diterima kembali oleh Teknisi Lapangan. Kondisi: ${condText}. Penerimaan divalidasi oleh tanda tangan digital Teknisi.`,
                     sigReceiver: sigReceiver
                 });
-                addToHistory(`Service Unit Diterima Lapangan: ${s.noService} diserahkan ke ${currentUser.name}.`, null, sigReceiver);
+                addToHistory(`Service Unit Diterima Lapangan: ${s.noService} diterima oleh ${currentUser.name}.`, null, sigReceiver);
                 notifyServiceUpdate(s, 'received_field');
                 showToast("Diterima Lapangan", "Unit siap diserahkan ke customer dan TTD disimpan.", "success");
             }
@@ -8728,23 +8940,12 @@
             const id = parseInt(document.getElementById('svc-analysis-id').value);
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
-            
+
             const text = document.getElementById('svc-initial-analysis-text').value;
-            s.initialAnalysis = text;
-            s.status = 'initial_analyzed';
-            s.history.unshift({
-                t: new Date().toISOString(),
-                m: `Analisa Awal Teknisi: "${text}". Unit dikirimkan ke TSF Workshop.`
-            });
-            
-            addToHistory(`Analisa Awal Disubmit: ${s.noService} dianalisa oleh ${currentUser.name}.`);
-            notifyServiceUpdate(s, 'initial_analyzed');
-            s.updatedAt = new Date().toISOString();
-            playNotificationSound();
-            saveDB();
-            updateData();
+            s.tempInitialAnalysis = text;
+
             closeModal('serviceAnalysisModal');
-            showToast("Analisa Dikirim", "Unit terkirim ke TSF Workshop.", "success");
+            openHandoverSignatureModal(id, 'send_tsf');
         }
 
         function openQuotationModal(id) {
@@ -8814,6 +9015,7 @@
             document.getElementById('svc-po-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
             document.getElementById('svc-po-total-price').innerText = `Rp ${(s.quotePrice || 0).toLocaleString('id-ID')}`;
             document.getElementById('svc-po-number').value = '';
+            document.getElementById('svc-po-amount').value = '';
             document.getElementById('svc-po-date').value = '';
             const fileInput = document.getElementById('svc-po-doc');
             if (fileInput) fileInput.value = '';
@@ -8828,6 +9030,7 @@
             if (!s) return;
             
             const poNumber = document.getElementById('svc-po-number').value;
+            const poAmount = parseFloat(document.getElementById('svc-po-amount').value) || 0;
             const poDate = document.getElementById('svc-po-date').value;
             
             const fileInput = document.getElementById('svc-po-doc');
@@ -8841,6 +9044,7 @@
             }
             
             s.poNumber = poNumber;
+            s.poAmount = poAmount;
             s.poDate = poDate;
             if (docPo) {
                 s.docPo = docPo;
@@ -8848,10 +9052,10 @@
             s.status = 'po_issued';
             s.history.unshift({
                 t: new Date().toISOString(),
-                m: `Purchase Order Diterima: No PO "${poNumber}" terbit tanggal ${poDate}. Perbaikan unit disetujui.` + (docPo ? ` (Dokumen PO Terlampir)` : ``)
+                m: `Purchase Order Diterima: No PO "${poNumber}" terbit tanggal ${poDate} dengan Nominal Rp ${poAmount.toLocaleString('id-ID')}. Perbaikan unit disetujui.` + (docPo ? ` (Dokumen PO Terlampir)` : ``)
             });
             
-            addToHistory(`Purchase Order Di-input: ${s.noService} dengan PO No. ${poNumber} oleh ${currentUser.name}.`);
+            addToHistory(`Purchase Order Di-input: ${s.noService} dengan PO No. ${poNumber} senilai Rp ${poAmount.toLocaleString('id-ID')} oleh ${currentUser.name}.`);
             notifyServiceUpdate(s, 'po_issued');
             s.updatedAt = new Date().toISOString();
             playNotificationSound();
@@ -8880,28 +9084,19 @@
             if (!s) return;
             
             const text = document.getElementById('svc-repair-note-text').value;
-            s.repairNote = text;
-            s.status = 'repaired';
+            s.tempRepairNote = text;
+            s.tempToolStatus = document.getElementById('svc-repair-status').value;
 
-            // Save photo after
+            // Save photo after temporarily
             const photoAfterInput = document.getElementById('svc-unit-photo-after');
             if (photoAfterInput && photoAfterInput.files && photoAfterInput.files[0]) {
-                try { s.unitPhotoAfter = await compressImage(photoAfterInput.files[0]); } catch(e) {}
+                try { s.tempUnitPhotoAfter = await compressImage(photoAfterInput.files[0]); } catch(e) {}
+            } else {
+                s.tempUnitPhotoAfter = null;
             }
 
-            s.history.unshift({
-                t: new Date().toISOString(),
-                m: `Laporan Kerja TSF: "${text}". Unit selesai diperbaiki dan siap dikirim balik ke Teknisi Lapangan.`
-            });
-            
-            addToHistory(`Perbaikan Selesai: TSF (${currentUser.name}) menyelesaikan perbaikan ${s.noService}.`);
-            notifyServiceUpdate(s, 'repaired');
-            s.updatedAt = new Date().toISOString();
-            playNotificationSound();
-            saveDB();
-            updateData();
             closeModal('serviceRepairModal');
-            showToast("Perbaikan Selesai", "Status berhasil diperbarui.", "success");
+            openHandoverSignatureModal(id, 'send_field');
         }
 
         function openServiceDeliveryModal(id) {
@@ -8912,6 +9107,15 @@
             document.getElementById('svc-delivery-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
             document.getElementById('svc-delivery-cust-info').innerText = `${s.customerName} (${s.customerContact})`;
             
+            const stmtEl = document.getElementById('svc-delivery-statement');
+            if (stmtEl) {
+                if (s.toolStatus === 'unrepaired') {
+                    stmtEl.innerText = "Saya selaku perwakilan customer/RS menyatakan telah menerima kembali unit tersebut di atas dengan kondisi tidak berhasil diperbaiki (unrepaired). Serah terima ini sah secara hukum.";
+                } else {
+                    stmtEl.innerText = "Saya selaku perwakilan customer/RS menyatakan telah menerima kembali unit tersebut di atas dengan kondisi hasil perbaikan yang telah berfungsi normal. Serah terima ini sah secara hukum.";
+                }
+            }
+
             initServiceSignatureCanvas();
             if (svcGiverDraw) svcGiverDraw.clear();
             if (svcReceiverDraw) svcReceiverDraw.clear();
@@ -8941,14 +9145,17 @@
             s.signatureDeliveryReceiver = sigReceiver;
             s.signature = sigReceiver; // Fallback for compatibility
             s.status = 'completed';
+            
+            const condText = s.toolStatus === 'unrepaired' ? 'Gagal Diperbaiki (Unrepaired)' : 'Selesai Diperbaiki (Repaired)';
+
             s.history.unshift({
                 t: new Date().toISOString(),
-                m: `Unit diserahkan secara fisik ke Customer. Berita Acara Serah Terima (BAST) disahkan dengan tanda tangan digital penyerah (Teknisi) dan penerima (Customer).`,
+                m: `Unit diserahkan secara fisik ke Customer dengan kondisi: ${condText}. Berita Acara Serah Terima (BAST) disahkan dengan tanda tangan digital penyerah (Teknisi) dan penerima (Customer).`,
                 sigGiver: sigGiver,
                 sigReceiver: sigReceiver
             });
             
-            addToHistory(`Unit Diserahkan BAST: ${s.noService} diserahkan ke customer oleh ${currentUser.name}. BAST Sah!`, null, sigReceiver);
+            addToHistory(`Unit Diserahkan BAST: ${s.noService} diserahkan ke customer oleh ${currentUser.name} (${condText}). BAST Sah!`, null, sigReceiver);
             notifyServiceUpdate(s, 'completed');
             s.updatedAt = new Date().toISOString();
             playNotificationSound();
@@ -9290,7 +9497,8 @@
             const poWrapper = document.getElementById('svc-det-po-info-wrapper');
             if (s.poNumber) {
                 poWrapper.classList.remove('hidden');
-                document.getElementById('svc-det-po-info').innerText = `No PO: ${s.poNumber} | Tanggal: ${s.poDate || '-'}`;
+                const poAmountStr = s.poAmount ? ` | Nominal: Rp ${s.poAmount.toLocaleString('id-ID')}` : '';
+                document.getElementById('svc-det-po-info').innerText = `No PO: ${s.poNumber} | Tanggal: ${s.poDate || '-'}${poAmountStr}`;
                 
                 const poDocWrapper = document.getElementById('svc-det-po-doc-wrapper');
                 const poDocLink = document.getElementById('svc-det-po-doc-link');
