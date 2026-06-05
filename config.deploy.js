@@ -1,10 +1,9 @@
 /**
- * TMS Cloud — konfigurasi untuk deploy online (GitHub Pages).
- * Anon key bersifat public (client-side); keamanan data via RLS Supabase.
+ * TMS Cloud — konfigurasi deploy online (GitHub Pages).
  */
 window.TMS_CONFIG = {
     supabase: {
         url: 'https://mezuatmcjqjxfsvepizv.supabase.co',
-        anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1lenVhdG1janFqeGZzdmVwaXp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNDMyMjEsImV4cCI6MjA5NTgxOTIyMX0.nR9goOaEtGAU6VWr52oifMWlY6uORSsh46G8SCbEsKY'
+        anonKey: 'sb_publishable_rna_C7i8IISYOPWD1UlnhQ_DpnlS6LA'
     }
 };
