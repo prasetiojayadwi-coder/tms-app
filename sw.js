@@ -1,7 +1,8 @@
-const CACHE_NAME = 'tms-cache-v54';
+const CACHE_NAME = 'tms-cache-v55';
 const CORE_ASSETS = [
   './',
   'index.html',
+  'config.deploy.js',
   'config.example.js',
   'manifest.json',
   'tms_pwa_icon.png'

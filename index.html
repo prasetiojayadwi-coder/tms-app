@@ -2949,7 +2949,7 @@
                                 });
                                 if (db.users && db.users[currentUser.id]) {
                                     db.users[currentUser.id].lastOnline = new Date().toISOString();
-                                    saveDB();
+                                    safeSaveLocalStorage();
                                 }
                             } catch (e) {
                                 console.error("Gagal melakukan track presence:", e);

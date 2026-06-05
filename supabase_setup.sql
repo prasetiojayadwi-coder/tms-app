@@ -37,4 +37,4 @@ CREATE POLICY "tms_anon_insert" ON public.tms_sync
 CREATE POLICY "tms_anon_update" ON public.tms_sync
     FOR UPDATE TO anon USING (true) WITH CHECK (true);
 
--- Selesai! Lanjut ke Atur_Cloud.bat lalu Online_Mudah.bat
+-- Selesai! Lanjut ke Atur_Cloud.bat lalu Jalankan_Setup.bat

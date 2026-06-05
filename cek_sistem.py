@@ -39,7 +39,11 @@ def fetch(path, timeout=8):
 
 def check_files():
     print('\n== File Proyek ==')
-    required = ['index.html', 'manifest.json', 'sw.js', 'tms_pwa_icon.png', 'Mulai_Server.bat', 'config.example.js']
+    required = [
+        'index.html', 'manifest.json', 'sw.js', 'tms_pwa_icon.png',
+        'Mulai_Server.bat', 'config.example.js', 'config.deploy.js',
+        'Jalankan_Setup.bat', 'jalankan_setup.py', 'supabase_setup.sql',
+    ]
     for name in required:
         p = ROOT / name
         if p.exists() and p.stat().st_size > 0:
@@ -58,7 +62,7 @@ def check_files():
         else:
             warn('config.js ada tetapi format tidak dikenali')
     elif example.exists():
-        warn('config.js belum ada — jalankan Setup_Config.bat lalu isi kredensial')
+        warn('config.js belum ada — jalankan Atur_Cloud.bat atau Setup_Config.bat')
     else:
         bad('config.example.js hilang, tidak bisa setup cloud sync')
 
@@ -125,6 +129,27 @@ def check_html_integrity():
         ok('Kredensial Supabase dipisah ke config.js')
     else:
         warn('config.js tidak direferensikan di index.html')
+
+
+def check_cloud():
+    print('\n== Cloud / Online ==')
+    deploy = ROOT / 'config.deploy.js'
+    if deploy.exists() and 'supabase.co' in deploy.read_text(encoding='utf-8'):
+        ok('config.deploy.js siap untuk GitHub Pages')
+    else:
+        bad('config.deploy.js tidak valid')
+
+    try:
+        with urllib.request.urlopen(
+            'https://prasetiojayadwi-coder.github.io/tms-app/config.deploy.js', timeout=12
+        ) as r:
+            body = r.read().decode('utf-8', 'replace')
+            if r.status == 200 and 'supabase.co' in body:
+                ok('Aplikasi online: config.deploy.js HTTP 200')
+            else:
+                warn(f'Aplikasi online tidak normal (HTTP {r.status})')
+    except Exception as e:
+        warn(f'Tidak bisa cek deploy online: {e}')
 
 
 def check_server():
@@ -205,6 +230,7 @@ def main():
     check_files()
     check_html_integrity()
     check_git()
+    check_cloud()
     check_server()
     print('\n========================================')
     print(f'  Hasil: {PASS} OK | {WARN} peringatan | {FAIL} gagal')
