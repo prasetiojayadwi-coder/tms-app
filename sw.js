@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tms-cache-v50';
+const CACHE_NAME = 'tms-cache-v51';
 const ASSETS = [
   'index.html',
   'manifest.json',
@@ -9,7 +9,8 @@ const ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js',
   'https://unpkg.com/html5-qrcode',
   'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js',
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
 ];
 
 self.addEventListener('install', (e) => {
