@@ -2751,8 +2751,8 @@
                                         if (incomingUnreadFromOthers.length > 0) {
                                             const m = incomingUnreadFromOthers[incomingUnreadFromOthers.length - 1];
                                             const senderName = db.users[m.from] ? db.users[m.from].name : "Seseorang";
-                                            if (typeof showChatPopup === 'function' && !document.getElementById('chat-window').classList.contains('hidden')) {
-                                                showChatPopup(senderName, m.text);
+                                            if (typeof showChatPopup === 'function' && document.getElementById('chat-window').classList.contains('hidden')) {
+                                                showChatPopup(senderName, m.text, m.from);
                                             }
                                         }
 
@@ -3431,10 +3431,12 @@
                                 updateData(); 
                                 if(db.messages && db.messages.length > lastMsgCount) {
                                     const newMsg = db.messages[db.messages.length - 1];
-                                    if((newMsg.to === currentUser.id && !newMsg.read) || (newMsg.to === 'global' && newMsg.from !== currentUser.id)) {
+                                    const isChatOpen = document.getElementById('chat-window') && !document.getElementById('chat-window').classList.contains('hidden');
+                                    const isChatActiveWithSender = (isChatOpen && (activeChatUser === newMsg.from || (activeChatUser === 'global' && newMsg.to === 'global')));
+                                    if(((newMsg.to === currentUser.id && !newMsg.read) || (newMsg.to === 'global' && newMsg.from !== currentUser.id)) && !isChatActiveWithSender) {
                                         const senderName = db.users[newMsg.from] ? db.users[newMsg.from].name : "Seseorang";
                                         const msgText = newMsg.to === 'global' ? `[Global] ${newMsg.text}` : newMsg.text;
-                                        showChatPopup(senderName, msgText);
+                                        showChatPopup(senderName, msgText, newMsg.to === 'global' ? 'global' : newMsg.from);
                                         renderChatUsers(); 
                                         if(activeChatUser === newMsg.from || (activeChatUser === 'global' && newMsg.to === 'global')) {
                                             if(document.getElementById('chat-window').classList.contains('hidden') === false) renderChatMessages();
@@ -3753,6 +3755,9 @@
             knownRequestIds = null;
             previousRequestStates = null;
             previousServiceTicketStates = null;
+            _svcNotifSnapshot = {};
+            lastMsgCount = 0;
+            activeChatUser = null;
             sessionStorage.removeItem('tms_current_user');
             localStorage.removeItem('tms_current_user');
             if ("clearAppBadge" in navigator) { navigator.clearAppBadge().catch(e => {}); }
@@ -6479,6 +6484,7 @@
         }
 
         function renderChatMessages() {
+            markMessagesAsRead();
             const cm = document.getElementById('chat-messages'); cm.innerHTML = '';
             const msgs = activeChatUser === 'global' 
                 ? db.messages.filter(m => m.to === 'global')
@@ -6575,7 +6581,7 @@
                                 renderChatMessages();
                             }
                             updateChatBadge();
-                            showChatPopup(targetUser.name, replyMsg.text);
+                            showChatPopup(targetUser.name, replyMsg.text, activeChatUser);
                         }, 1500);
                     }
                 } else {
@@ -6598,7 +6604,7 @@
                                 renderChatMessages();
                             }
                             updateChatBadge();
-                            showChatPopup(targetUser.name, replyMsg.text);
+                            showChatPopup(targetUser.name, replyMsg.text, 'global');
                         }
                     }, 2000);
                 }
@@ -6700,12 +6706,31 @@
             }
         }
 
-        function showChatPopup(name, msg) {
+        function showChatPopup(name, msg, senderId = null) {
             document.getElementById('chat-toast-name').innerText = name; 
             document.getElementById('chat-toast-msg').innerText = msg;
             const avatarEl = document.getElementById('chat-toast-avatar');
             if (avatarEl) avatarEl.innerText = name.charAt(0).toUpperCase();
             const ct = document.getElementById('chat-toast'); 
+            if (senderId) {
+                ct.onclick = () => {
+                    if (senderId === 'global') {
+                        isChatOpen = false;
+                        toggleChat();
+                        openChat('global');
+                    } else {
+                        isChatOpen = false;
+                        toggleChat();
+                        openChat(senderId);
+                    }
+                    ct.classList.remove('show');
+                };
+            } else {
+                ct.onclick = () => {
+                    toggleChat();
+                    ct.classList.remove('show');
+                };
+            }
             ct.classList.add('show'); 
             playNotificationSound();
             setTimeout(() => ct.classList.remove('show'), 5000);
@@ -8499,7 +8524,7 @@
                 </div>
 
                 <!-- Informasi Transaksi -->
-                <div class="grid grid-cols-2 gap-4 mb-6 text-[11px] leading-relaxed">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-[11px] leading-relaxed print:grid-cols-2">
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                         <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">IDENTITAS CUSTOMER</p>
                         <table class="w-full">
@@ -8540,7 +8565,7 @@
                 <!-- Tanda Tangan -->
                 <div class="mt-8 pt-4 border-t border-gray-200">
                     <p class="text-right text-[10px] text-gray-400 font-mono mb-6">Dokumen sah dicetak pada: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</p>
-                    <div class="grid grid-cols-2 gap-10 text-[11px]">
+                    <div class="grid grid-cols-2 gap-4 md:gap-10 text-[11px] print:grid-cols-2">
                         <!-- Kiri -->
                         <div class="flex flex-col text-center">
                             <p class="text-gray-500 font-bold uppercase tracking-wider mb-1">${leftSigLabel}</p>
@@ -8744,7 +8769,7 @@
                 
                 // Turn-by-turn: hide receiver initially
                 if (receiverCol) receiverCol.classList.add('hidden');
-                if (btnSubmit) btnSubmit.innerText = "Lanjut ke Tanda Tangan Teknisi";
+                if (btnSubmit) btnSubmit.innerText = "Lanjut ke Teknisi";
                 handoverSigStep = 1;
             } else if (action === 'send_tsf') {
                 title = "Tanda Tangan Kirim ke Workshop (TS \u2192 TSF)";
