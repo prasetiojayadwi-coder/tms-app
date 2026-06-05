@@ -1643,7 +1643,7 @@
                                     <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
                                 </div>
                             </label>
-                            <input id="svc-unit-photo-before" type="file" accept="image/*" class="hidden" onchange="previewServicePhoto(this, 'svc-photo-before-preview')">
+                            <input id="svc-unit-photo-before" type="file" accept="image/*" multiple class="hidden" onchange="previewServicePhoto(this, 'svc-photo-before-preview')">
                         </div>
                     </div>
                 </div>
@@ -1702,18 +1702,25 @@
                         <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Analisa Awal Teknisi</p><p class="text-gray-750 dark:text-lux-300 italic" id="svc-quote-initial-analysis">-</p></div>
                     </div>
                     <div>
+                        <label class="input-label">Keputusan Pemeriksaan TSF <span class="text-gold-500">*</span></label>
+                        <select id="svc-tsf-decision" required class="input-field" onchange="toggleTsfDecision(this.value)">
+                            <option value="repair" selected>Dapat Diperbaiki (Repair) - Lanjut SPH & PO</option>
+                            <option value="unrepair">Tidak Dapat Diperbaiki (Un-Repair) - Kembalikan Unit</option>
+                        </select>
+                    </div>
+                    <div>
                         <label class="input-label">Hasil Pengecekan Lanjutan TSF <span class="text-gold-500">*</span></label>
                         <textarea id="svc-tsf-analysis" required rows="3" class="input-field" placeholder="Jelaskan detail kerusakan komponen / modul yang ditemukan di workshop TSF..."></textarea>
                     </div>
-                    <div>
+                    <div id="svc-quote-details-container">
                         <label class="input-label">Rincian Perbaikan & Penggantian Suku Cadang <span class="text-gold-500">*</span></label>
                         <textarea id="svc-quote-details" required rows="3" class="input-field" placeholder="Tulis suku cadang yang harus diganti dan jasa perbaikan..."></textarea>
                     </div>
-                    <div>
+                    <div id="svc-quote-price-container">
                         <label class="input-label">Estimasi Total Biaya Penawaran (Rp) <span class="text-gold-500">*</span></label>
                         <input type="number" id="svc-quote-price" required class="input-field font-mono font-bold" placeholder="Rp...">
                     </div>
-                    <div>
+                    <div id="svc-quote-doc-container">
                         <label class="input-label">Upload Dokumen SPH Resmi (PDF / Gambar)</label>
                         <input type="file" id="svc-quote-doc" class="input-field file:bg-gold-500/10 file:text-gold-500 file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-3 file:font-bold file:text-xs cursor-pointer bg-white dark:bg-[#18181b]" accept="application/pdf,image/*">
                     </div>
@@ -1800,7 +1807,7 @@
                                     <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
                                 </div>
                             </label>
-                            <input id="svc-unit-photo-after" type="file" accept="image/*" class="hidden" onchange="previewServicePhoto(this, 'svc-photo-after-preview')">
+                            <input id="svc-unit-photo-after" type="file" accept="image/*" multiple class="hidden" onchange="previewServicePhoto(this, 'svc-photo-after-preview')">
                         </div>
                     </div>
                 </div>
@@ -3374,13 +3381,33 @@
                 if (db.serviceTickets && Array.isArray(db.serviceTickets)) {
                     for (const s of db.serviceTickets) {
                         if (!s) continue;
-                        if (s.unitPhotoBefore && s.unitPhotoBefore.startsWith('data:image/') && s.unitPhotoBefore.length > 100000) {
-                            s.unitPhotoBefore = await compressBase64Image(s.unitPhotoBefore);
-                            modified = true;
+                        if (s.unitPhotoBefore) {
+                            if (typeof s.unitPhotoBefore === 'string' && s.unitPhotoBefore.startsWith('data:image/') && s.unitPhotoBefore.length > 100000) {
+                                s.unitPhotoBefore = await compressBase64Image(s.unitPhotoBefore);
+                                modified = true;
+                            } else if (Array.isArray(s.unitPhotoBefore)) {
+                                for (let idx = 0; idx < s.unitPhotoBefore.length; idx++) {
+                                    const p = s.unitPhotoBefore[idx];
+                                    if (p && typeof p === 'string' && p.startsWith('data:image/') && p.length > 100000) {
+                                        s.unitPhotoBefore[idx] = await compressBase64Image(p);
+                                        modified = true;
+                                    }
+                                }
+                            }
                         }
-                        if (s.unitPhotoAfter && s.unitPhotoAfter.startsWith('data:image/') && s.unitPhotoAfter.length > 100000) {
-                            s.unitPhotoAfter = await compressBase64Image(s.unitPhotoAfter);
-                            modified = true;
+                        if (s.unitPhotoAfter) {
+                            if (typeof s.unitPhotoAfter === 'string' && s.unitPhotoAfter.startsWith('data:image/') && s.unitPhotoAfter.length > 100000) {
+                                s.unitPhotoAfter = await compressBase64Image(s.unitPhotoAfter);
+                                modified = true;
+                            } else if (Array.isArray(s.unitPhotoAfter)) {
+                                for (let idx = 0; idx < s.unitPhotoAfter.length; idx++) {
+                                    const p = s.unitPhotoAfter[idx];
+                                    if (p && typeof p === 'string' && p.startsWith('data:image/') && p.length > 100000) {
+                                        s.unitPhotoAfter[idx] = await compressBase64Image(p);
+                                        modified = true;
+                                    }
+                                }
+                            }
                         }
                         if (s.history && Array.isArray(s.history)) {
                             for (const h of s.history) {
@@ -3555,14 +3582,42 @@
         let lastFoundArt = "";
         function smartFillByArtNo(artVal) {
             if (!artVal || artVal.trim() === '') return;
-            const searchVal = artVal.trim().toLowerCase();
-            const allAssets = [...db.tools, ...db.demoUnits];
-            const found = allAssets.find(a => a.artNo && a.artNo.toLowerCase() === searchVal);
+            loadDB();
+            const cleanInput = artVal.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (cleanInput === '') return;
             
-            if (found && lastFoundArt !== found.artNo) {
-                document.getElementById('add-desc').value = found.desc || ''; document.getElementById('add-merk').value = found.merk || ''; document.getElementById('add-tipe').value = found.tipe || '';
-                lastFoundArt = found.artNo;
-            } else if (!found) { lastFoundArt = ""; }
+            // Search across all assets and service tickets
+            let found = (db.tools || []).find(t => (t.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
+            if (!found) {
+                found = (db.demoUnits || []).find(d => (d.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
+            }
+            if (!found) {
+                found = (db.serviceTickets || []).find(s => (s.unitArtNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
+            }
+            
+            if (found && lastFoundArt !== (found.artNo || found.unitArtNo)) {
+                const desc = found.desc || found.unitName || '';
+                const brand = found.merk || found.unitMerk || '';
+                const model = found.tipe || found.unitTipe || '';
+                
+                let subCat = 'Lainnya';
+                if (found.subCategory) {
+                    subCat = found.subCategory;
+                } else if (found.unitProduct) {
+                    if (found.unitProduct === 'AES') subCat = 'Aesculap';
+                    else subCat = found.unitProduct; // Avitum, AIS
+                }
+                
+                document.getElementById('add-desc').value = desc;
+                document.getElementById('add-merk').value = brand;
+                document.getElementById('add-tipe').value = model;
+                const subCatEl = document.getElementById('add-subcat');
+                if (subCatEl) subCatEl.value = subCat;
+                
+                lastFoundArt = found.artNo || found.unitArtNo;
+            } else if (!found) {
+                lastFoundArt = "";
+            }
         }
 
         // --- HELPER: Toggle show/hide password ---
@@ -8167,19 +8222,20 @@
         function smartFillServiceByArtNo(val) {
             if (!val || val.trim() === '') return;
             loadDB();
-            const artVal = val.trim().toLowerCase();
+            const cleanInput = val.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (cleanInput === '') return;
             
             // 1. Search in db.tools
-            let found = (db.tools || []).find(t => (t.artNo || '').toLowerCase() === artVal);
+            let found = (db.tools || []).find(t => (t.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
             
             // 2. Search in db.demoUnits if not found
             if (!found) {
-                found = (db.demoUnits || []).find(d => (d.artNo || '').toLowerCase() === artVal);
+                found = (db.demoUnits || []).find(d => (d.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
             }
             
             // 3. Search in previous serviceTickets if not found
             if (!found) {
-                found = (db.serviceTickets || []).find(s => (s.unitArtNo || '').toLowerCase() === artVal);
+                found = (db.serviceTickets || []).find(s => (s.unitArtNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
             }
             
             if (found) {
@@ -8264,11 +8320,16 @@
             const tsSelect = document.getElementById('svc-assigned-ts');
             const assignedTsId = parseInt(tsSelect.value);
 
-            // Read photo before
-            let unitPhotoBefore = null;
+            // Read photo before (multiple)
+            let unitPhotosBefore = [];
             const photoBeforeInput = document.getElementById('svc-unit-photo-before');
-            if (photoBeforeInput && photoBeforeInput.files && photoBeforeInput.files[0]) {
-                try { unitPhotoBefore = await compressImage(photoBeforeInput.files[0]); } catch(e) {}
+            if (photoBeforeInput && photoBeforeInput.files && photoBeforeInput.files.length > 0) {
+                for (let i = 0; i < photoBeforeInput.files.length; i++) {
+                    try {
+                        const compressed = await compressImage(photoBeforeInput.files[i]);
+                        if (compressed) unitPhotosBefore.push(compressed);
+                    } catch(e) {}
+                }
             }
 
             const newTicket = {
@@ -8285,7 +8346,7 @@
                 unitTipe: document.getElementById('svc-unit-tipe').value,
                 complaint: document.getElementById('svc-complaint').value,
                 assignedTsId: assignedTsId,
-                unitPhotoBefore: unitPhotoBefore,
+                unitPhotoBefore: unitPhotosBefore.length > 0 ? unitPhotosBefore : null,
                 status: 'registered',
                 history: [{
                     t: new Date().toISOString(),
@@ -8449,24 +8510,24 @@
                     `;
                 }
             } else if (docType === 'tsf') {
-                const sigGiver = s.signatureTsfGiver;
+                const sigGiver = s.signatureTsfGiver || s.signatureSendTsfGiver;
                 const sigReceiver = s.signatureTsfReceiver || s.signatureTsf;
                 if (sigGiver) {
                     sigHtmlLeft = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
                             <img src="${sigGiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Giver">
                         </div>
                     `;
                 }
                 if (sigReceiver) {
                     sigHtmlRight = `
-                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-300 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
+                        <div class="h-20 flex items-center justify-center border border-dashed border-gray-200 rounded-lg mt-2 bg-gray-50 p-2 shadow-inner">
                             <img src="${sigReceiver}" class="h-16 bg-white dark:bg-transparent rounded px-1.5" alt="Signature Receiver">
                         </div>
                     `;
                 }
             } else if (docType === 'field') {
-                const sigGiver = s.signatureFieldGiver;
+                const sigGiver = s.signatureFieldGiver || s.signatureSendFieldGiver;
                 const sigReceiver = s.signatureFieldReceiver || s.signatureField;
                 if (sigGiver) {
                     sigHtmlLeft = `
@@ -8881,6 +8942,7 @@
             } else if (action === 'send_tsf') {
                 s.status = 'initial_analyzed';
                 s.signatureSendTsfGiver = sigGiver;
+                s.signatureTsfGiver = sigGiver;
                 s.initialAnalysis = s.tempInitialAnalysis || '';
                 delete s.tempInitialAnalysis;
 
@@ -8911,6 +8973,7 @@
                     s.unitPhotoAfter = s.tempUnitPhotoAfter;
                 }
                 s.signatureSendFieldGiver = sigGiver;
+                s.signatureFieldGiver = sigGiver;
 
                 delete s.tempRepairNote;
                 delete s.tempToolStatus;
@@ -8973,6 +9036,36 @@
             openHandoverSignatureModal(id, 'send_tsf');
         }
 
+        function toggleTsfDecision(decision) {
+            const quoteDetailsContainer = document.getElementById('svc-quote-details-container');
+            const quotePriceContainer = document.getElementById('svc-quote-price-container');
+            const quoteDocContainer = document.getElementById('svc-quote-doc-container');
+            const submitBtn = document.querySelector('#serviceQuotationModal button[type="submit"]');
+            
+            const quoteDetails = document.getElementById('svc-quote-details');
+            const quotePrice = document.getElementById('svc-quote-price');
+            
+            if (decision === 'unrepair') {
+                if (quoteDetailsContainer) quoteDetailsContainer.classList.add('hidden');
+                if (quotePriceContainer) quotePriceContainer.classList.add('hidden');
+                if (quoteDocContainer) quoteDocContainer.classList.add('hidden');
+                
+                if (quoteDetails) quoteDetails.removeAttribute('required');
+                if (quotePrice) quotePrice.removeAttribute('required');
+                
+                if (submitBtn) submitBtn.innerText = "Proses Pengembalian Alat (Un-Repair)";
+            } else {
+                if (quoteDetailsContainer) quoteDetailsContainer.classList.remove('hidden');
+                if (quotePriceContainer) quotePriceContainer.classList.remove('hidden');
+                if (quoteDocContainer) quoteDocContainer.classList.remove('hidden');
+                
+                if (quoteDetails) quoteDetails.setAttribute('required', 'required');
+                if (quotePrice) quotePrice.setAttribute('required', 'required');
+                
+                if (submitBtn) submitBtn.innerText = "Kirim Penawaran Harga Damage";
+            }
+        }
+
         function openQuotationModal(id) {
             loadDB();
             const s = db.serviceTickets.find(x => x.id === id);
@@ -8981,6 +9074,13 @@
             document.getElementById('svc-quote-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
             document.getElementById('svc-quote-no-service').innerText = s.noService;
             document.getElementById('svc-quote-initial-analysis').innerText = s.initialAnalysis || '-';
+            
+            const decisionSelect = document.getElementById('svc-tsf-decision');
+            if (decisionSelect) {
+                decisionSelect.value = 'repair';
+            }
+            toggleTsfDecision('repair');
+
             document.getElementById('svc-tsf-analysis').value = '';
             document.getElementById('svc-quote-details').value = '';
             document.getElementById('svc-quote-price').value = '';
@@ -8996,7 +9096,37 @@
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
             
+            const decision = document.getElementById('svc-tsf-decision').value;
             const tsfAnalysis = document.getElementById('svc-tsf-analysis').value;
+            
+            if (decision === 'unrepair') {
+                s.tsfAnalysis = tsfAnalysis;
+                s.quoteDetails = 'Tidak dapat diperbaiki (Un-Repair) oleh TSF';
+                s.quotePrice = 0;
+                s.toolStatus = 'unrepaired';
+                s.tempRepairNote = tsfAnalysis;
+                s.tempToolStatus = 'unrepaired';
+                s.tempUnitPhotoAfter = null;
+                
+                s.history.unshift({
+                    t: new Date().toISOString(),
+                    m: `Hasil Pemeriksaan TSF (Un-Repair): "${tsfAnalysis}". Unit dinyatakan tidak dapat diperbaiki dan diproses untuk pengembalian.`
+                });
+                
+                addToHistory(`Hasil Pemeriksaan TSF: Unit ${s.noService} dinyatakan Un-Repair (Tidak Dapat Diperbaiki) oleh ${currentUser.name}.`);
+                // Let the handover signature trigger the actual status change to 'repaired'
+                s.updatedAt = new Date().toISOString();
+                playNotificationSound();
+                saveDB();
+                updateData();
+                closeModal('serviceQuotationModal');
+                showToast("Keputusan Un-Repair", "Unit siap dikembalikan.", "success");
+                
+                // Open signature modal for TSF staff to sign penyerahan pengembalian
+                openHandoverSignatureModal(id, 'send_field');
+                return;
+            }
+            
             const details = document.getElementById('svc-quote-details').value;
             const price = parseFloat(document.getElementById('svc-quote-price').value);
             
@@ -9013,6 +9143,7 @@
             s.tsfAnalysis = tsfAnalysis;
             s.quoteDetails = details;
             s.quotePrice = price;
+            s.toolStatus = 'repaired'; // default to repaired
             if (docSph) {
                 s.docSph = docSph;
             }
@@ -9112,13 +9243,18 @@
             s.tempRepairNote = text;
             s.tempToolStatus = document.getElementById('svc-repair-status').value;
 
-            // Save photo after temporarily
+            // Save photo after temporarily (multiple)
             const photoAfterInput = document.getElementById('svc-unit-photo-after');
-            if (photoAfterInput && photoAfterInput.files && photoAfterInput.files[0]) {
-                try { s.tempUnitPhotoAfter = await compressImage(photoAfterInput.files[0]); } catch(e) {}
-            } else {
-                s.tempUnitPhotoAfter = null;
+            let unitPhotosAfter = [];
+            if (photoAfterInput && photoAfterInput.files && photoAfterInput.files.length > 0) {
+                for (let i = 0; i < photoAfterInput.files.length; i++) {
+                    try {
+                        const compressed = await compressImage(photoAfterInput.files[i]);
+                        if (compressed) unitPhotosAfter.push(compressed);
+                    } catch(e) {}
+                }
             }
+            s.tempUnitPhotoAfter = unitPhotosAfter.length > 0 ? unitPhotosAfter : null;
 
             closeModal('serviceRepairModal');
             openHandoverSignatureModal(id, 'send_field');
@@ -9474,20 +9610,70 @@
         function previewServicePhoto(input, previewContainerId) {
             const container = document.getElementById(previewContainerId);
             if (!container) return;
-            const file = input.files[0];
-            if (!file) return;
-
-            if (file.size > 2 * 1024 * 1024) {
-                showToast("File Terlalu Besar", "Ukuran foto tidak boleh melebihi 2MB.", "error");
-                input.value = '';
+            
+            container.innerHTML = '';
+            
+            if (!input.files || input.files.length === 0) {
+                const isAfter = previewContainerId.includes('after');
+                const labelText = isAfter ? 'Klik atau seret foto sesudah perbaikan' : 'Klik atau seret foto di sini';
+                container.innerHTML = `
+                    <i class="fa-solid fa-image text-2xl"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">${labelText}</span>
+                    <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
+                `;
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                container.innerHTML = `<img src="${e.target.result}" class="h-24 object-contain rounded-lg" alt="Preview Foto">`;
-            };
-            reader.readAsDataURL(file);
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex flex-wrap gap-2 justify-center items-center p-2 w-full max-h-24 overflow-y-auto";
+            
+            Array.from(input.files).forEach(file => {
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast("File Terlalu Besar", `Ukuran file ${file.name} tidak boleh melebihi 2MB.`, "error");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = "h-20 w-20 object-cover rounded-lg border border-gray-300 dark:border-lux-600";
+                    wrapper.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+            container.appendChild(wrapper);
+        }
+
+        function renderPhotosHelper(photos, containerId, labelText, borderClass) {
+            const wrap = document.getElementById(containerId + '-wrap');
+            if (!wrap) return;
+            
+            wrap.innerHTML = `<p class="text-[8px] font-bold uppercase mb-1 ${labelText.includes('Sesudah') ? 'text-emerald-600' : 'text-gray-400'}">${labelText}</p>`;
+            
+            if (!photos) {
+                wrap.classList.add('hidden');
+                return;
+            }
+            
+            const photoList = Array.isArray(photos) ? photos : [photos];
+            if (photoList.length === 0 || (photoList.length === 1 && !photoList[0])) {
+                wrap.classList.add('hidden');
+                return;
+            }
+            
+            wrap.classList.remove('hidden');
+            const container = document.createElement('div');
+            container.className = "flex flex-wrap gap-2 mt-1.5";
+            
+            photoList.forEach(photo => {
+                if (!photo) return;
+                const img = document.createElement('img');
+                img.src = photo;
+                img.className = `w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border cursor-pointer hover:scale-[1.05] transition-transform ${borderClass}`;
+                img.onclick = () => window.open(photo, '_blank');
+                container.appendChild(img);
+            });
+            wrap.appendChild(container);
         }
 
         function showServiceDetail(id) {
@@ -9548,14 +9734,13 @@
             // Photos before/after
             const photoWrapper = document.getElementById('svc-det-photos-wrapper');
             if (photoWrapper) {
-                if (s.unitPhotoBefore || s.unitPhotoAfter) {
+                const hasBefore = s.unitPhotoBefore && (Array.isArray(s.unitPhotoBefore) ? s.unitPhotoBefore.length > 0 : true);
+                const hasAfter = s.unitPhotoAfter && (Array.isArray(s.unitPhotoAfter) ? s.unitPhotoAfter.length > 0 : true);
+                
+                if (hasBefore || hasAfter) {
                     photoWrapper.classList.remove('hidden');
-                    const pbEl = document.getElementById('svc-det-photo-before');
-                    const paEl = document.getElementById('svc-det-photo-after');
-                    const pbWrap = document.getElementById('svc-det-photo-before-wrap');
-                    const paWrap = document.getElementById('svc-det-photo-after-wrap');
-                    if (pbEl && pbWrap) { pbEl.src = s.unitPhotoBefore || ''; pbWrap.classList.toggle('hidden', !s.unitPhotoBefore); }
-                    if (paEl && paWrap) { paEl.src = s.unitPhotoAfter || ''; paWrap.classList.toggle('hidden', !s.unitPhotoAfter); }
+                    renderPhotosHelper(s.unitPhotoBefore, 'svc-det-photo-before', 'Sebelum Perbaikan', 'border-gray-200 dark:border-lux-700');
+                    renderPhotosHelper(s.unitPhotoAfter, 'svc-det-photo-after', 'Sesudah Perbaikan', 'border-emerald-200 dark:border-emerald-900/50');
                 } else {
                     photoWrapper.classList.add('hidden');
                 }
