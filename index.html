@@ -4049,7 +4049,7 @@
             if ((target.customers || []).length !== beforeCust) changed = true;
 
             const beforeCUnit = (target.customerUnits || []).length;
-            target.customerUnits = dedupeKeyed(dedupeById(target.customerUnits), u => normInvKey(String(u.customerId) + '|' + normArtKey(u.artNo)));
+            target.customerUnits = dedupeById(target.customerUnits);
             const seenCustSn = new Map();
             target.customerUnits = (target.customerUnits || []).filter(u => {
                 if (!u) return false;
@@ -4611,6 +4611,7 @@
         function safeSaveLocalStorage() {
             try {
                 localStorage.setItem(DB_KEY, JSON.stringify(db));
+                return true;
             } catch (e) {
                 console.warn("SafeSave: Gagal menyimpan database ke localStorage (Kapasitas kemungkinan penuh):", e);
                 cleanExistingLargeImages().then(() => {
@@ -4619,8 +4620,12 @@
                         console.log("SafeSave: Database berhasil disimpan setelah kompresi gambar.");
                     } catch (err) {
                         console.error("SafeSave: Tetap gagal menyimpan database setelah kompresi:", err);
+                        if (typeof showToast === 'function') {
+                            showToast('Penyimpanan Penuh', 'Data terlalu besar untuk perangkat ini. Pastikan online & sync cloud selesai, lalu buka ulang di HP.', 'error');
+                        }
                     }
                 });
+                return false;
             }
         }
         function saveDB() {
@@ -10103,13 +10108,6 @@
         function findCustomerUnitConflicts(fields, excludeId, customerId) {
             const conflicts = [];
             const units = db.customerUnits || [];
-            if (fields.artNo && customerId) {
-                const key = normArtKey(fields.artNo);
-                if (key) {
-                    const dup = units.find(u => u && u.id !== excludeId && u.customerId === customerId && normArtKey(u.artNo) === key);
-                    if (dup) conflicts.push({ field: 'artNo', label: 'Art Number', value: fields.artNo, existing: dup.unitName || dup.unitSn || 'unit lain' });
-                }
-            }
             if (fields.unitSn) {
                 const key = normSnKey(fields.unitSn);
                 if (key) {
@@ -10398,13 +10396,17 @@
             const units = db.customerUnits || [];
             const artKey = artNo ? normArtKey(artNo) : '';
             const snKey = unitSn ? normSnKey(unitSn) : '';
-            if (artKey) {
-                const byArt = units.find(u => u && u.customerId === customerId && normArtKey(u.artNo) === artKey);
-                if (byArt) return byArt;
-            }
             if (snKey) {
                 const bySn = units.find(u => u && normSnKey(u.unitSn) === snKey);
                 if (bySn) return bySn;
+            }
+            if (artKey && snKey) {
+                const byBoth = units.find(u => u && u.customerId === customerId && normArtKey(u.artNo) === artKey && normSnKey(u.unitSn) === snKey);
+                if (byBoth) return byBoth;
+            }
+            if (artKey && !snKey) {
+                const byArt = units.find(u => u && u.customerId === customerId && normArtKey(u.artNo) === artKey && !normSnKey(u.unitSn));
+                if (byArt) return byArt;
             }
             return null;
         }
@@ -10605,6 +10607,11 @@
             if (result.updated) summary += `, ${result.updated} di-update`;
             if (result.customersCreated) summary += `, ${result.customersCreated} customer baru`;
             summary += `, ${result.skipped} dilewati.${errNote}`;
+            if (_batchImportType === 'customer-unit') {
+                const totalUnits = (db.customerUnits || []).length;
+                const totalCust = (db.customers || []).length;
+                summary += ` Total DB: ${totalUnits} unit, ${totalCust} customer.`;
+            }
             showToast('Import Complete', summary, (result.added || result.updated) ? 'success' : 'error');
             if (_batchImportType === 'customer' || _batchImportType === 'customer-unit') {
                 renderCustomerMaster();

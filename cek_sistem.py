@@ -260,6 +260,16 @@ def check_html_integrity():
         ok('Render aman global: tmsRenderSplitList + sync tab jika kosong')
     else:
         bad('Render aman global: tmsRenderSplitList tidak ada')
+    sanitize_cu = re.search(r'beforeCUnit[\s\S]{0,400}seenCustSn', js)
+    if sanitize_cu and 'normArtKey(u.artNo)' not in sanitize_cu.group(0):
+        ok('Import unit: sanitize tidak dedupe per customer+art no saja')
+    else:
+        bad('Import unit: sanitize masih collapse unit per art number — import 2000+ akan jadi ~200')
+    upsert_cu = re.search(r'function findCustomerUnitForUpsert[\s\S]{0,1200}return null;', js)
+    if upsert_cu and 'const bySn' in upsert_cu.group(0) and upsert_cu.group(0).find('const bySn') < upsert_cu.group(0).find('if (artKey && !snKey)'):
+        ok('Import unit: upsert match SN dulu, bukan art no saja')
+    else:
+        bad('Import unit: findCustomerUnitForUpsert masih match art no sebelum SN')
     if 'showMobileCards' not in js:
         ok('Anti-bug HP: tidak ada showMobileCards gate yang bisa kosongkan kartu')
     else:
