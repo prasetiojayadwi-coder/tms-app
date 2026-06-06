@@ -139,6 +139,34 @@ def check_html_integrity():
         else:
             bad(f'Master Data Customer: {fn} hilang')
 
+    if 'view-customer-service' in html:
+        ok('Service & Repair: view-customer-service ada')
+    else:
+        bad('Service & Repair: view-customer-service hilang')
+
+    svc_m = re.search(r'id="view-customer-service"[\s\S]*?<!-- Service Status', html)
+    svc_block = svc_m.group(0) if svc_m else ''
+    if svc_block and 'Import Unit Excel' in svc_block and "openBatchImportModal('customer-unit')" in svc_block:
+        ok('Service & Repair: Import Unit Excel di toolbar')
+    else:
+        bad('Service & Repair: Import Unit Excel di toolbar hilang')
+    if svc_block and 'Template Unit' in svc_block and "downloadBatchTemplate('customer-unit')" in svc_block:
+        ok('Service & Repair: Template Unit di toolbar')
+    else:
+        bad('Service & Repair: Template Unit di toolbar hilang')
+    if svc_block and svc_block.count('data-batch-type="customer-unit"') >= 2:
+        ok('Service & Repair: batch unit punya data-batch-type')
+    else:
+        bad('Service & Repair: data-batch-type customer-unit tidak lengkap')
+    if 'function renderServiceTickets' in js and 'syncBatchImportButtons()' in js.split('function renderServiceTickets')[1][:800]:
+        ok('Service & Repair: syncBatchImportButtons di renderServiceTickets')
+    else:
+        bad('Service & Repair: syncBatchImportButtons tidak dipanggil saat render')
+    if 'function importCustomerUnitsBatch' in js and 'findCustomerUnitConflicts' in js.split('importCustomerUnitsBatch')[1][:1200]:
+        ok('Service & Repair: importCustomerUnitsBatch + proteksi duplikat')
+    else:
+        bad('Service & Repair: importCustomerUnitsBatch tidak lengkap')
+
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:
             ok(f'Modul SPH: {cid} ada')
@@ -169,11 +197,16 @@ def check_html_integrity():
         bad('Template sparepart Excel (.xlsx) tidak ditemukan di kode')
 
     templates_dir = ROOT / 'templates'
-    for name in ('TMS_Template_Spareparts.xlsx', 'TMS_Template_Customers.xlsx'):
-        if (templates_dir / name).exists():
+    for name in (
+        'TMS_Template_Spareparts.xlsx', 'TMS_Template_Customers.xlsx',
+        'TMS_Template_Customer_Units.xlsx', 'TMS_Template_Special_Tools.xlsx',
+        'TMS_Template_Backup_Units.xlsx',
+    ):
+        p = templates_dir / name
+        if p.exists() and p.stat().st_size > 500:
             ok(f'File template: {name}')
         else:
-            warn(f'File template belum ada: {name}')
+            warn(f'File template belum ada atau kosong: {name}')
 
     for fn in (
         'lookupSparepartByArtNo', 'searchSparepartsPartial', 'smartFillSphLine', 'showSphArtSuggestions',
@@ -384,6 +417,10 @@ def check_cloud():
             ok('Live index.html: template Excel .xlsx aktif')
         else:
             warn('Live index.html: fitur template Excel belum terdeteksi')
+        if 'Import Unit Excel' in live_html and "openBatchImportModal('customer-unit')" in live_html:
+            ok('Live index.html: batch import unit di Service & Repair')
+        else:
+            warn('Live index.html: batch import unit Service belum terdeteksi')
     except Exception as e:
         warn(f'Tidak bisa verifikasi live release: {e}')
 

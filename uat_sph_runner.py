@@ -486,7 +486,8 @@ async def run_g(page):
                 spare: canBatchImportType('sparepart'),
                 tool: canBatchImportType('tool'),
                 demo: canBatchImportType('demo'),
-                customer: canBatchImportType('customer')
+                customer: canBatchImportType('customer'),
+                unit: canBatchImportType('customer-unit')
             };
         };
         const owner = chk('owner');
@@ -496,11 +497,11 @@ async def run_g(page):
         const ts = chk('ts');
         currentUser = prev;
         return {
-            ownerFull: owner.spare && owner.tool && owner.customer,
-            spvFull: spv.spare && spv.tool && spv.customer,
-            specFull: spec.spare && spec.tool,
-            tsfToolsOnly: tsf.tool && tsf.demo && !tsf.spare && !tsf.customer,
-            tsDenied: !ts.tool && !ts.spare
+            ownerFull: owner.spare && owner.tool && owner.customer && owner.unit,
+            spvFull: spv.spare && spv.tool && spv.customer && spv.unit,
+            specFull: spec.spare && spec.tool && spec.unit,
+            tsfToolsOnly: tsf.tool && tsf.demo && !tsf.spare && !tsf.customer && !tsf.unit,
+            tsDenied: !ts.tool && !ts.spare && !ts.unit
         };
     }''')
     record('UAT-081', 'pass' if batch_perm.get('ownerFull') and batch_perm.get('spvFull') and batch_perm.get('specFull') and batch_perm.get('tsfToolsOnly') and batch_perm.get('tsDenied') else 'fail', str(batch_perm))

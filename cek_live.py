@@ -33,6 +33,7 @@ def main():
         'supabase_config': 'supabase.co' in deploy,
         'batch_role_matrix': 'canBatchImportType' in html and 'BATCH_IMPORT_FULL_ROLES' in html and 'data-batch-type' in html,
         'xlsx_only': 'isExcelXlsxFile' in html,
+        'service_unit_import': 'Import Unit Excel' in html and "openBatchImportModal('customer-unit')" in html,
     }
     local_rel = (ROOT / 'release.js').read_text(encoding='utf-8')
     exp_ver = re.search(r"version:\s*'([^']+)'", local_rel)
@@ -48,6 +49,7 @@ def main():
         report['supabase_config'],
         report['batch_role_matrix'],
         report['xlsx_only'],
+        report['service_unit_import'],
     ])
     return 0 if ok else 1
 
