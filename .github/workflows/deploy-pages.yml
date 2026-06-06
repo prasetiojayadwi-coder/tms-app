@@ -26,6 +26,11 @@ jobs:
       - name: Bersihkan cache build
         run: rm -rf __pycache__
 
+      - name: QA gate — cek_sistem.py
+        env:
+          TMS_SKIP_SERVER: '1'
+        run: python3 cek_sistem.py
+
       - name: Siapkan config.js untuk deploy online
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

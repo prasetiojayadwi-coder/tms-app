@@ -1,6 +1,12 @@
 -- ============================================================
 -- TMS ONLINE — Jalankan SEKALI di Supabase SQL Editor
 -- Dashboard > SQL Editor > New query > Paste > Run
+--
+-- PERINGATAN KEAMANAN (v7.2.0+):
+-- Policy anon di bawah MEMUNGKINKAN siapa pun dengan anon key
+-- membaca/menulis SELURUH database JSON. Untuk production ketat,
+-- migrasi ke Supabase Auth + RLS per-role atau Edge Functions.
+-- Rotasi anon key secara berkala di Supabase Dashboard.
 -- ============================================================
 
 -- 1. Tabel pusat data (semua user share 1 database via cloud)

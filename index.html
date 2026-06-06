@@ -3882,6 +3882,62 @@
             const p = (v || '').replace(/\D/g, '');
             return p.length >= 8 ? p : '';
         }
+        function tmsEscHtml(s) {
+            if (s == null || s === '') return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        const TMS_PBKDF2_ITERS = 100000;
+        function isPasswordHashed(stored) {
+            return typeof stored === 'string' && stored.startsWith('pbkdf2:');
+        }
+        function b64FromBytes(bytes) {
+            let s = '';
+            bytes.forEach(b => { s += String.fromCharCode(b); });
+            return btoa(s);
+        }
+        function bytesFromB64(b64) {
+            const bin = atob(b64);
+            const out = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+            return out;
+        }
+        async function hashPassword(plain) {
+            const p = String(plain || '');
+            if (!p) return '';
+            if (!window.crypto || !crypto.subtle) return p;
+            const enc = new TextEncoder();
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const key = await crypto.subtle.importKey('raw', enc.encode(p), 'PBKDF2', false, ['deriveBits']);
+            const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: TMS_PBKDF2_ITERS, hash: 'SHA-256' }, key, 256);
+            return `pbkdf2:${TMS_PBKDF2_ITERS}:${b64FromBytes(salt)}:${b64FromBytes(new Uint8Array(bits))}`;
+        }
+        async function verifyPassword(plain, stored) {
+            const p = String(plain || '').trim();
+            const s = String(stored || '').trim();
+            if (!p || !s) return false;
+            if (!isPasswordHashed(s)) return p === s;
+            if (!window.crypto || !crypto.subtle) return false;
+            const parts = s.split(':');
+            if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
+            const iterations = parseInt(parts[1], 10) || TMS_PBKDF2_ITERS;
+            const salt = bytesFromB64(parts[2]);
+            const expected = parts[3];
+            const enc = new TextEncoder();
+            const key = await crypto.subtle.importKey('raw', enc.encode(p), 'PBKDF2', false, ['deriveBits']);
+            const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations, hash: 'SHA-256' }, key, 256);
+            return b64FromBytes(new Uint8Array(bits)) === expected;
+        }
+        function isCloudProductionMode() {
+            return !!(SUPABASE_URL && SUPABASE_KEY && typeof location !== 'undefined' && location.protocol !== 'file:');
+        }
+        function persistCurrentUserSession() {
+            if (!currentUser) return;
+            const safe = { ...currentUser };
+            delete safe.pass;
+            const json = JSON.stringify(safe);
+            sessionStorage.setItem('tms_current_user', json);
+            localStorage.setItem('tms_current_user', json);
+        }
         function getDbUser(id) {
             if (id == null || id === '' || id === 0) return null;
             const users = db.users || {};
@@ -3927,12 +3983,13 @@
                     u && u.user && normUserKey(u.user) === normUserKey(currentUser.user)
                 );
             }
-            if (fresh) {
-                currentUser = { ...fresh, lastOnline: currentUser.lastOnline || fresh.lastOnline };
+            if (!fresh || fresh.status === 'suspended' || fresh.status === 'disabled' || fresh.status === 'rejected') {
+                if (typeof handleLogout === 'function') handleLogout();
+                return;
             }
+            currentUser = { ...fresh, lastOnline: currentUser.lastOnline || fresh.lastOnline };
             if (currentUser.id != null) currentUser.id = Number(currentUser.id);
-            sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
-            localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+            persistCurrentUserSession();
         }
         function findPersonnelConflicts(fields, excludeId) {
             const conflicts = [];
@@ -4916,44 +4973,40 @@
         }
         
         let lastMsgCount = 0;
-        window.addEventListener('storage', (e) => {
-            if(e.key === DB_KEY && e.newValue) { 
-                try {
-                    const parsed = JSON.parse(e.newValue);
-                    if (parsed && typeof parsed === 'object') {
-                        const localVer = Number(parsed.version) || 0;
-                        const memVer = Number(db && db.version) || 0;
-                        if (localVer >= memVer) {
-                            db = parsed;
-                            if(currentUser) {
-                                updateData(); 
-                                if(db.messages && db.messages.length > lastMsgCount) {
-                                    const newMsg = db.messages[db.messages.length - 1];
-                                    const isChatOpen = document.getElementById('chat-window') && !document.getElementById('chat-window').classList.contains('hidden');
-                                    const isChatActiveWithSender = (isChatOpen && (activeChatUser === newMsg.from || (activeChatUser === 'global' && newMsg.to === 'global')));
-                                    if(((newMsg.to === currentUser.id && !newMsg.read) || (newMsg.to === 'global' && newMsg.from !== currentUser.id)) && !isChatActiveWithSender) {
-                                        const senderName = db.users[newMsg.from] ? db.users[newMsg.from].name : "Seseorang";
-                                        const msgText = newMsg.to === 'global' ? `[Global] ${newMsg.text}` : newMsg.text;
-                                        showChatPopup(senderName, msgText, newMsg.to === 'global' ? 'global' : newMsg.from);
-                                        renderChatUsers(); 
-                                        if(activeChatUser === newMsg.from || (activeChatUser === 'global' && newMsg.to === 'global')) {
-                                            if(document.getElementById('chat-window').classList.contains('hidden') === false) renderChatMessages();
-                                        }
-                                        updateChatBadge();
-                                    }
-                                }
-                                if (activeChatUser && !document.getElementById('chat-window').classList.contains('hidden') && typeof renderChatMessages === 'function') {
-                                    renderChatMessages();
-                                }
-                                if(db.messages) lastMsgCount = db.messages.length;
-                            }
-                        }
+        function handleStorageDbSync(e) {
+            if (e.key !== DB_KEY || !e.newValue) return;
+            try {
+                const incoming = JSON.parse(e.newValue);
+                if (!incoming || typeof incoming !== 'object') return;
+                const incomingVer = Number(incoming.version) || 0;
+                const memVer = Number(db && db.version) || 0;
+                if (incomingVer < memVer) return;
+                db = incoming;
+                if (incomingVer > memVer) loadDB();
+                if (!currentUser) return;
+                updateData({ lite: incomingVer === memVer || isTmsMobileView() });
+                if (db.messages && db.messages.length > lastMsgCount) {
+                    const newMsg = db.messages[db.messages.length - 1];
+                    const chatWin = document.getElementById('chat-window');
+                    const isChatOpen = chatWin && !chatWin.classList.contains('hidden');
+                    const isChatActiveWithSender = isChatOpen && (activeChatUser === newMsg.from || (activeChatUser === 'global' && newMsg.to === 'global'));
+                    if (((newMsg.to === currentUser.id && !newMsg.read) || (newMsg.to === 'global' && newMsg.from !== currentUser.id)) && !isChatActiveWithSender) {
+                        const senderName = db.users[newMsg.from] ? db.users[newMsg.from].name : 'Seseorang';
+                        const msgText = newMsg.to === 'global' ? `[Global] ${newMsg.text}` : newMsg.text;
+                        showChatPopup(senderName, msgText, newMsg.to === 'global' ? 'global' : newMsg.from);
+                        renderChatUsers();
+                        updateChatBadge();
                     }
-                } catch(err) {
-                    console.error("Gagal memparsing storage update:", err);
                 }
-            } 
-        });
+                if (activeChatUser && !document.getElementById('chat-window').classList.contains('hidden') && typeof renderChatMessages === 'function') {
+                    renderChatMessages();
+                }
+                if (db.messages) lastMsgCount = db.messages.length;
+            } catch (err) {
+                console.error('storage sync:', err);
+            }
+        }
+        window.addEventListener('storage', handleStorageDbSync);
 
         let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _custUnitSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sparepartRenderLimit = 0; let _sparepartRenderGen = 0; const SPAREPART_PAGE_SIZE = { mobile: 60, desktop: 200 }; let _sphDetailActiveId = null; let _sphArtSuggestTimer = null; let _sphArtSuggestActive = null; let _sphCustPickData = null;
         const TMS_SPAREPART_GROUPS = ['Avitum', 'Hospital Care', 'Aesculap', 'General'];
@@ -4962,22 +5015,6 @@
         let previousRequestStates = null;
         let previousServiceTicketStates = null;
         loadDB(); if(db.messages) lastMsgCount = db.messages.length;
-        
-        window.addEventListener('storage', (e) => {
-            if (e.key !== DB_KEY || !e.newValue || !currentUser) return;
-            try {
-                const incoming = JSON.parse(e.newValue);
-                const incomingVer = Number(incoming.version) || 0;
-                const memVer = Number(db && db.version) || 0;
-                if (incomingVer > memVer) {
-                    db = incoming;
-                    loadDB();
-                    updateData({ lite: true });
-                }
-            } catch (err) {
-                console.warn('storage sync:', err);
-            }
-        });
 
         window.addEventListener('online', () => {
             if (currentUser && supabaseClient) syncWithCloud();
@@ -5275,14 +5312,16 @@
                     }
                 }
 
-                // === CARI USER: username + password saja (tanpa cek role) ===
+                // === CARI USER: username + password (plain legacy atau pbkdf2 hash) ===
                 const allUsers = Object.values(db.users || {});
-                let f = allUsers.find(usr =>
-                    usr.user && usr.user.toLowerCase() === u && String(usr.pass).trim() === p
-                );
+                let f = null;
+                for (const usr of allUsers) {
+                    if (!usr || !usr.user || usr.user.toLowerCase() !== u) continue;
+                    if (await verifyPassword(p, usr.pass)) { f = usr; break; }
+                }
 
-                // === FALLBACK: cek akun default sistem ===
-                if (!f) {
+                // === FALLBACK dev: akun default hanya di mode lokal (bukan production cloud) ===
+                if (!f && !isCloudProductionMode()) {
                     const defaults = [
                         { id: 1,   user: "teknisi1",   pass: "123",   role: "ts",      name: "Alex Pratama",          nik: "1001", jabatan: "Technical Service",            group: "Barat 1",     status: "active", products: ["Avitum","Hospital Care","Aesculap"] },
                         { id: 2,   user: "teknisi2",   pass: "123",   role: "ts",      name: "Benny (Tech)",           nik: "1002", jabatan: "Technical Service",            group: "Barat 2",     status: "active", products: ["Avitum","Hospital Care","Aesculap"] },
@@ -5335,10 +5374,13 @@
                         }
                     }
                     currentUser.lastOnline = new Date().toISOString();
+                    if (!isPasswordHashed(currentUser.pass)) {
+                        const hashed = await hashPassword(p);
+                        if (hashed) currentUser.pass = hashed;
+                    }
                     db.users[f.id] = currentUser;
                     saveDB();
-                    sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
-                    localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+                    persistCurrentUserSession();
                     showToast('Access Granted', 'Welcome, ' + currentUser.name + '!', 'success');
                     const ls = document.getElementById('login-screen');
                     ls.style.transition = 'opacity 0.5s ease';
@@ -5530,7 +5572,7 @@
                     if(icon) icon.classList.add('text-gold-500'); 
                 }
             } 
-            else { document.getElementById('prof-name').value = currentUser.name; document.getElementById('prof-user').value = currentUser.user; document.getElementById('prof-pass').value = currentUser.pass; document.getElementById('prof-nik').value = currentUser.nik || ''; document.getElementById('prof-jabatan').value = currentUser.jabatan || ''; document.getElementById('prof-email').value = currentUser.email || ''; document.getElementById('prof-phone').value = currentUser.phone || ''; }
+            else { document.getElementById('prof-name').value = currentUser.name; document.getElementById('prof-user').value = currentUser.user; document.getElementById('prof-pass').value = ''; document.getElementById('prof-pass').placeholder = isPasswordHashed(currentUser.pass) ? 'Kosongkan jika tidak ganti' : ''; document.getElementById('prof-nik').value = currentUser.nik || ''; document.getElementById('prof-jabatan').value = currentUser.jabatan || ''; document.getElementById('prof-email').value = currentUser.email || ''; document.getElementById('prof-phone').value = currentUser.phone || ''; }
             if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); }
             
             const titles = {'profile': 'User Profile', 'spv-dash':'Dashboard', 'spec-dash': 'Specialist Dashboard', 'spv-assets':'Special Tools Inventory', 'demo-inventory':'Backup & Demo Units', 'customer-master':'Customer Master Data', 'sparepart-master':'Sparepart Master', 'sph-log':'SPH Log', 'spv-personnel':'Personnel', 'spv-approvals':'Access Authorization', 'spv-maintenance':'Maintenance', 'ts-dash':'TS Dashboard', 'ts-toolbox':'My Assets', 'ts-radar':'Asset Directory', 'ts-handover':'Physical Handover', 'tickets-log': 'Borrow Ticket Log', 'customer-service': 'Customer Service & Repair'};
@@ -5548,11 +5590,14 @@
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); }
         
-        function saveProfile(e) { 
+        async function saveProfile(e) { 
             e.preventDefault(); loadDB(); 
-            currentUser.name = document.getElementById('prof-name').value; currentUser.pass = document.getElementById('prof-pass').value; currentUser.nik = document.getElementById('prof-nik').value; currentUser.jabatan = document.getElementById('prof-jabatan').value; currentUser.email = document.getElementById('prof-email').value; currentUser.phone = document.getElementById('prof-phone').value; 
+            currentUser.name = document.getElementById('prof-name').value;
+            const passIn = (document.getElementById('prof-pass').value || '').trim();
+            if (passIn) currentUser.pass = await hashPassword(passIn);
+            currentUser.nik = document.getElementById('prof-nik').value; currentUser.jabatan = document.getElementById('prof-jabatan').value; currentUser.email = document.getElementById('prof-email').value; currentUser.phone = document.getElementById('prof-phone').value; 
             currentUser.updatedAt = new Date().toISOString();
-            db.users[currentUser.id] = currentUser; saveDB(); sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser)); localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+            db.users[currentUser.id] = currentUser; saveDB(); persistCurrentUserSession();
             document.getElementById('nav-user-name').innerText = currentUser.name; document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); showToast("Profile Updated", "Data updated successfully.", "success"); updateOwnerDropdown(); 
         }
 
@@ -5619,7 +5664,7 @@
                         const imgClass = isSig ? 'h-10 bg-white dark:bg-transparent rounded px-1' : 'max-w-[200px] max-h-[120px] rounded cursor-pointer';
                         sigHtml = `<div class="mt-3 p-2.5 bg-white dark:bg-[#0f0f11] rounded-xl border border-gray-200 dark:border-lux-800 w-max shadow-sm"><p class="text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest mb-1.5"><i class="fa-solid ${icon} text-gold-500 mr-1"></i> ${label}</p><img src="${h.sig}" class="${imgClass}" alt="Attachment" onclick="window.open('${h.sig}', '_blank')"></div>`;
                     }
-                    hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed bg-gray-50 dark:bg-[#18181b] border border-gray-200 dark:border-lux-800 p-3 rounded-xl mt-1">${h.m}${sigHtml}</p></div>`;
+                    hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed bg-gray-50 dark:bg-[#18181b] border border-gray-200 dark:border-lux-800 p-3 rounded-xl mt-1">${tmsEscHtml(h.m)}${sigHtml}</p></div>`;
                 });
             }
             openModal('historyModal');
@@ -5709,8 +5754,7 @@
             }
             currentUser.readNotifications = u.readNotifications;
             saveDB();
-            sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
-            localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+            persistCurrentUserSession();
             checkNotifications();
         }
 
@@ -6043,8 +6087,7 @@
             if (changed) {
                 currentUser.readNotifications = u.readNotifications;
                 saveDB();
-                sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
-                localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+                persistCurrentUserSession();
             }
             // Selalu update badge setelah mark
             updateSvcNavBadge();
@@ -6327,7 +6370,7 @@
             const hc = document.getElementById('ts-history-log');
             hc.innerHTML = db.historyLog.slice(0, 10).map(l => {
                 const date = new Date(l.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short'});
-                return `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${l.action}</p></div>`;
+                return `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${tmsEscHtml(l.action)}</p></div>`;
             }).join('');
         }
         function renderTsToolbox() {
@@ -6748,7 +6791,7 @@
             } else {
                 specLogs.slice(0, 10).forEach(l => {
                     const date = new Date(l.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short'});
-                    hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${l.action}</p></div>`;
+                    hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${tmsEscHtml(l.action)}</p></div>`;
                 });
             }
         }
@@ -6787,7 +6830,7 @@
             });
             filteredHistory.slice(0, 10).forEach(l => {
                 const date = new Date(l.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short'});
-                hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${l.action}</p></div>`;
+                hc.innerHTML += `<div class="relative pl-8"><span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${date}</p><p class="text-[13px] text-gray-900 dark:text-white font-medium leading-relaxed">${tmsEscHtml(l.action)}</p></div>`;
             });
 
             const dashAlerts = document.getElementById('spv-dash-alerts');
@@ -7969,7 +8012,7 @@
             }
         }
 
-        function submitTech(e) {
+        async function submitTech(e) {
             e.preventDefault();
             loadDB(); // Sinkronisasi sebelum menyimpan
             const userVal = document.getElementById('add-tech-user').value.trim();
@@ -8017,10 +8060,17 @@
             if (document.getElementById('add-prod-hospitalcare').checked) productsVal.push('Hospital Care');
             if (document.getElementById('add-prod-aesculap').checked) productsVal.push('Aesculap');
 
+            const passRaw = (document.getElementById('add-tech-pass').value || '').trim();
+            let passStored;
+            if (editMode && !passRaw) {
+                passStored = (db.users[currentEditId] && db.users[currentEditId].pass) || await hashPassword('123456');
+            } else {
+                passStored = await hashPassword(passRaw || '123456');
+            }
             const data = { 
                 id: editMode ? currentEditId : allocateUniqueId(), 
                 user: userVal, 
-                pass: document.getElementById('add-tech-pass').value, 
+                pass: passStored, 
                 role: roleVal, 
                 name: document.getElementById('add-tech-name').value, 
                 nik: nikVal, 
@@ -8348,7 +8398,7 @@
                         const senderUser = db.users[m.from];
                         const senderName = senderUser ? senderUser.name.split(' ')[0] : 'Seseorang';
                         const senderRole = senderUser ? senderUser.role.toUpperCase() : '';
-                        senderLabelHtml = `<span class="text-[8px] font-black text-gold-600 dark:text-gold-500 block mb-1 uppercase tracking-wider">${senderName} (${senderRole})</span>`;
+                        senderLabelHtml = `<span class="text-[8px] font-black text-gold-600 dark:text-gold-500 block mb-1 uppercase tracking-wider">${tmsEscHtml(senderName)} (${tmsEscHtml(senderRole)})</span>`;
                     }
                     
                     let attachmentHtml = '';
@@ -8357,7 +8407,7 @@
                         if (isImg) {
                             attachmentHtml = `<img src="${m.attachment}" class="max-w-[150px] max-h-[120px] rounded-lg mt-1.5 cursor-pointer block border border-white/20" alt="Attachment" onclick="window.open('${m.attachment}', '_blank')">`;
                         } else {
-                            attachmentHtml = `<a href="${m.attachment}" download="${m.attachmentName || 'file'}" class="flex items-center gap-1.5 text-[10px] text-sky-500 dark:text-sky-300 underline font-bold mt-1.5 break-all block" title="Unduh File"><i class="fa-solid fa-file-arrow-down text-sm"></i> ${m.attachmentName || 'Unduh Lampiran'}</a>`;
+                            attachmentHtml = `<a href="${m.attachment}" download="${tmsEscHtml(m.attachmentName || 'file')}" class="flex items-center gap-1.5 text-[10px] text-sky-500 dark:text-sky-300 underline font-bold mt-1.5 break-all block" title="Unduh File"><i class="fa-solid fa-file-arrow-down text-sm"></i> ${tmsEscHtml(m.attachmentName || 'Unduh Lampiran')}</a>`;
                         }
                     }
                     
@@ -8372,7 +8422,7 @@
                         }
                     }
                     
-                    cm.innerHTML += `<div class="flex ${align} w-full"><div class="max-w-[80%]">${senderLabelHtml}<div class="p-2.5 ${bg} text-[11px] shadow-sm font-medium leading-relaxed break-words">${m.text}${attachmentHtml}</div><p class="text-[8px] text-gray-500 dark:text-lux-500 mt-1 flex items-center ${isMe?'justify-end':''}">${time}${statusHtml}</p></div></div>`;
+                    cm.innerHTML += `<div class="flex ${align} w-full"><div class="max-w-[80%]">${senderLabelHtml}<div class="p-2.5 ${bg} text-[11px] shadow-sm font-medium leading-relaxed break-words">${tmsEscHtml(m.text)}${attachmentHtml}</div><p class="text-[8px] text-gray-500 dark:text-lux-500 mt-1 flex items-center ${isMe?'justify-end':''}">${time}${statusHtml}</p></div></div>`;
                 });
                 cm.scrollTop = cm.scrollHeight;
             }
@@ -9913,13 +9963,12 @@
 
         function ticketPjMatchesCurrentUser(s) {
             if (!currentUser || !s) return false;
-            const cuName = normUserKey(currentUser.name);
             const cuUser = normUserKey(currentUser.user);
-            const pjName = normUserKey(getTicketPjName(s));
-            if (pjName && (pjName === cuName || pjName.startsWith(cuName) || cuName.startsWith(pjName))) return true;
-            if (normUserKey(s.assignedTsName) === cuName || normUserKey(s.assignedTsUser) === cuUser) return true;
-            const tsUser = getDbUser(s.assignedTsId);
-            if (tsUser && (normUserKey(tsUser.user) === cuUser || normUserKey(tsUser.name) === cuName)) return true;
+            const uid = Number(currentUser.id);
+            if (uid > 0 && Number(s.assignedTsId) === uid) return true;
+            if (normUserKey(s.assignedTsUser) === cuUser) return true;
+            const tsUser = getDbUser(resolveTicketAssignedTsId(s) || s.assignedTsId);
+            if (tsUser && normUserKey(tsUser.user) === cuUser) return true;
             return false;
         }
 
@@ -11459,11 +11508,6 @@
         }
 
         const SP_FILTER_BTN_IDS = { all: 'flt-sp-all', Avitum: 'flt-sp-Avitum', 'Hospital Care': 'flt-sp-HospitalCare', Aesculap: 'flt-sp-Aesculap', General: 'flt-sp-General' };
-
-        function tmsEscHtml(s) {
-            if (s == null || s === '') return '';
-            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
 
         function debouncedRenderSparepartMaster() {
             clearTimeout(_sparepartSearchTimer);
@@ -14790,8 +14834,7 @@
                         u.readNotifications.push(notifId);
                         currentUser.readNotifications = u.readNotifications;
                         saveDB();
-                        sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
-                        localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+                        persistCurrentUserSession();
                         updateSvcNavBadge();
                         checkNotifications();
                     }

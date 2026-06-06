@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Pemeriksaan kesehatan TMS — jalankan tanpa browser."""
+import os
 import re
 import subprocess
 import sys
@@ -320,9 +321,25 @@ def check_html_integrity():
     else:
         bad('Service Pickup: bindServiceTicketGlobalActions tidak ada')
     if 'function repairTicketAssignmentForCurrentUser' in js and 'function ticketPjMatchesCurrentUser' in js:
-        ok('Service PJ: auto-repair penugasan teknisi by nama/ID')
+        ok('Service PJ: auto-repair penugasan teknisi by username/ID')
     else:
         bad('Service PJ: auto-repair penugasan tidak lengkap')
+    if 'async function hashPassword' in js and 'async function verifyPassword' in js and 'function persistCurrentUserSession' in js:
+        ok('Keamanan: hash password PBKDF2 + session tanpa pass')
+    else:
+        bad('Keamanan: hashPassword / verifyPassword / persistCurrentUserSession tidak lengkap')
+    if 'function isCloudProductionMode' in js and 'isCloudProductionMode())' in js:
+        ok('Keamanan: default login dinonaktifkan di production cloud')
+    else:
+        bad('Keamanan: isCloudProductionMode tidak ada')
+    if 'function handleStorageDbSync' in js and js.count("addEventListener('storage'") == 1:
+        ok('Reliabilitas: satu storage listener (handleStorageDbSync)')
+    else:
+        bad('Reliabilitas: storage listener duplikat atau handleStorageDbSync hilang')
+    if 'tmsEscHtml(m.text)' in js:
+        ok('Keamanan XSS: chat message di-escape')
+    else:
+        bad('Keamanan XSS: chat message belum di-escape')
     dyn_calls = set()
     for m in re.finditer(r'onclick=\\"([a-zA-Z_$][\w$]*)\s*\(', js):
         dyn_calls.add(m.group(1))
@@ -619,6 +636,9 @@ def check_cloud():
 
 
 def check_server():
+    if os.environ.get('TMS_SKIP_SERVER') == '1':
+        warn('Server lokal dilewati (TMS_SKIP_SERVER=1)')
+        return
     print('\n== Server Lokal ==')
     try:
         r = fetch('/index.html')

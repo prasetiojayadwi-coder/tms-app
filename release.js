@@ -3,14 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '7.1.0',
-    build: 98,
+    version: '7.2.0',
+    build: 99,
     date: '2026-06-07',
     title: 'System Update Available',
-    summary: 'Fix klik Pickup — handler global + auto-repair PJ tiket untuk teknisi.',
+    summary: 'Audit fix — keamanan password, XSS chat, sync stabil, CI QA gate.',
     changes: [
-        { icon: 'fa-hand-pointer', text: 'Service: klik global capture — tombol Pickup selalu jalan' },
-        { icon: 'fa-user-gear', text: 'Auto-repair PJ by nama (Suci) jika ID tidak cocok' },
-        { icon: 'fa-truck-pickup', text: 'Modal TTD z-500 + toast error jika form gagal buka' }
+        { icon: 'fa-shield-halved', text: 'Password PBKDF2 — hash saat login/simpan, session tanpa password' },
+        { icon: 'fa-lock', text: 'Production cloud: nonaktifkan akun default admin/teknisi' },
+        { icon: 'fa-comment-slash', text: 'XSS: escape chat & history log; storage listener tunggal' },
+        { icon: 'fa-user-gear', text: 'PJ tiket: match strict username/ID (bukan nama mirip)' }
     ]
 };
