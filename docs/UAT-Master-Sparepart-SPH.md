@@ -231,7 +231,7 @@
 | UAT-024 | AC-22 | P2 | SPV | ☑ Pass ☐ Fail |
 | UAT-025 | AC-33, T-25 | P3 | SPV | ☑ Pass ☐ Fail |
 | UAT-026 | — | P2 | SPV | ☑ Pass ☐ Fail |
-| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** | | ☑ N/A |
+| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ N/A |
 
 ### UAT-020 — SPH muncul di SPH Log (Pending PO)
 
@@ -740,7 +740,7 @@
 
 | ID | AC | P | Hasil |
 |----|----|---|-------|
-| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☐ N/A → **N/A** | | ☑ **PARTIAL** (local sync OK) |
+| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ **PARTIAL** (local sync OK) |
 | UAT-071 | BR-18 | P3 | TS | ☑ Pass ☐ Fail |
 
 ### UAT-070 — SPH & sparepart sync antar perangkat
@@ -806,7 +806,7 @@
 
 | ID | UI Status | Environment | Note |
 |----|-----------|-------------|------|
-| LIVE-SMOKE | FAIL | live | TMS_RELEASE=6.7.5 (expected 6.7.6) |
+| LIVE-SMOKE | PASS | live | TMS_RELEASE=6.7.6 (expected 6.7.6) |
 | UAT-001 | PASS | live | live sparepart view=True |
 | UAT-002 | PASS | local | duplicate form validation UI |
 | UAT-005 | PASS | local | Avitum filter renders rows |
@@ -897,4 +897,4 @@
 
 ---
 
-*UAT Pack v1.4 — 2026-06-06 — Phase1: 56 Pass | Phase2 UI: 24 Pass, 1 Partial, 1 Fail, 1 N/A*
+*UAT Pack v1.3 — 2026-06-06 — automated run: 56 Pass, 0 Fail, 2 N/A*

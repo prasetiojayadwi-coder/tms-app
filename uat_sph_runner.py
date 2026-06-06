@@ -90,6 +90,17 @@ async def js(page, code):
 async def seed_base_data(page):
     await js(page, '''() => {
         loadDB();
+        const ensureUser = (u) => {
+            if (!db.users) db.users = {};
+            if (!Object.values(db.users).some(x => x && x.user === u.user)) db.users[u.id] = u;
+        };
+        [
+            { id: 1, user: 'teknisi1', pass: '123', role: 'ts', name: 'Alex Pratama', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] },
+            { id: 3, user: 'tsf1', pass: '123', role: 'tsf', name: 'Gudang (TSF)', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] },
+            { id: 97, user: 'spvbarat1', pass: '123', role: 'spv', name: 'Supervisor Barat 1', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] },
+            { id: 100, user: 'direktur', pass: '123', role: 'owner', name: 'Pak Direktur', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] },
+            { id: 101, user: 'spesialis1', pass: '123', role: 'ts_spec', name: 'Heri Avitum Specialist', status: 'active', products: ['Avitum'] }
+        ].forEach(ensureUser);
         db.spareparts = db.spareparts || [];
         const now = new Date().toISOString();
         const upsert = (artNo, desc, price, group, status) => {

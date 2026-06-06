@@ -952,6 +952,32 @@
 - [x] Deploy v6.7.5 ke GitHub Pages (`1b193f8`)
 - [x] Live terverifikasi: `release.js` v6.7.5 / build 70, `sw.js` tms-cache-v70
 
+## Phase 7.5 — Template Excel Native (v6.7.6)
+
+**Target:** v6.7.6 — file `.xlsx` satu kolom per field (bukan CSV)
+
+### Kode
+- [x] `buildExcelBlob` + `downloadExcelFile` — template & export Excel
+- [x] `BATCH_IMPORT_SCHEMAS` filename `.xlsx` (5 modul)
+- [x] Folder `templates/` — 5 file `.xlsx` referensi
+- [x] Bump `release.js` v6.7.6 / build 71
+- [x] Deploy v6.7.6 ke GitHub Pages (`39b9a23`)
+- [x] Live terverifikasi: v6.7.6 / build 71 / tms-cache-v71
+
+## Phase 7.6 — QA Menyeluruh & Runner Stability
+
+**Target:** Semua fungsi normal — 56 Pass logic + 25 Pass UI + 0 bottleneck
+
+### Verifikasi
+- [x] `cek_sistem.py` — 101 OK (handler, modul SPH, Excel, cloud)
+- [x] `audit_strict.py` — 0 bottleneck (render 89ms / 13ms)
+- [x] `uat_sph_runner.py` — 56 Pass / 0 Fail + `ensureUser` stabil
+- [x] `uat_sph_ui_runner.py` — 25 Pass / 0 Fail + LIVE-SMOKE v6.7.6
+- [x] `cek_live.py` — verifikasi live terpusat
+- [x] `cek_sistem.py` — cek live release match lokal
+- [ ] UAT-070 Supabase realtime 2 perangkat (manual)
+- [ ] Sign-off bisnis §L
+
 
 
 ---

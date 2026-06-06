@@ -125,8 +125,8 @@
     "env": "local"
   },
   "LIVE-SMOKE": {
-    "status": "fail",
-    "note": "TMS_RELEASE=6.7.5 (expected 6.7.6)",
+    "status": "pass",
+    "note": "TMS_RELEASE=6.7.6 (expected 6.7.6)",
     "env": "live"
   },
   "UAT-070": {

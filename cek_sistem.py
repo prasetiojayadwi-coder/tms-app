@@ -336,10 +336,9 @@ def check_cloud():
     else:
         bad('config.deploy.js tidak valid')
 
+    live_base = 'https://prasetiojayadwi-coder.github.io/tms-app/'
     try:
-        with urllib.request.urlopen(
-            'https://prasetiojayadwi-coder.github.io/tms-app/config.deploy.js', timeout=12
-        ) as r:
+        with urllib.request.urlopen(live_base + 'config.deploy.js', timeout=12) as r:
             body = r.read().decode('utf-8', 'replace')
             if r.status == 200 and 'supabase.co' in body:
                 ok('Aplikasi online: config.deploy.js HTTP 200')
@@ -347,6 +346,34 @@ def check_cloud():
                 warn(f'Aplikasi online tidak normal (HTTP {r.status})')
     except Exception as e:
         warn(f'Tidak bisa cek deploy online: {e}')
+
+    release_local = (ROOT / 'release.js').read_text(encoding='utf-8')
+    local_ver = re.search(r"version:\s*'([^']+)'", release_local)
+    local_build = re.search(r'build:\s*(\d+)', release_local)
+    try:
+        with urllib.request.urlopen(live_base + 'release.js', timeout=15) as r:
+            live_rel = r.read().decode('utf-8', 'replace')
+        live_ver = re.search(r"version:\s*'([^']+)'", live_rel)
+        live_build = re.search(r'build:\s*(\d+)', live_rel)
+        with urllib.request.urlopen(live_base + 'sw.js', timeout=15) as r:
+            live_sw = r.read().decode('utf-8', 'replace')
+        live_cache = re.search(r'tms-cache-v(\d+)', live_sw)
+        if local_ver and live_ver and local_ver.group(1) == live_ver.group(1):
+            ok(f'Live release.js: v{live_ver.group(1)} match lokal')
+        elif live_ver:
+            warn(f'Live v{live_ver.group(1)} tidak match lokal v{local_ver.group(1) if local_ver else "?"}')
+        if live_build and live_cache and live_build.group(1) == live_cache.group(1):
+            ok(f'Live sw.js: tms-cache-v{live_cache.group(1)} match build')
+        elif live_cache:
+            warn(f'Live cache v{live_cache.group(1)} tidak match build {live_build.group(1) if live_build else "?"}')
+        with urllib.request.urlopen(live_base + 'index.html', timeout=90) as r:
+            live_html = r.read().decode('utf-8', 'replace')
+        if 'TMS_Template_Spareparts.xlsx' in live_html and 'buildExcelBlob' in live_html:
+            ok('Live index.html: template Excel .xlsx aktif')
+        else:
+            warn('Live index.html: fitur template Excel belum terdeteksi')
+    except Exception as e:
+        warn(f'Tidak bisa verifikasi live release: {e}')
 
     audit_cloud_duplicates()
 
