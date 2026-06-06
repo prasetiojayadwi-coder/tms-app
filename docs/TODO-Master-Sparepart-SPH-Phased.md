@@ -949,7 +949,8 @@
 - [x] UAT-004 verifikasi template semicolon + parse XLSX
 - [x] Bump `release.js` v6.7.5 / build 70
 - [x] Bump `sw.js` `tms-cache-v70`
-- [ ] Deploy v6.7.5 ke GitHub Pages + verifikasi live
+- [x] Deploy v6.7.5 ke GitHub Pages (`1b193f8`)
+- [x] Live terverifikasi: `release.js` v6.7.5 / build 70, `sw.js` tms-cache-v70
 
 
 
