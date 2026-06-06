@@ -3,15 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '6.7.8',
-    build: 73,
+    version: '6.7.9',
+    build: 74,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'Batch import Excel — role matrix: Owner/SPV/Specialist penuh, TSF tools & backup saja.',
+    summary: 'Service & Repair toolbar dirapikan + import batch unit customer.',
     changes: [
-        { icon: 'fa-user-shield', text: 'Owner, Supervisor & Technical Specialist — batch import semua modul' },
-        { icon: 'fa-warehouse', text: 'TSF — batch import hanya Special Tools & Unit Backup' },
-        { icon: 'fa-file-excel', text: 'Upload wajib .xlsx — satu kolom per field di Excel' },
-        { icon: 'fa-eye-slash', text: 'Tombol import per modul disesuaikan per role' }
+        { icon: 'fa-screwdriver-wrench', text: 'Toolbar Service & Repair dirapikan — tombol konsisten & terkelompok' },
+        { icon: 'fa-file-import', text: 'Import Unit Excel + Template di halaman Service & Repair' },
+        { icon: 'fa-user-shield', text: 'Batch import role matrix — Owner/SPV/Specialist penuh, TSF tools & backup' },
+        { icon: 'fa-file-excel', text: 'Upload .xlsx — satu kolom per field' }
     ]
 };
