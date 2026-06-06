@@ -4,7 +4,7 @@
 |-------|-------|
 | **Aplikasi** | TMS — Tool Management System |
 | **Modul** | Master Sparepart, SPH Builder, SPH Log, Service & Repair |
-| **Versi UAT** | v6.7.3 |
+| **Versi UAT** | v6.7.4 |
 | **PRD Ref** | [PRD-Master-Sparepart-SPH.md](./PRD-Master-Sparepart-SPH.md) v1.4.1 |
 | **Environment** | ☐ Staging · ☑ Production (GitHub Pages) + localhost:8765 |
 | **URL** | https://prasetiojayadwi-coder.github.io/tms-app/ |
@@ -231,7 +231,7 @@
 | UAT-024 | AC-22 | P2 | SPV | ☑ Pass ☐ Fail |
 | UAT-025 | AC-33, T-25 | P3 | SPV | ☑ Pass ☐ Fail |
 | UAT-026 | — | P2 | SPV | ☑ Pass ☐ Fail |
-| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** |
+| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☑ N/A |
 
 ### UAT-020 — SPH muncul di SPH Log (Pending PO)
 
@@ -806,13 +806,12 @@
 
 | ID | UI Status | Environment | Note |
 |----|-----------|-------------|------|
-| LIVE-SMOKE | PASS | live | TMS_RELEASE=6.7.3 |
-| UAT-001 | PASS | live | live sparepart view=True |
+| UAT-001 | PASS | local | Modal Add -> Save -> DB |
 | UAT-002 | PASS | local | duplicate form validation UI |
 | UAT-005 | PASS | local | Avitum filter renders rows |
 | UAT-007 | PASS | local | edit price=2750000 |
 | UAT-016 | PASS | local | combined btn visible=True |
-| UAT-020 | PASS | live | live SPH Log view=True |
+| UAT-020 | PASS | local | SPH Log table rows=2 |
 | UAT-023 | PASS | local | filter Pending PO clicked |
 | UAT-027 | NA | local | Superseded by UAT-072 modal test |
 | UAT-034 | PASS | local | signature canvas count=2 |
@@ -893,8 +892,8 @@
 |---------|------|
 | PRD | `docs/PRD-Master-Sparepart-SPH.md` |
 | TODO per fase | `docs/TODO-Master-Sparepart-SPH-Phased.md` |
-| Release | `release.js` (v6.7.3) |
+| Release | `release.js` (v6.7.4) |
 
 ---
 
-*UAT Pack v1.4 — 2026-06-06 — Phase1: 56 Pass/2 N/A | Phase2 UI: 25 Pass/1 Partial/1 N/A*
+*UAT Pack v1.4 — 2026-06-06 — Phase1: 56 Pass/2 N/A | Phase2 UI: 24 Pass/1 Partial/1 N/A*

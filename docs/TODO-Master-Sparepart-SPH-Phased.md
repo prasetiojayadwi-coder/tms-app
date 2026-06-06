@@ -924,6 +924,18 @@
 - [x] Deploy v6.7.3 ke GitHub Pages (`5037ac9`)
 - [x] Live terverifikasi: `release.js` v6.7.3 / build 68, `sw.js` tms-cache-v68
 
+## Phase 7.3 — Render Performance Release (v6.7.4)
+
+**Target:** v6.7.4 — optimasi bottleneck render sparepart & SPH log
+
+### Kode
+- [x] `renderSparepartMaster` — `map().join('')` mengganti `innerHTML +=`
+- [x] `renderSphLog` — Map lookup tiket + batch DOM write
+- [x] `audit_strict.py` — benchmark ketat, 0 bottleneck
+- [x] Bump `release.js` v6.7.4 / build 69
+- [x] Bump `sw.js` `tms-cache-v69`
+- [ ] Deploy v6.7.4 ke GitHub Pages + verifikasi live
+
 
 
 ---

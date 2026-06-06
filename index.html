@@ -10321,8 +10321,9 @@
             const container = document.getElementById('sph-log-container');
             if (!container) return;
             container.innerHTML = '';
+            const ticketById = new Map((db.serviceTickets || []).map(t => [t.id, t]));
             const filtered = docs.filter(d => {
-                const tickets = (d.serviceTicketIds || []).map(id => (db.serviceTickets || []).find(t => t.id === id)).filter(Boolean);
+                const tickets = (d.serviceTicketIds || []).map(id => ticketById.get(id)).filter(Boolean);
                 const ticketNos = tickets.map(t => t.noService).join(' ');
                 const hay = `${d.sphNo || ''} ${d.customerName || ''} ${d.poNumber || ''} ${ticketNos}`.toLowerCase();
                 const matchQ = hay.includes(q);
@@ -10333,15 +10334,15 @@
                 container.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400 italic">No SPH records yet.</td></tr>';
                 return;
             }
-            filtered.forEach(d => {
-                const tickets = (d.serviceTicketIds || []).map(id => (db.serviceTickets || []).find(t => t.id === id)).filter(Boolean);
+            const stColors = { issued: 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400', po_received: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400', cancelled: 'bg-red-100 text-red-600' };
+            container.innerHTML = filtered.map(d => {
+                const tickets = (d.serviceTicketIds || []).map(id => ticketById.get(id)).filter(Boolean);
                 const ticketLabel = tickets.map(t => t.noService).join(', ') || '-';
                 const pathBadge = d.repairPath === 'onsite'
                     ? '<span class="px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-950/30 text-[9px] font-black text-teal-700 dark:text-teal-400 uppercase">On-Site</span>'
                     : '<span class="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950/30 text-[9px] font-black text-purple-700 dark:text-purple-400 uppercase">TSF</span>';
-                const stColors = { issued: 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400', po_received: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400', cancelled: 'bg-red-100 text-red-600' };
                 const stLabel = d.status === 'po_received' ? 'PO Received' : (d.status === 'cancelled' ? 'Cancelled' : (d.status === 'issued' ? 'Pending PO' : (d.status || 'issued')));
-                container.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
+                return `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
                     <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${d.sphNo}</td>
                     <td class="p-4 text-[12px] font-bold">${d.customerName || '-'}</td>
                     <td class="p-4">${pathBadge}</td>
@@ -10354,7 +10355,7 @@
                         <button onclick="exportSphPdf(${d.id})" class="px-3 py-1.5 bg-gray-200 dark:bg-lux-800 text-gray-800 dark:text-white font-black rounded-lg text-[9px] uppercase tracking-widest hover:bg-gray-300"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
                     </td>
                 </tr>`;
-            });
+            }).join('');
         }
 
         function canCancelSphDocument() {
@@ -10530,9 +10531,8 @@
                 container.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No spareparts yet. Add or import from Excel.</td></tr>';
                 return;
             }
-            filtered.forEach(sp => {
-                const stColors = { active: 'text-emerald-600', discontinued: 'text-amber-600', obsolete: 'text-red-500' };
-                container.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
+            const stColors = { active: 'text-emerald-600', discontinued: 'text-amber-600', obsolete: 'text-red-500' };
+            container.innerHTML = filtered.map(sp => `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
                     <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</td>
                     <td class="p-4 text-[12px] font-bold">${sp.description}</td>
                     <td class="p-4 font-mono text-[11px]">Rp ${(sp.price || 0).toLocaleString('id-ID')}</td>
@@ -10541,8 +10541,7 @@
                     <td class="p-4 text-right"><div class="flex justify-end gap-2">
                         <button onclick="openSparepartModal(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-violet-500 hover:bg-violet-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-pen text-[10px]"></i></button>
                         <button onclick="deleteSparepart(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
-                    </div></td></tr>`;
-            });
+                    </div></td></tr>`).join('');
         }
 
         function openSparepartModal(editId) {
