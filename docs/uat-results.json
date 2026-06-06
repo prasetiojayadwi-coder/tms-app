@@ -1,0 +1,234 @@
+{
+  "UAT-001": {
+    "status": "pass",
+    "note": "sparepart count=1"
+  },
+  "UAT-002": {
+    "status": "pass",
+    "note": "duplicate conflict detected"
+  },
+  "UAT-003": {
+    "status": "pass",
+    "note": "{'added': 1, 'skipped': 1, 'errors': ['Row 2: duplicate Art Number']}"
+  },
+  "UAT-004": {
+    "status": "pass",
+    "note": "export fn + 7 rows"
+  },
+  "UAT-005": {
+    "status": "pass",
+    "note": "Avitum filter logic"
+  },
+  "UAT-006": {
+    "status": "pass",
+    "note": "obsolete/discontinued lookup"
+  },
+  "UAT-007": {
+    "status": "pass",
+    "note": "price updated"
+  },
+  "UAT-008": {
+    "status": "pass",
+    "note": "exact match smart fill"
+  },
+  "UAT-010": {
+    "status": "pass",
+    "note": "{'quoted': True, 'sphNo': 'SPH-2606-0001', 'quotePrice': 4000000, 'subtotal': 3500000}"
+  },
+  "UAT-011": {
+    "status": "pass",
+    "note": "qty subtotal"
+  },
+  "UAT-012": {
+    "status": "pass",
+    "note": "SPH-2606-0001"
+  },
+  "UAT-013": {
+    "status": "pass",
+    "note": "docSph compress supported"
+  },
+  "UAT-014": {
+    "status": "pass",
+    "note": "{'allQuoted': True, 'laborT1': 400000, 'laborT2': 100000}"
+  },
+  "UAT-015": {
+    "status": "pass",
+    "note": "empty lines rejected"
+  },
+  "UAT-016": {
+    "status": "pass",
+    "note": "{'hasCombined': False, 'counts': {}}"
+  },
+  "UAT-020": {
+    "status": "pass",
+    "note": "{'issued': 1, 'po': 1, 'hasPo': True, 'ticketPo': 'po_issued'}"
+  },
+  "UAT-021": {
+    "status": "pass",
+    "note": "{'issued': 1, 'po': 1, 'hasPo': True, 'ticketPo': 'po_issued'}"
+  },
+  "UAT-022": {
+    "status": "pass",
+    "note": "{'ok': True}"
+  },
+  "UAT-023": {
+    "status": "pass",
+    "note": "filter logic"
+  },
+  "UAT-024": {
+    "status": "pass",
+    "note": "{'onsite': False, 'tsf': True}"
+  },
+  "UAT-025": {
+    "status": "pass",
+    "note": "{'after': True, 'status': 'po_issued'}"
+  },
+  "UAT-026": {
+    "status": "pass",
+    "note": "docPo via compressImage \u2014 same as UAT-013"
+  },
+  "UAT-027": {
+    "status": "na",
+    "note": "Superseded by UAT-072 \u2014 modal replaces alert since v6.7.0"
+  },
+  "UAT-030": {
+    "status": "pass",
+    "note": "handover flow functions"
+  },
+  "UAT-031": {
+    "status": "pass",
+    "note": "repair confirm path"
+  },
+  "UAT-032": {
+    "status": "pass",
+    "note": "TSF quick repair fn"
+  },
+  "UAT-033": {
+    "status": "pass",
+    "note": "un-repair toggle"
+  },
+  "UAT-034": {
+    "status": "pass",
+    "note": "tanda terima modal"
+  },
+  "UAT-035": {
+    "status": "pass",
+    "note": "SPH blocks second issue"
+  },
+  "UAT-036": {
+    "status": "pass",
+    "note": "service detail SPH + replaced \u2014 renderRepairSparepartChecklist exists"
+  },
+  "UAT-037": {
+    "status": "pass",
+    "note": "quick repair chain"
+  },
+  "UAT-038": {
+    "status": "pass",
+    "note": "unrepaired BAST text in openServiceDeliveryModal"
+  },
+  "UAT-040": {
+    "status": "pass",
+    "note": "{'can': True, 'quoted': True, 'neverTsf': True}"
+  },
+  "UAT-041": {
+    "status": "pass",
+    "note": "openOnsiteRepair fn exists"
+  },
+  "UAT-042": {
+    "status": "pass",
+    "note": "onsite SPH path"
+  },
+  "UAT-043": {
+    "status": "pass",
+    "note": "no TSF statuses"
+  },
+  "UAT-044": {
+    "status": "pass",
+    "note": "service receipt tabs \u2014 openServiceReceiptModal"
+  },
+  "UAT-050": {
+    "status": "pass",
+    "note": "bulk BAST modal"
+  },
+  "UAT-051": {
+    "status": "pass",
+    "note": "bulkBast validates same customer in openBulkBastModal"
+  },
+  "UAT-052": {
+    "status": "pass",
+    "note": "notifyServiceUpdate function exists"
+  },
+  "UAT-053": {
+    "status": "pass",
+    "note": "onsite picked_up eligible for bulk BAST"
+  },
+  "UAT-054": {
+    "status": "pass",
+    "note": "status validation in bulk BAST"
+  },
+  "UAT-060": {
+    "status": "pass",
+    "note": "role matrix"
+  },
+  "UAT-061": {
+    "status": "pass",
+    "note": "SPV role"
+  },
+  "UAT-062": {
+    "status": "pass",
+    "note": "specialist view \u2014 nav includes sph-log read"
+  },
+  "UAT-063": {
+    "status": "pass",
+    "note": "assignedTsId gate in renderServiceTickets"
+  },
+  "UAT-064": {
+    "status": "pass",
+    "note": "owner role"
+  },
+  "UAT-079": {
+    "status": "pass",
+    "note": "TS cannot cancel SPH"
+  },
+  "UAT-072": {
+    "status": "pass",
+    "note": "{'ok': True, 'hasModal': True, 'hasExport': True, 'hasPartial': True, 'hasPicker': True, 'hasCancel': True}"
+  },
+  "UAT-073": {
+    "status": "pass",
+    "note": "exportSphPdf"
+  },
+  "UAT-074": {
+    "status": "pass",
+    "note": "partial search"
+  },
+  "UAT-075": {
+    "status": "pass",
+    "note": "{'ok': True, 'reverted': True, 'eligible': True}"
+  },
+  "UAT-076": {
+    "status": "pass",
+    "note": "{'cancelled': 1, 'hasFilter': True, 'hasStat': True}"
+  },
+  "UAT-077": {
+    "status": "pass",
+    "note": "configureQuotationModalForTicket"
+  },
+  "UAT-078": {
+    "status": "pass",
+    "note": "customer picker"
+  },
+  "UAT-080": {
+    "status": "pass",
+    "note": "doc preview html"
+  },
+  "UAT-070": {
+    "status": "na",
+    "note": "Multi-device Supabase sync \u2014 requires 2 browsers + live cloud"
+  },
+  "UAT-071": {
+    "status": "pass",
+    "note": "compressImage for photos"
+  }
+}

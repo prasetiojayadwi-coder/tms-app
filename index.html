@@ -3111,7 +3111,7 @@
                 97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
                 98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
                 99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
-                100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
+                100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "086666666", group: "TSF/Gudang", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
                 101: { id: 101, user: "spesialis1", pass: "123", role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum", email: "heri@rs.com", phone: "083333333", group: "TSF/Gudang", status: "active", products: ["Avitum"] },
                 102: { id: 102, user: "spesialis2", pass: "123", role: "ts_spec", name: "Deni Hospital Care Specialist", nik: "3002", jabatan: "Technical Specialist Hospital Care/Aesculap", email: "deni@rs.com", phone: "084444444", group: "TSF/Gudang", status: "active", products: ["Hospital Care", "Aesculap"] },
                 103: { id: 103, user: "spesialis", pass: "123", role: "ts_spec", name: "Budi All Specialist", nik: "3003", jabatan: "Technical Specialist", email: "budi@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] }
@@ -3585,6 +3585,7 @@
             if (tb !== ta) return tb > ta ? b : a;
             return (b.id || 0) >= (a.id || 0) ? b : a;
         }
+        let _lastAllocatedId = 0;
         function allocateUniqueId() {
             const ids = [];
             Object.keys(db.users || {}).forEach(k => {
@@ -3602,7 +3603,10 @@
             (db.messages || []).forEach(x => x && x.id && ids.push(x.id));
             (db.historyLog || []).forEach(x => x && x.id && ids.push(x.id));
             const max = ids.length ? Math.max(...ids) : 0;
-            return Math.max(max + 1, Date.now());
+            const base = Math.max(max + 1, Date.now());
+            if (base > _lastAllocatedId) _lastAllocatedId = base;
+            else _lastAllocatedId += 1;
+            return _lastAllocatedId;
         }
         function dedupeById(arr) {
             const map = new Map();
@@ -4168,7 +4172,7 @@
                     97: { id: 97, user: "spvbarat1", pass: "123", role: "spv", name: "Supervisor Barat 1", nik: "9002", jabatan: "Supervisor Barat 1", email: "spv1@rs.com", phone: "081111111", group: "Barat 1", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
                     98: { id: 98, user: "spvbarat2", pass: "123", role: "spv", name: "Supervisor Barat 2", nik: "9003", jabatan: "Supervisor Barat 2", email: "spv2@rs.com", phone: "082222222", group: "Barat 2", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
                     99: { id: 99, user: "admin", pass: "admin", role: "spv", name: "David Supervisor", nik: "9001", jabatan: "Head of Tech", email: "david@rs.com", phone: "089999999", group: "Timur/Tengah", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
-                    100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
+                    100: { id: 100, user: "direktur", pass: "123", role: "owner", name: "Pak Direktur", nik: "1000", jabatan: "Director", email: "director@rs.com", phone: "086666666", group: "TSF/Gudang", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] },
                     101: { id: 101, user: "spesialis1", pass: "123", role: "ts_spec", name: "Heri Avitum Specialist", nik: "3001", jabatan: "Technical Specialist Avitum", email: "heri@rs.com", phone: "083333333", group: "TSF/Gudang", status: "active", products: ["Avitum"] },
                     102: { id: 102, user: "spesialis2", pass: "123", role: "ts_spec", name: "Deni Hospital Care Specialist", nik: "3002", jabatan: "Technical Specialist Hospital Care/Aesculap", email: "deni@rs.com", phone: "084444444", group: "TSF/Gudang", status: "active", products: ["Hospital Care", "Aesculap"] },
                     103: { id: 103, user: "spesialis", pass: "123", role: "ts_spec", name: "Budi All Specialist", nik: "3003", jabatan: "Technical Specialist", email: "budi@rs.com", phone: "085555555", group: "TSF/Gudang", status: "active", products: ["Avitum", "Hospital Care", "Aesculap"] }

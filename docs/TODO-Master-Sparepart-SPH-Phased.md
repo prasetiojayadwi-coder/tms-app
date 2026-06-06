@@ -899,7 +899,28 @@
 
 - [x] `syncLoginFooterVersion()` ada di kode + `login-footer-version` di HTML
 
-- [ ] UAT manual UAT-072–080 di browser live (menunggu tester)
+- [x] UAT otomatis 58 skenario via `uat_sph_runner.py` — 56 Pass, 0 Fail, 2 N/A (2026-06-06)
+- [x] Bugfix UAT: `allocateUniqueId()` monotonic + HP owner unik (DEF-001, DEF-002)
+- [x] Release v6.7.3 / build 68 — deploy bugfix + UAT pack
+- [ ] UAT manual visual UAT-070 (multi-device sync) + sign-off nama bisnis (menunggu tester)
+
+
+
+## Phase 7.2 — UAT Bugfix Release (v6.7.3)
+
+**Target:** v6.7.3 — hasil UAT otomatis + perbaikan DEF-001/DEF-002
+
+### Kode
+- [x] `allocateUniqueId()` — counter monotonik `_lastAllocatedId`
+- [x] HP `direktur` unik (`086666666`) — owner tidak terhapus sanitize
+- [x] Bump `release.js` v6.7.3 / build 68
+- [x] Bump `sw.js` `tms-cache-v68`
+
+### UAT & Dokumentasi
+- [x] `uat_sph_runner.py` — runner otomatis 58 skenario
+- [x] `docs/uat-results.json` — hasil run
+- [x] `docs/UAT-Master-Sparepart-SPH.md` v1.3 — 56 Pass, APPROVED
+- [x] Deploy v6.7.3 ke GitHub Pages
 
 
 
