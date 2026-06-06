@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script>window.TMS_CONFIG = window.TMS_CONFIG || {};</script>
     <script src="release.js"></script>
     <script src="config.deploy.js"></script>
@@ -78,6 +79,12 @@
         .pr-12 { padding-right: 3rem !important; }
         
         .input-field:focus { @apply border-gold-500 ring-1 ring-gold-500/50; }
+
+        .cust-mobile-tab-active { @apply bg-white dark:bg-lux-900 text-gray-900 dark:text-white shadow-sm; }
+        .cust-mobile-tab-inactive { @apply text-gray-500 dark:text-lux-400; }
+        @media (max-width: 767px) {
+            #view-customer-master .cust-touch-btn { min-height: 44px; }
+        }
         .input-field::placeholder { @apply text-gray-400 dark:text-[#52525b] font-medium; }
         .input-field:disabled, .input-field[readonly] { @apply bg-gray-100 dark:bg-[#0f0f11] text-gold-600 dark:text-gold-500 cursor-not-allowed border-gray-200 dark:border-gold-500/30; opacity: 1; }
         
@@ -794,6 +801,7 @@
                         <div class="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto shrink-0">
                             <button onclick="bulkPrintSpvStickers()" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-gold-500 text-gold-600 dark:text-gold-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-print mr-1.5 sm:mr-2"></i> Cetak Stiker</button>
                             <button onclick="exportToCSV('tools')" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5 sm:mr-2"></i> Ekspor CSV</button>
+                            <button onclick="openBatchImportModal('tool')" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
                             <button id="btn-bulk-delete-tools" onclick="bulkDeleteSpvAssets()" class="hidden flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-1.5 sm:mr-2"></i> Delete Selected</button>
                             <button id="btn-add-tool-spv" onclick="openFormModal('tool')" class="flex-1 md:flex-none bg-gold-500 text-white dark:text-black font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5 sm:mr-2"></i> Add Asset</button>
                         </div>
@@ -829,6 +837,7 @@
                     <div class="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto shrink-0">
                         <button onclick="bulkPrintDemoStickers()" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-print mr-1.5 sm:mr-2"></i> Cetak Stiker</button>
                         <button onclick="exportToCSV('demo')" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5 sm:mr-2"></i> Ekspor CSV</button>
+                        <button onclick="openBatchImportModal('demo')" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
                         <button id="btn-bulk-delete-demo" onclick="bulkDeleteDemoAssets()" class="hidden flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-1.5 sm:mr-2"></i> Delete Selected</button>
                         <button id="btn-add-demo" onclick="openFormModal('demo')" class="hidden flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(5,150,105,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5 sm:mr-2"></i> Add Backup Unit</button>
                     </div>
@@ -849,46 +858,59 @@
             </section>
 
             <!-- MASTER DATA CUSTOMER & UNIT -->
-            <section id="view-customer-master" class="app-view hidden flex-col gap-6 animate-fade-in max-w-7xl mx-auto w-full">
-                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 shadow-sm dark:shadow-xl">
+            <section id="view-customer-master" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in max-w-7xl mx-auto w-full">
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
                     <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-blue-600 dark:text-blue-400"><i class="fa-solid fa-hospital mr-2"></i> Customer Master Data</h2>
                     <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Manage hospital/customer data and medical unit records. Auto-linked to Customer Service & Repair module.</p>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-5">
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-4 rounded-xl"><p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total Customers</p><p class="text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-total">0</p></div>
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-4 rounded-xl"><p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total Unit</p><p class="text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-units">0</p></div>
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-4 rounded-xl col-span-2 sm:col-span-1"><p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active Customers</p><p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="cust-stat-active">0</p></div>
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-5">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Customers</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-total">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Units</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-units">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="cust-stat-active">0</p></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <button onclick="openBatchImportModal('customer')" class="cust-touch-btn flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
+                        <button onclick="openBatchImportModal('customer-unit')" class="cust-touch-btn flex-1 sm:flex-none bg-indigo-500 hover:bg-indigo-600 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
+                        <button onclick="downloadBatchTemplate('customer')" class="cust-touch-btn flex-1 sm:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 min-h-0">
-                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[420px]">
-                        <div class="p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+
+                <div id="cust-mobile-tabs" class="md:hidden flex gap-1 p-1 bg-gray-100 dark:bg-lux-800 rounded-xl sticky top-0 z-10">
+                    <button type="button" id="cust-tab-customers" onclick="setCustMasterMobileTab('customers')" class="cust-touch-btn flex-1 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest cust-mobile-tab-active transition"><i class="fa-solid fa-building mr-1.5"></i> Customers</button>
+                    <button type="button" id="cust-tab-units" onclick="setCustMasterMobileTab('units')" class="cust-touch-btn flex-1 py-3 rounded-lg text-[11px] font-black uppercase tracking-widest cust-mobile-tab-inactive transition"><i class="fa-solid fa-microscope mr-1.5"></i> Units</button>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 min-h-0">
+                    <div id="cust-panel-customers" class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[320px] md:min-h-[420px]">
+                        <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col gap-3">
                             <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-building text-blue-500 mr-2"></i> Customer / Hospital Data</h3>
-                            <div class="flex gap-2 w-full sm:w-auto">
-                                <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 sm:w-48 text-[12px]" placeholder="Search customer...">
-                                <button onclick="openCustomerModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
+                            <div class="flex flex-col sm:flex-row gap-2 sm:items-center">
+                                <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 text-[12px]" placeholder="Search customer, PIC, city...">
+                                <button onclick="openCustomerModal()" class="cust-touch-btn bg-blue-600 hover:bg-blue-700 text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add Customer</button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto flex-1">
+                        <div id="customers-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
+                        <div class="hidden md:block overflow-x-auto flex-1">
                             <table class="w-full text-left text-[12px]">
                                 <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400 sticky top-0">
-                                    <tr><th class="p-4">Kode / Nama RS</th><th class="p-4">PIC</th><th class="p-4">Kontak</th><th class="p-4 text-center">Unit</th><th class="p-4 text-right">Aksi</th></tr>
+                                    <tr><th class="p-4">Code / Hospital</th><th class="p-4">PIC</th><th class="p-4">Contact</th><th class="p-4 text-center">Units</th><th class="p-4 text-right">Actions</th></tr>
                                 </thead>
                                 <tbody id="customers-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
                             </table>
                         </div>
                     </div>
-                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[420px]">
-                        <div class="p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <div id="cust-panel-units" class="max-md:hidden bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[320px] md:min-h-[420px]">
+                        <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col gap-3">
                             <div>
                                 <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Customer Units</h3>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer on the left to view units</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer to view units</p>
                             </div>
-                            <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add Unit</button>
+                            <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="cust-touch-btn w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add Unit</button>
                         </div>
-                        <div class="overflow-x-auto flex-1">
+                        <div id="customer-units-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
+                        <div class="hidden md:block overflow-x-auto flex-1">
                             <table class="w-full text-left text-[12px]">
                                 <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400 sticky top-0">
-                                    <tr><th class="p-4">Unit / SN</th><th class="p-4">Product</th><th class="p-4">Merk / Tipe</th><th class="p-4">Status</th><th class="p-4 text-right">Aksi</th></tr>
+                                    <tr><th class="p-4">Unit / SN</th><th class="p-4">Product</th><th class="p-4">Brand / Type</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th></tr>
                                 </thead>
                                 <tbody id="customer-units-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
                             </table>
@@ -1743,6 +1765,39 @@
                     <button type="submit" id="btn-save-cust-unit" class="px-8 py-4 bg-emerald-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-emerald-700 transition">Save Unit</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal: Batch Import Excel -->
+    <div id="batchImportModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto mt-4 mb-4">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-5 sm:p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] sticky top-0 z-20">
+                <h3 class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white" id="batch-import-title"><i class="fa-solid fa-file-import text-indigo-500 mr-2"></i> Batch Import</h3>
+                <button type="button" onclick="closeModal('batchImportModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 sm:p-8 space-y-5">
+                <p class="text-[12px] text-gray-600 dark:text-lux-400 font-medium leading-relaxed" id="batch-import-desc">Upload Excel (.xlsx, .xls) or CSV. One field per column — use the template for the correct column order.</p>
+                <div class="bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/40 rounded-xl p-4">
+                    <p class="text-[9px] text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-widest mb-2">Required Columns</p>
+                    <p class="text-[11px] font-mono text-gray-700 dark:text-lux-300 break-all leading-relaxed" id="batch-import-columns"></p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="button" onclick="downloadBatchTemplate(_batchImportType)" class="flex-1 py-3.5 bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-indigo-500 text-gray-700 dark:text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition"><i class="fa-solid fa-download mr-2"></i> Download Template</button>
+                    <label class="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-upload"></i> Choose File
+                        <input type="file" id="batch-import-file" accept=".xlsx,.xls,.csv" onchange="previewBatchImportFile(event)" class="hidden">
+                    </label>
+                </div>
+                <div id="batch-import-preview" class="hidden bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-xl p-4 max-h-48 overflow-y-auto custom-scrollbar">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-lux-400 mb-2">Preview</p>
+                    <div id="batch-import-preview-body" class="text-[11px] text-gray-700 dark:text-lux-300 space-y-1"></div>
+                </div>
+                <div id="batch-import-error" class="text-[10px] text-red-500 font-bold hidden"></div>
+                <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-lux-800 gap-3">
+                    <button type="button" onclick="closeModal('batchImportModal')" class="px-6 py-3.5 bg-gray-100 dark:bg-lux-800 text-gray-700 dark:text-white font-black text-[11px] uppercase tracking-widest rounded-xl">Cancel</button>
+                    <button type="button" id="btn-run-batch-import" onclick="runBatchImport()" disabled class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-[11px] uppercase tracking-widest rounded-xl transition">Import Data</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -4234,7 +4289,7 @@
             } 
         });
 
-        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let selectedCustomerId = null; let _svcHistoryIndex = null; let _custMasterSearchTimer = null;
+        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null;
         let knownRequestIds = null;
         let previousRequestStates = null;
         let previousServiceTicketStates = null;
@@ -9305,6 +9360,333 @@
             return `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border whitespace-nowrap ${cls}">${custUnitStatusLabel(st)}</span>`;
         }
 
+        const BATCH_IMPORT_SCHEMAS = {
+            customer: {
+                title: 'Import Customers',
+                desc: 'Upload customer/hospital data. Code is auto-generated. Required: Customer Name, PIC, Phone.',
+                columns: ['Customer Name', 'PIC', 'Phone', 'Email', 'City', 'Address', 'Notes'],
+                required: ['Customer Name', 'PIC', 'Phone'],
+                filename: 'TMS_Template_Customers.csv'
+            },
+            'customer-unit': {
+                title: 'Import Customer Units',
+                desc: 'Upload unit records. Link each row to a customer via Customer Code or Customer Name. Required: Unit Name + customer reference.',
+                columns: ['Customer Code', 'Customer Name', 'Art Number', 'Product', 'Unit Name', 'Serial Number', 'Merk', 'Type', 'Location', 'Status', 'Notes'],
+                required: ['Unit Name'],
+                filename: 'TMS_Template_Customer_Units.csv'
+            },
+            tool: {
+                title: 'Import Special Tools',
+                desc: 'Upload special tools inventory. Inventory No. is auto-generated if empty. Required: Description, Category.',
+                columns: ['Inventory No', 'Art Number', 'Description', 'Category', 'Serial Number', 'Merk', 'Type', 'Condition', 'PIC Username', 'Buy Date', 'Cal Date', 'Price'],
+                required: ['Description', 'Category'],
+                filename: 'TMS_Template_Special_Tools.csv'
+            },
+            demo: {
+                title: 'Import Backup Units',
+                desc: 'Upload backup/demo unit records. Inventory No. is auto-generated if empty. Required: Description, Category.',
+                columns: ['Inventory No', 'Art Number', 'Description', 'Category', 'Serial Number', 'Merk', 'Type', 'Condition', 'Buy Date', 'Cal Date', 'Price', 'Reason'],
+                required: ['Description', 'Category'],
+                filename: 'TMS_Template_Backup_Units.csv'
+            }
+        };
+
+        const BATCH_HEADER_ALIASES = {
+            'customer name': 'Customer Name', 'nama customer': 'Customer Name', 'nama rs': 'Customer Name', 'hospital name': 'Customer Name', 'nama rumah sakit': 'Customer Name',
+            'pic': 'PIC', 'person in charge': 'PIC', 'penanggung jawab': 'PIC',
+            'phone': 'Phone', 'kontak': 'Phone', 'contact': 'Phone', 'no hp': 'Phone', 'telepon': 'Phone',
+            'email': 'Email', 'kota': 'City', 'city': 'City', 'alamat': 'Address', 'address': 'Address', 'notes': 'Notes', 'catatan': 'Notes',
+            'customer code': 'Customer Code', 'kode customer': 'Customer Code', 'kode': 'Customer Code',
+            'art number': 'Art Number', 'art no': 'Art Number', 'no art': 'Art Number',
+            'product': 'Product', 'kategori produk': 'Product', 'produk': 'Product',
+            'unit name': 'Unit Name', 'nama unit': 'Unit Name', 'deskripsi unit': 'Unit Name',
+            'serial number': 'Serial Number', 'sn': 'Serial Number', 'no seri': 'Serial Number',
+            'merk': 'Merk', 'brand': 'Merk', 'type': 'Type', 'tipe': 'Type', 'model': 'Type',
+            'location': 'Location', 'lokasi': 'Location', 'status': 'Status',
+            'inventory no': 'Inventory No', 'no inv': 'Inventory No', 'no inventaris': 'Inventory No',
+            'description': 'Description', 'deskripsi': 'Description', 'nama alat': 'Description',
+            'category': 'Category', 'kategori': 'Category', 'subkategori': 'Category', 'sub category': 'Category',
+            'condition': 'Condition', 'kondisi': 'Condition', 'kondisi fisik': 'Condition',
+            'pic username': 'PIC Username', 'username pic': 'PIC Username', 'teknisi': 'PIC Username', 'penanggung jawab awal': 'PIC Username',
+            'buy date': 'Buy Date', 'tanggal pembelian': 'Buy Date', 'cal date': 'Cal Date', 'tanggal kalibrasi': 'Cal Date',
+            'price': 'Price', 'harga': 'Price', 'reason': 'Reason', 'tujuan': 'Reason', 'alasan': 'Reason'
+        };
+
+        function normalizeImportHeaderKey(h) {
+            return (h || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+
+        function normalizeImportRow(rawRow, schema) {
+            const out = {};
+            schema.columns.forEach(col => { out[col] = ''; });
+            Object.keys(rawRow || {}).forEach(key => {
+                const alias = BATCH_HEADER_ALIASES[normalizeImportHeaderKey(key)] || key.trim();
+                const target = schema.columns.includes(alias) ? alias : (schema.columns.find(c => normalizeImportHeaderKey(c) === normalizeImportHeaderKey(key)) || null);
+                if (target) out[target] = String(rawRow[key] ?? '').trim();
+            });
+            return out;
+        }
+
+        function canBatchImportAssets() {
+            const r = currentUser?.role;
+            return r === 'spv' || r === 'owner' || r === 'tsf' || r === 'ts_spec' || r === 'ts_spec_avitum' || r === 'ts_spec_ais';
+        }
+
+        function openBatchImportModal(type) {
+            const schema = BATCH_IMPORT_SCHEMAS[type];
+            if (!schema) return;
+            if ((type === 'tool' || type === 'demo') && !canBatchImportAssets()) {
+                showToast('Access Denied', 'Batch import for assets requires Supervisor, Owner, or Specialist role.', 'error');
+                return;
+            }
+            _batchImportType = type;
+            _batchImportRows = [];
+            document.getElementById('batch-import-title').innerHTML = `<i class="fa-solid fa-file-import text-indigo-500 mr-2"></i> ${schema.title}`;
+            document.getElementById('batch-import-desc').innerText = schema.desc;
+            document.getElementById('batch-import-columns').innerText = schema.columns.join(' | ');
+            const fileInput = document.getElementById('batch-import-file');
+            if (fileInput) fileInput.value = '';
+            const preview = document.getElementById('batch-import-preview');
+            const errEl = document.getElementById('batch-import-error');
+            const btn = document.getElementById('btn-run-batch-import');
+            if (preview) preview.classList.add('hidden');
+            if (errEl) { errEl.classList.add('hidden'); errEl.innerHTML = ''; }
+            if (btn) { btn.disabled = true; btn.innerText = 'Import Data'; }
+            openModal('batchImportModal');
+        }
+
+        function downloadBatchTemplate(type) {
+            const schema = BATCH_IMPORT_SCHEMAS[type || _batchImportType];
+            if (!schema) return;
+            const bom = '\uFEFF';
+            const csv = bom + schema.columns.join(',') + '\n';
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = schema.filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            showToast('Template Ready', `${schema.filename} downloaded. Fill one value per column.`, 'success');
+        }
+
+        function previewBatchImportFile(e) {
+            const file = e.target.files && e.target.files[0];
+            const schema = BATCH_IMPORT_SCHEMAS[_batchImportType];
+            const errEl = document.getElementById('batch-import-error');
+            const btn = document.getElementById('btn-run-batch-import');
+            const preview = document.getElementById('batch-import-preview');
+            const previewBody = document.getElementById('batch-import-preview-body');
+            if (!file || !schema) return;
+            if (typeof XLSX === 'undefined') {
+                if (errEl) { errEl.innerText = 'Excel library not loaded. Please refresh the page.'; errEl.classList.remove('hidden'); }
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = new Uint8Array(ev.target.result);
+                    const wb = XLSX.read(data, { type: 'array' });
+                    const sheet = wb.Sheets[wb.SheetNames[0]];
+                    const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    _batchImportRows = rawRows.map(r => normalizeImportRow(r, schema)).filter(r => Object.values(r).some(v => v));
+                    if (!_batchImportRows.length) {
+                        if (errEl) { errEl.innerText = 'No data rows found. Check column headers match the template.'; errEl.classList.remove('hidden'); }
+                        if (btn) btn.disabled = true;
+                        if (preview) preview.classList.add('hidden');
+                        return;
+                    }
+                    if (errEl) errEl.classList.add('hidden');
+                    if (preview && previewBody) {
+                        preview.classList.remove('hidden');
+                        const sample = _batchImportRows.slice(0, 5).map((r, i) => {
+                            const label = r['Customer Name'] || r['Unit Name'] || r['Description'] || r['Inventory No'] || `Row ${i + 1}`;
+                            return `<p class="truncate"><span class="font-bold text-indigo-600 dark:text-indigo-400">#${i + 1}</span> ${label}</p>`;
+                        }).join('');
+                        previewBody.innerHTML = `<p class="font-bold mb-2">${_batchImportRows.length} row(s) ready to import</p>${sample}${_batchImportRows.length > 5 ? '<p class="text-gray-400 italic">...and more</p>' : ''}`;
+                    }
+                    if (btn) btn.disabled = false;
+                } catch (err) {
+                    console.error(err);
+                    if (errEl) { errEl.innerText = 'Failed to read file. Use .xlsx, .xls, or .csv with template columns.'; errEl.classList.remove('hidden'); }
+                    if (btn) btn.disabled = true;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function mapImportUnitStatus(val) {
+            const v = (val || '').toLowerCase();
+            if (v.includes('service')) return 'in_service';
+            if (v.includes('retire') || v.includes('inactive') || v.includes('nonaktif')) return 'retired';
+            return 'active';
+        }
+
+        function mapImportCondition(val) {
+            const v = (val || '').toLowerCase();
+            return (v.includes('rusak') || v === 'bad' || v === 'broken') ? 'Rusak' : 'Baik';
+        }
+
+        function resolveImportOwnerId(picStr) {
+            if (!picStr) return 0;
+            const key = picStr.trim().toLowerCase();
+            const user = Object.values(db.users || {}).find(u => u && (normUserKey(u.user) === key || normUserKey(u.name) === key));
+            return user ? user.id : 0;
+        }
+
+        function findCustomerByImportRef(code, name) {
+            const customers = db.customers || [];
+            if (code) {
+                const c = customers.find(x => normInvKey(x.code) === normInvKey(code));
+                if (c) return c;
+            }
+            if (name) {
+                const key = normUserKey(name);
+                const c = customers.find(x => normUserKey(x.name) === key);
+                if (c) return c;
+            }
+            return null;
+        }
+
+        function reserveInvNumber(isDemo, preferred) {
+            if (preferred && !findBackupUnitConflicts({ noInv: preferred }, null).length) return preferred;
+            return generateInvNumber(isDemo);
+        }
+
+        function importCustomersBatch(rows) {
+            let added = 0, skipped = 0;
+            const errors = [];
+            db.customers = db.customers || [];
+            rows.forEach((row, idx) => {
+                const name = row['Customer Name'];
+                const pic = row['PIC'];
+                const phone = row['Phone'];
+                if (!name || !pic || !phone) { skipped++; errors.push(`Row ${idx + 1}: missing required fields`); return; }
+                const conflicts = findCustomerConflicts({ name, contact: phone, email: row['Email'] || '' }, null);
+                if (conflicts.length) { skipped++; errors.push(`Row ${idx + 1}: ${conflicts[0].label} duplicate`); return; }
+                const now = new Date().toISOString();
+                db.customers.push({
+                    id: allocateUniqueId(),
+                    code: generateCustomerCode(),
+                    name, picName: pic, contact: phone,
+                    email: row['Email'] || '', city: row['City'] || '', address: row['Address'] || '', notes: row['Notes'] || '',
+                    status: 'active', updatedAt: now
+                });
+                added++;
+            });
+            return { added, skipped, errors };
+        }
+
+        function importCustomerUnitsBatch(rows) {
+            let added = 0, skipped = 0;
+            const errors = [];
+            db.customerUnits = db.customerUnits || [];
+            rows.forEach((row, idx) => {
+                const unitName = row['Unit Name'];
+                const cust = findCustomerByImportRef(row['Customer Code'], row['Customer Name']) || (selectedCustomerId ? (db.customers || []).find(c => c.id === selectedCustomerId) : null);
+                if (!unitName) { skipped++; errors.push(`Row ${idx + 1}: Unit Name required`); return; }
+                if (!cust) { skipped++; errors.push(`Row ${idx + 1}: customer not found`); return; }
+                const product = normalizeProductCategory(row['Product'] || TMS_PRODUCT_CATEGORIES[0]);
+                if (!TMS_PRODUCT_CATEGORIES.includes(product)) { skipped++; errors.push(`Row ${idx + 1}: invalid Product`); return; }
+                const fields = { artNo: row['Art Number'] || '', unitSn: row['Serial Number'] || '' };
+                if (findCustomerUnitConflicts(fields, null, cust.id).length) { skipped++; errors.push(`Row ${idx + 1}: duplicate Art No / SN`); return; }
+                const now = new Date().toISOString();
+                db.customerUnits.push({
+                    id: allocateUniqueId(), customerId: cust.id,
+                    artNo: fields.artNo, product, unitName,
+                    unitSn: fields.unitSn, unitMerk: row['Merk'] || '', unitTipe: row['Type'] || '',
+                    location: row['Location'] || '', status: mapImportUnitStatus(row['Status']),
+                    notes: row['Notes'] || '', updatedAt: now
+                });
+                added++;
+            });
+            return { added, skipped, errors };
+        }
+
+        function importToolsBatch(rows, isDemo) {
+            let added = 0, skipped = 0;
+            const errors = [];
+            const arr = isDemo ? (db.demoUnits = db.demoUnits || []) : (db.tools = db.tools || []);
+            rows.forEach((row, idx) => {
+                const desc = row['Description'];
+                const subCat = normalizeProductCategory(row['Category'] || '');
+                if (!desc) { skipped++; errors.push(`Row ${idx + 1}: Description required`); return; }
+                if (!TMS_PRODUCT_CATEGORIES.includes(subCat)) { skipped++; errors.push(`Row ${idx + 1}: invalid Category`); return; }
+                const noInv = reserveInvNumber(isDemo, row['Inventory No'] || '');
+                const artNo = row['Art Number'] || '';
+                const sn = row['Serial Number'] || '-';
+                const conflicts = findBackupUnitConflicts({ noInv, artNo: isDemo ? artNo : '', sn: sn !== '-' ? sn : '' }, null);
+                if (conflicts.length) { skipped++; errors.push(`Row ${idx + 1}: ${conflicts[0].label} duplicate`); return; }
+                const ownerId = isDemo ? 0 : resolveImportOwnerId(row['PIC Username']);
+                const now = new Date().toISOString();
+                arr.push({
+                    id: allocateUniqueId(), noInv, artNo, desc,
+                    merk: row['Merk'] || '-', tipe: row['Type'] || '', sn,
+                    ownerId, condition: mapImportCondition(row['Condition']),
+                    buyDate: row['Buy Date'] || '', price: row['Price'] || '', calDate: row['Cal Date'] || '',
+                    status: 'good', category: isDemo ? 'demo' : 'standard', subCategory: subCat,
+                    reason: isDemo ? (row['Reason'] || 'Standby Gudang') : '',
+                    maintenanceStatus: '', history: [{ t: now, m: 'Imported via batch Excel.' }],
+                    photo: null, updatedAt: now
+                });
+                added++;
+            });
+            return { added, skipped, errors };
+        }
+
+        function runBatchImport() {
+            if (!_batchImportType || !_batchImportRows.length) return;
+            loadDB();
+            const btn = document.getElementById('btn-run-batch-import');
+            if (btn) { btn.disabled = true; btn.innerText = 'Importing...'; }
+            let result;
+            if (_batchImportType === 'customer') result = importCustomersBatch(_batchImportRows);
+            else if (_batchImportType === 'customer-unit') result = importCustomerUnitsBatch(_batchImportRows);
+            else if (_batchImportType === 'tool') result = importToolsBatch(_batchImportRows, false);
+            else if (_batchImportType === 'demo') result = importToolsBatch(_batchImportRows, true);
+            else return;
+
+            if (result.added > 0) {
+                addToHistory(`${currentUser.name.split(' ')[0]} batch-imported ${result.added} ${_batchImportType} record(s).`);
+                saveDB();
+                updateData();
+                invalidateServiceHistoryIndex();
+            }
+            closeModal('batchImportModal');
+            const errNote = result.errors.length ? ` ${result.errors.length} issue(s) — check skipped rows.` : '';
+            showToast('Import Complete', `${result.added} added, ${result.skipped} skipped.${errNote}`, result.added ? 'success' : 'error');
+            if (_batchImportType === 'customer' || _batchImportType === 'customer-unit') renderCustomerMaster();
+            if (btn) btn.innerText = 'Import Data';
+        }
+
+        function setCustMasterMobileTab(tab) {
+            custMasterMobileTab = tab;
+            const custPanel = document.getElementById('cust-panel-customers');
+            const unitPanel = document.getElementById('cust-panel-units');
+            const tabCust = document.getElementById('cust-tab-customers');
+            const tabUnits = document.getElementById('cust-tab-units');
+            if (window.innerWidth < 768) {
+                if (tab === 'customers') {
+                    custPanel?.classList.remove('max-md:hidden');
+                    unitPanel?.classList.add('max-md:hidden');
+                    tabCust?.classList.add('cust-mobile-tab-active');
+                    tabCust?.classList.remove('cust-mobile-tab-inactive');
+                    tabUnits?.classList.remove('cust-mobile-tab-active');
+                    tabUnits?.classList.add('cust-mobile-tab-inactive');
+                } else {
+                    unitPanel?.classList.remove('max-md:hidden');
+                    custPanel?.classList.add('max-md:hidden');
+                    tabUnits?.classList.add('cust-mobile-tab-active');
+                    tabUnits?.classList.remove('cust-mobile-tab-inactive');
+                    tabCust?.classList.remove('cust-mobile-tab-active');
+                    tabCust?.classList.add('cust-mobile-tab-inactive');
+                }
+            } else {
+                custPanel?.classList.remove('max-md:hidden');
+                unitPanel?.classList.remove('max-md:hidden');
+            }
+        }
+
         function debouncedRenderCustomerMaster() {
             clearTimeout(_custMasterSearchTimer);
             _custMasterSearchTimer = setTimeout(renderCustomerMaster, 200);
@@ -9356,22 +9738,27 @@
             if (statActive) statActive.innerText = customers.filter(c => (c.status || 'active') === 'active').length;
 
             const container = document.getElementById('customers-container');
+            const cardsMobile = document.getElementById('customers-cards-mobile');
             if (!container) return;
             container.innerHTML = '';
+            if (cardsMobile) cardsMobile.innerHTML = '';
 
             const filtered = customers.filter(c => {
                 const hay = `${c.code || ''} ${c.name || ''} ${c.picName || ''} ${c.contact || ''} ${c.city || ''}`.toLowerCase();
                 return hay.includes(q);
             });
 
+            const emptyMsg = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No customers yet. Tap Add Customer or Import Excel.</p>`;
             if (!filtered.length) {
-                container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Belum ada data customer. Klik Tambah untuk mulai.</td></tr>`;
+                container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">No customers yet. Click Add Customer or Import Excel.</td></tr>`;
+                if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
             }
 
             filtered.forEach(c => {
                 const unitCount = units.filter(u => u.customerId === c.id).length;
                 const isSelected = selectedCustomerId === c.id;
                 const rowCls = isSelected ? 'bg-blue-50/80 dark:bg-blue-950/20' : '';
+                const cardCls = isSelected ? 'bg-blue-50/80 dark:bg-blue-950/20 border-l-4 border-l-blue-500' : '';
                 container.innerHTML += `
                     <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition cursor-pointer ${rowCls}" onclick="selectCustomer(${c.id})">
                         <td class="p-4">
@@ -9385,26 +9772,56 @@
                         <td class="p-4 text-right" onclick="event.stopPropagation()">
                             <div class="flex justify-end gap-2">
                                 <button onclick="openCustomerModal(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 hover:bg-blue-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                                <button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                <button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Delete"><i class="fa-solid fa-trash text-[10px]"></i></button>
                             </div>
                         </td>
                     </tr>`;
+                if (cardsMobile) {
+                    cardsMobile.innerHTML += `
+                        <div class="p-4 transition cursor-pointer ${cardCls}" onclick="selectCustomerAndShowUnits(${c.id})">
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">${c.code || '-'}</p>
+                                    <p class="font-bold text-[15px] text-gray-900 dark:text-white leading-snug">${c.name || '-'}</p>
+                                    <p class="text-[11px] text-gray-600 dark:text-lux-400 mt-1"><i class="fa-solid fa-user mr-1 opacity-60"></i>${c.picName || '-'}</p>
+                                    <p class="text-[11px] font-mono text-gray-500 dark:text-lux-500 mt-0.5">${c.contact || '-'}</p>
+                                    ${c.city ? `<p class="text-[10px] text-gray-400 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>${c.city}</p>` : ''}
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black shrink-0">${unitCount} unit</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mt-3" onclick="event.stopPropagation()">
+                                <button onclick="openCustomerModal(${c.id})" class="cust-touch-btn py-2.5 rounded-xl bg-blue-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                <button onclick="selectCustomerAndShowUnits(${c.id})" class="cust-touch-btn py-2.5 rounded-xl bg-emerald-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
+                                <button onclick="deleteCustomer(${c.id})" class="cust-touch-btn py-2.5 rounded-xl bg-red-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-trash mr-1"></i>Del</button>
+                            </div>
+                        </div>`;
+                }
             });
 
+            setCustMasterMobileTab(custMasterMobileTab);
             renderCustomerUnitsPanel();
+        }
+
+        function selectCustomerAndShowUnits(id) {
+            selectedCustomerId = id;
+            if (window.innerWidth < 768) setCustMasterMobileTab('units');
+            renderCustomerMaster();
         }
 
         function renderCustomerUnitsPanel() {
             loadDB();
             const container = document.getElementById('customer-units-container');
+            const cardsMobile = document.getElementById('customer-units-cards-mobile');
             const subtitle = document.getElementById('cust-units-subtitle');
             const addBtn = document.getElementById('btn-add-cust-unit');
             if (!container) return;
 
             if (!selectedCustomerId) {
-                if (subtitle) subtitle.innerText = 'Select a customer on the left to view units';
+                if (subtitle) subtitle.innerText = 'Select a customer to view units';
                 if (addBtn) addBtn.disabled = true;
-                container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Please select a customer first.</td></tr>`;
+                const empty = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Please select a customer first.</td></tr>`;
+                container.innerHTML = empty;
+                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">Select a customer from the Customers tab to view units.</p>`;
                 return;
             }
 
@@ -9415,22 +9832,25 @@
                 return;
             }
 
-            if (subtitle) subtitle.innerText = `Unit milik: ${cust.name}`;
+            if (subtitle) subtitle.innerText = `Units for: ${cust.name}`;
             if (addBtn) addBtn.disabled = false;
 
             const units = (db.customerUnits || []).filter(u => u.customerId === selectedCustomerId)
                 .sort((a, b) => (a.unitName || '').localeCompare(b.unitName || ''));
 
             container.innerHTML = '';
+            if (cardsMobile) cardsMobile.innerHTML = '';
             if (!units.length) {
-                container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Belum ada unit untuk customer ini.</td></tr>`;
+                const empty = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">No units for this customer yet.</td></tr>`;
+                container.innerHTML = empty;
+                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No units yet. Tap Add Unit or Import Units.</p>`;
                 return;
             }
 
             if (!_svcHistoryIndex) buildServiceHistoryIndex();
             units.forEach(u => {
                 const svcCount = getUnitServiceHistory(u.id, u.customerId, u.artNo, u.unitSn).length;
-                const svcBadge = svcCount ? `<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/30 text-[8px] font-black text-amber-700 dark:text-amber-400" title="Riwayat service">${svcCount}x svc</span>` : '';
+                const svcBadge = svcCount ? `<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/30 text-[8px] font-black text-amber-700 dark:text-amber-400" title="Service history">${svcCount}x svc</span>` : '';
                 container.innerHTML += `
                     <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
                         <td class="p-4">
@@ -9443,12 +9863,34 @@
                         <td class="p-4">${custUnitStatusBadge(u.status || 'active')}</td>
                         <td class="p-4 text-right">
                             <div class="flex justify-end gap-2">
-                                <button onclick="openServiceModalForUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 hover:bg-gold-500 hover:text-white transition flex items-center justify-center" title="Daftar Service"><i class="fa-solid fa-screwdriver-wrench text-[10px]"></i></button>
+                                <button onclick="openServiceModalForUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 hover:bg-gold-500 hover:text-white transition flex items-center justify-center" title="Register Service"><i class="fa-solid fa-screwdriver-wrench text-[10px]"></i></button>
                                 <button onclick="openCustomerUnitModal(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                                <button onclick="deleteCustomerUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                <button onclick="deleteCustomerUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Delete"><i class="fa-solid fa-trash text-[10px]"></i></button>
                             </div>
                         </td>
                     </tr>`;
+                if (cardsMobile) {
+                    cardsMobile.innerHTML += `
+                        <div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
+                            <div class="flex justify-between items-start gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug">${u.unitName || '-'}${svcBadge}</p>
+                                    <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">SN: ${u.unitSn || '-'}</p>
+                                    ${u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500">Art: ${u.artNo}</p>` : ''}
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">${u.unitMerk || '-'} / ${u.unitTipe || '-'}</p>
+                                </div>
+                                <div class="shrink-0 text-right">
+                                    <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${u.product || '-'}</span>
+                                    <div class="mt-2">${custUnitStatusBadge(u.status || 'active')}</div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 mt-3">
+                                <button onclick="openServiceModalForUnit(${u.id})" class="cust-touch-btn py-2.5 rounded-xl bg-gold-500 text-white dark:text-black text-[9px] font-black uppercase"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
+                                <button onclick="openCustomerUnitModal(${u.id})" class="cust-touch-btn py-2.5 rounded-xl bg-emerald-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                <button onclick="deleteCustomerUnit(${u.id})" class="cust-touch-btn py-2.5 rounded-xl bg-red-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-trash mr-1"></i>Del</button>
+                            </div>
+                        </div>`;
+                }
             });
         }
 
