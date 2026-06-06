@@ -99,6 +99,7 @@ def check_files():
         'index.html', 'manifest.json', 'sw.js', 'release.js', 'tms_pwa_icon.png',
         'Mulai_Server.bat', 'config.example.js', 'config.deploy.js',
         'Jalankan_Setup.bat', 'jalankan_setup.py', 'supabase_setup.sql',
+        'health.json', 'audit_score.py', 'js/tms-security.js', 'js/tms-runtime.js',
     ]
     for name in required:
         p = ROOT / name
@@ -131,6 +132,10 @@ def check_html_integrity():
         if not m.group(1).strip().startswith('tailwind.config')
     ]
     js = '\n'.join(scripts)
+    js_dir = ROOT / 'js'
+    if js_dir.is_dir():
+        for jpath in sorted(js_dir.glob('tms-*.js')):
+            js += '\n' + jpath.read_text(encoding='utf-8')
     func_defs = set(re.findall(r'function\s+([a-zA-Z_$][\w$]*)\s*\(', js))
 
     onclick_calls = set()
@@ -340,6 +345,43 @@ def check_html_integrity():
         ok('Keamanan XSS: chat message di-escape')
     else:
         bad('Keamanan XSS: chat message belum di-escape')
+    if 'js/tms-security.js' in html and 'js/tms-runtime.js' in html:
+        ok('Arsitektur: modul js/tms-security + js/tms-runtime')
+    else:
+        bad('Arsitektur: modul keamanan/runtime belum di-load')
+    if 'Content-Security-Policy' in html:
+        ok('Keamanan: CSP meta tag aktif')
+    else:
+        bad('Keamanan: CSP meta tag tidak ada')
+    if 'cloneDbForCloudUpload' in js and 'cloneDbForCloudUpload(db)' in js:
+        ok('Keamanan: cloud upload tanpa password plain')
+    else:
+        bad('Keamanan: cloneDbForCloudUpload tidak dipakai')
+    if 'client_auth' in js and 'getTmsSyncSecret' in js:
+        ok('Keamanan: sync write secret (client_auth)')
+    else:
+        bad('Keamanan: sync write secret tidak dikonfigurasi')
+    if 'tmsRequireRole' in js and 'TMS_SESSION_IDLE_MS' in js:
+        ok('Keamanan: role guard + session idle timeout')
+    else:
+        bad('Keamanan: tmsRequireRole atau session idle hilang')
+    if 'tmsRetryAsync' in js:
+        ok('Reliabilitas: sync retry (tmsRetryAsync)')
+    else:
+        bad('Reliabilitas: tmsRetryAsync tidak ada')
+    sql_path = ROOT / 'supabase_setup.sql'
+    if sql_path.exists() and 'check_tms_write_auth' in sql_path.read_text(encoding='utf-8'):
+        ok('Keamanan DB: trigger check_tms_write_auth')
+    else:
+        bad('Keamanan DB: trigger sync auth hilang')
+    if (ROOT / 'health.json').exists():
+        ok('Production: health.json tersedia')
+    else:
+        bad('Production: health.json hilang')
+    if (ROOT / 'tests/test_tms_audit.py').exists():
+        ok('QA: pytest test_tms_audit.py ada')
+    else:
+        bad('QA: tests/test_tms_audit.py hilang')
     dyn_calls = set()
     for m in re.finditer(r'onclick=\\"([a-zA-Z_$][\w$]*)\s*\(', js):
         dyn_calls.add(m.group(1))

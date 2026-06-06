@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdn.sheetjs.com https://*.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; worker-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'">
     <title>TMS | Tool Management System</title>
     
     <meta name="theme-color" content="#eab308">
@@ -43,6 +44,8 @@
     <script src="release.js"></script>
     <script src="config.deploy.js"></script>
     <script src="config.js" onerror="void 0"></script>
+    <script src="js/tms-security.js"></script>
+    <script src="js/tms-runtime.js"></script>
     
     <script>
         tailwind.config = {
@@ -3474,7 +3477,7 @@
                             });
                         }
 
-                        const uploadDb = JSON.parse(JSON.stringify(db));
+                        const uploadDb = cloneDbForCloudUpload(db);
                         if (currentUser && uploadDb.messages) {
                             uploadDb.messages.forEach(m => {
                                 if (m.from === currentUser.id && m.status === 'pending') {
@@ -3489,7 +3492,9 @@
                             db_data: uploadDb,
                             updated_at: new Date().toISOString()
                         };
-                        await supabaseClient.from('tms_sync').insert([initialPayload]);
+                        const syncSecret = getTmsSyncSecret();
+                        if (syncSecret) initialPayload.client_auth = syncSecret;
+                        await tmsRetryAsync(() => supabaseClient.from('tms_sync').insert([initialPayload]));
 
                         // Succeed locally
                         pendingMessages.forEach(m => {
@@ -3518,7 +3523,7 @@
                             });
                         }
                         const nextVersion = Math.max(db.version || 0, Date.now()) + 1;
-                        const uploadDb = JSON.parse(JSON.stringify(db));
+                        const uploadDb = cloneDbForCloudUpload(db);
                         uploadDb.version = nextVersion;
                         if (currentUser && uploadDb.messages) {
                             uploadDb.messages.forEach(m => {
@@ -3528,14 +3533,18 @@
                             });
                         }
 
-                        const { error: uploadError } = await supabaseClient
-                            .from('tms_sync')
-                            .update({
-                                db_version: nextVersion,
-                                db_data: uploadDb,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('id', 1);
+                        const updatePayload = {
+                            db_version: nextVersion,
+                            db_data: uploadDb,
+                            updated_at: new Date().toISOString()
+                        };
+                        const syncSecret = getTmsSyncSecret();
+                        if (syncSecret) updatePayload.client_auth = syncSecret;
+                        const { error: uploadError } = await tmsRetryAsync(async () => {
+                            const res = await supabaseClient.from('tms_sync').update(updatePayload).eq('id', 1);
+                            if (res.error) throw res.error;
+                            return res;
+                        });
 
                         if (uploadError) throw uploadError;
 
@@ -3882,54 +3891,7 @@
             const p = (v || '').replace(/\D/g, '');
             return p.length >= 8 ? p : '';
         }
-        function tmsEscHtml(s) {
-            if (s == null || s === '') return '';
-            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-        }
-        const TMS_PBKDF2_ITERS = 100000;
-        function isPasswordHashed(stored) {
-            return typeof stored === 'string' && stored.startsWith('pbkdf2:');
-        }
-        function b64FromBytes(bytes) {
-            let s = '';
-            bytes.forEach(b => { s += String.fromCharCode(b); });
-            return btoa(s);
-        }
-        function bytesFromB64(b64) {
-            const bin = atob(b64);
-            const out = new Uint8Array(bin.length);
-            for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-            return out;
-        }
-        async function hashPassword(plain) {
-            const p = String(plain || '');
-            if (!p) return '';
-            if (!window.crypto || !crypto.subtle) return p;
-            const enc = new TextEncoder();
-            const salt = crypto.getRandomValues(new Uint8Array(16));
-            const key = await crypto.subtle.importKey('raw', enc.encode(p), 'PBKDF2', false, ['deriveBits']);
-            const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: TMS_PBKDF2_ITERS, hash: 'SHA-256' }, key, 256);
-            return `pbkdf2:${TMS_PBKDF2_ITERS}:${b64FromBytes(salt)}:${b64FromBytes(new Uint8Array(bits))}`;
-        }
-        async function verifyPassword(plain, stored) {
-            const p = String(plain || '').trim();
-            const s = String(stored || '').trim();
-            if (!p || !s) return false;
-            if (!isPasswordHashed(s)) return p === s;
-            if (!window.crypto || !crypto.subtle) return false;
-            const parts = s.split(':');
-            if (parts.length !== 4 || parts[0] !== 'pbkdf2') return false;
-            const iterations = parseInt(parts[1], 10) || TMS_PBKDF2_ITERS;
-            const salt = bytesFromB64(parts[2]);
-            const expected = parts[3];
-            const enc = new TextEncoder();
-            const key = await crypto.subtle.importKey('raw', enc.encode(p), 'PBKDF2', false, ['deriveBits']);
-            const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations, hash: 'SHA-256' }, key, 256);
-            return b64FromBytes(new Uint8Array(bits)) === expected;
-        }
-        function isCloudProductionMode() {
-            return !!(SUPABASE_URL && SUPABASE_KEY && typeof location !== 'undefined' && location.protocol !== 'file:');
-        }
+        window._tmsGetCurrentUser = function() { return currentUser; };
         function persistCurrentUserSession() {
             if (!currentUser) return;
             const safe = { ...currentUser };
@@ -5110,9 +5072,9 @@
                 const val = fields.user.toLowerCase();
                 const sugg1 = val + Math.floor(Math.random() * 100);
                 const sugg2 = val + new Date().getFullYear().toString().slice(-2);
-                errSpan.innerHTML = `Username terpakai oleh <strong>${c.existing}</strong>. Saran: <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${sugg1}'; validatePersonnelForm()">${sugg1}</span> atau <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${sugg2}'; validatePersonnelForm()">${sugg2}</span>`;
+                errSpan.innerHTML = `Username terpakai oleh <strong>${tmsEscHtml(c.existing)}</strong>. Saran: <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${tmsEscAttr(sugg1)}'; validatePersonnelForm()">${tmsEscHtml(sugg1)}</span> atau <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${tmsEscAttr(sugg2)}'; validatePersonnelForm()">${tmsEscHtml(sugg2)}</span>`;
             } else {
-                errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh <strong>${c.existing}</strong>.`;
+                errSpan.innerHTML = `${tmsEscHtml(c.label)} <strong>${tmsEscHtml(c.value)}</strong> sudah dipakai oleh <strong>${tmsEscHtml(c.existing)}</strong>.`;
             }
             errSpan.classList.remove('hidden');
             submitBtn.disabled = true;
@@ -5177,7 +5139,7 @@
 
             const c = conflicts[0];
             const kind = c.type === 'backup' ? 'unit backup' : 'aset';
-            errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh ${kind} <strong>${c.existing}</strong>.`;
+            errSpan.innerHTML = `${tmsEscHtml(c.label)} <strong>${tmsEscHtml(c.value)}</strong> sudah dipakai oleh ${kind} <strong>${tmsEscHtml(c.existing)}</strong>.`;
             errSpan.classList.remove('hidden');
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -7095,7 +7057,7 @@
                     activitiesHtml += `</div>`;
                 }
 
-                container.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-2xl p-6 shadow-inner relative group flex flex-col"><div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition">${lockBtn}<button onclick="openFormModal('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-gold-600 dark:text-gold-500 hover:bg-gold-500 hover:text-white dark:hover:text-black transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteItem('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-trash text-[9px]"></i></button></div><div class="flex items-center gap-4 mb-5 min-w-0">${avatarWithDot}<div class="min-w-0"><h3 class="font-black text-gray-900 dark:text-white text-[15px] mb-1 pr-12 truncate">${u.name}</h3><span class="text-[9px] font-black text-gray-500 dark:text-lux-400 bg-white dark:bg-lux-900 px-2.5 py-0.5 rounded border border-gray-200 dark:border-lux-800 uppercase tracking-widest shadow-sm inline-block">${u.jabatan} (${u.group})</span>${onlineStatusBadge}${statusBadge}</div></div><div class="space-y-2 mb-4 border-t border-gray-200 dark:border-lux-800 pt-4"><p class="text-[11px] text-gray-600 dark:text-lux-400 font-mono truncate"><i class="fa-solid fa-id-card w-4 text-center"></i> NIK: <span class="text-gray-900 dark:text-white">${u.nik||'-'}</span></p><p class="text-[11px] text-gray-600 dark:text-lux-400 truncate"><i class="fa-solid fa-phone w-4 text-center"></i> ${u.phone||'-'}</p>${lastOnlineHtml}</div><div class="w-full pt-4 border-t border-gray-200 dark:border-lux-800 mt-auto"><p class="text-[11px] text-gray-700 dark:text-lux-300 font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-toolbox mr-1.5 text-gold-500"></i> Membawa: ${allAssigned.length} Aset</p>${toolsHtml}${activitiesHtml}</div></div>`;
+                container.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-2xl p-6 shadow-inner relative group flex flex-col"><div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition">${lockBtn}<button onclick="openFormModal('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-gold-600 dark:text-gold-500 hover:bg-gold-500 hover:text-white dark:hover:text-black transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteItem('tech', ${u.id})" class="w-7 h-7 rounded bg-white dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-trash text-[9px]"></i></button></div><div class="flex items-center gap-4 mb-5 min-w-0">${avatarWithDot}<div class="min-w-0"><h3 class="font-black text-gray-900 dark:text-white text-[15px] mb-1 pr-12 truncate">${tmsEscHtml(u.name)}</h3><span class="text-[9px] font-black text-gray-500 dark:text-lux-400 bg-white dark:bg-lux-900 px-2.5 py-0.5 rounded border border-gray-200 dark:border-lux-800 uppercase tracking-widest shadow-sm inline-block">${tmsEscHtml(u.jabatan)} (${tmsEscHtml(u.group)})</span>${onlineStatusBadge}${statusBadge}</div></div><div class="space-y-2 mb-4 border-t border-gray-200 dark:border-lux-800 pt-4"><p class="text-[11px] text-gray-600 dark:text-lux-400 font-mono truncate"><i class="fa-solid fa-id-card w-4 text-center"></i> NIK: <span class="text-gray-900 dark:text-white">${tmsEscHtml(u.nik||'-')}</span></p><p class="text-[11px] text-gray-600 dark:text-lux-400 truncate"><i class="fa-solid fa-phone w-4 text-center"></i> ${tmsEscHtml(u.phone||'-')}</p>${lastOnlineHtml}</div><div class="w-full pt-4 border-t border-gray-200 dark:border-lux-800 mt-auto"><p class="text-[11px] text-gray-700 dark:text-lux-300 font-bold uppercase tracking-widest mb-1"><i class="fa-solid fa-toolbox mr-1.5 text-gold-500"></i> Membawa: ${allAssigned.length} Aset</p>${toolsHtml}${activitiesHtml}</div></div>`;
             });
         }
 
@@ -7199,11 +7161,11 @@
                 if(!t || !u) return;
 
                 if(r.reqType === 'borrow') {
-                    rc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase tracking-widest mb-1.5">Permohonan Peminjaman</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-gray-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 mb-2 truncate">Pemohon: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p><p class="text-[11px] text-gray-500 dark:text-lux-500 italic border-l-2 border-gray-300 dark:border-lux-700 pl-3 break-words">"${r.note}"</p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/10 border border-gold-500/30 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition whitespace-nowrap">Izinkan</button></div></div>`;
+                    rc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase tracking-widest mb-1.5">Permohonan Peminjaman</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-gray-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 mb-2 truncate">Pemohon: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p><p class="text-[11px] text-gray-500 dark:text-lux-500 italic border-l-2 border-gray-300 dark:border-lux-700 pl-3 break-words">"${tmsEscHtml(r.note)}"</p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/10 border border-gold-500/30 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition whitespace-nowrap">Izinkan</button></div></div>`;
                 } else if(r.reqType === 'return') {
-                    rc.innerHTML += `<div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1.5">Pengembalian ke Gudang</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-emerald-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Oleh: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition whitespace-nowrap">Terima ke Gudang</button></div></div>`;
+                    rc.innerHTML += `<div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1.5">Pengembalian ke Gudang</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-emerald-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Oleh: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition whitespace-nowrap">Terima ke Gudang</button></div></div>`;
                 } else if (r.reqType === 'verify_tool') {
-                    rc.innerHTML += `<div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-1.5">Verifikasi Pendaftaran Aset Baru</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-blue-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Didaftarkan oleh TS: <span class="font-bold text-gray-900 dark:text-white">${u.name}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Hapus</button><button onclick="openFormModal('${r.toolType}', ${t.id})" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/5 border border-gold-500/20 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] transition whitespace-nowrap bg-white dark:bg-transparent">Revisi Data</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(59,130,246,0.25)] transition whitespace-nowrap">Verifikasi Aktif</button></div></div>`;
+                    rc.innerHTML += `<div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-1.5">Verifikasi Pendaftaran Aset Baru</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-blue-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Didaftarkan oleh TS: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Hapus</button><button onclick="openFormModal('${r.toolType}', ${t.id})" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/5 border border-gold-500/20 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] transition whitespace-nowrap bg-white dark:bg-transparent">Revisi Data</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(59,130,246,0.25)] transition whitespace-nowrap">Verifikasi Aktif</button></div></div>`;
                 }
             });
         }
@@ -8176,6 +8138,7 @@
         }
 
         function deleteItem(type, id) {
+            if (type === 'tech' && !tmsRequireRole(['owner', 'spv'], 'Menghapus personel')) return;
             if(!confirm("Hapus secara permanen? Data riwayat juga akan hilang.")) return;
             loadDB(); // Sinkronisasi sebelum menghapus
             recordDeletion(id);
@@ -8287,7 +8250,7 @@
                     const isOnline = isUserOnline(u);
                     const statusText = isOnline ? 'online' : 'offline';
                     const statusColor = isOnline ? 'text-emerald-500' : 'text-gray-400 dark:text-lux-500';
-                    headerTitle.innerHTML = `<i class="fa-solid fa-user text-gold-500 mr-2"></i> ${u.name.split(' ')[0]} <span class="text-[9px] ${statusColor} lowercase font-bold ml-1">(${statusText})</span>`;
+                    headerTitle.innerHTML = `<i class="fa-solid fa-user text-gold-500 mr-2"></i> ${tmsEscHtml(u.name.split(' ')[0])} <span class="text-[9px] ${statusColor} lowercase font-bold ml-1">(${statusText})</span>`;
                 }
             }
         }
@@ -8329,7 +8292,7 @@
                 else if (u.role === 'ts_spec_avitum') roleLabel = 'SPESIALIS AVITUM';
                 else if (u.role === 'ts_spec_ais') roleLabel = 'SPESIALIS HOSPITAL CARE/AESCULAP';
 
-                cl.innerHTML += `<div class="p-3 cursor-pointer transition ${activeClass} flex justify-between items-center" onclick="openChat(${u.id})"><div class="min-w-0"><p class="text-[11px] font-bold text-gray-900 dark:text-white truncate flex items-center">${statusDot}${u.name.split(' ')[0]}</p><p class="text-[9px] text-gray-500 dark:text-lux-500 truncate">${roleLabel}</p></div>${badgeHtml}</div>`;
+                cl.innerHTML += `<div class="p-3 cursor-pointer transition ${activeClass} flex justify-between items-center" onclick="openChat(${u.id})"><div class="min-w-0"><p class="text-[11px] font-bold text-gray-900 dark:text-white truncate flex items-center">${statusDot}${tmsEscHtml(u.name.split(' ')[0])}</p><p class="text-[9px] text-gray-500 dark:text-lux-500 truncate">${roleLabel}</p></div>${badgeHtml}</div>`;
             });
         }
 
@@ -10404,7 +10367,7 @@
                 return true;
             }
             const c = conflicts[0];
-            errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh <strong>${c.existing}</strong>.`;
+            errSpan.innerHTML = `${tmsEscHtml(c.label)} <strong>${tmsEscHtml(c.value)}</strong> sudah dipakai oleh <strong>${tmsEscHtml(c.existing)}</strong>.`;
             errSpan.classList.remove('hidden');
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -10446,7 +10409,7 @@
                 return true;
             }
             const c = conflicts[0];
-            errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh <strong>${c.existing}</strong>.`;
+            errSpan.innerHTML = `${tmsEscHtml(c.label)} <strong>${tmsEscHtml(c.value)}</strong> sudah dipakai oleh <strong>${tmsEscHtml(c.existing)}</strong>.`;
             errSpan.classList.remove('hidden');
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -12835,7 +12798,7 @@
             
             const dup = checkDuplicateService(null, sn);
             if (dup) {
-                msgEl.innerHTML = `Unit dengan <strong>Serial Number: ${dup.unitSn}</strong> saat ini sedang dalam proses perbaikan dengan <strong>No. Layanan ${dup.noService}</strong> (Status: <span class="uppercase font-bold">${dup.status}</span>). Anda tidak dapat mendaftarkan unit yang sama sebelum proses perbaikan sebelumnya selesai.`;
+                msgEl.innerHTML = `Unit dengan <strong>Serial Number: ${tmsEscHtml(dup.unitSn)}</strong> saat ini sedang dalam proses perbaikan dengan <strong>No. Layanan ${tmsEscHtml(dup.noService)}</strong> (Status: <span class="uppercase font-bold">${tmsEscHtml(dup.status)}</span>). Anda tidak dapat mendaftarkan unit yang sama sebelum proses perbaikan sebelumnya selesai.`;
                 warningEl.classList.remove('hidden');
                 btnEl.disabled = true;
                 btnEl.classList.add('opacity-50', 'cursor-not-allowed');

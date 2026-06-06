@@ -26,15 +26,20 @@ jobs:
       - name: Bersihkan cache build
         run: rm -rf __pycache__
 
-      - name: QA gate — cek_sistem.py
+      - name: QA gate — pytest + audit score + cek_sistem
         env:
           TMS_SKIP_SERVER: '1'
-        run: python3 cek_sistem.py
+        run: |
+          python3 -m pip install --quiet pytest
+          python3 -m pytest tests/test_tms_audit.py -q
+          python3 audit_score.py
+          python3 cek_sistem.py
 
       - name: Siapkan config.js untuk deploy online
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SYNC_SECRET: ${{ secrets.SYNC_SECRET }}
         run: |
           python3 << 'PY'
           import os
@@ -42,6 +47,7 @@ jobs:
 
           url = (os.environ.get('SUPABASE_URL') or '').strip()
           key = (os.environ.get('SUPABASE_ANON_KEY') or '').strip()
+          sync_secret = (os.environ.get('SYNC_SECRET') or '').strip().replace("'", "\\'")
 
           if url and key:
               content = (
@@ -49,7 +55,8 @@ jobs:
                   "    supabase: {\n"
                   f"        url: '{url}',\n"
                   f"        anonKey: '{key}'\n"
-                  "    }\n"
+                  "    },\n"
+                  f"    syncSecret: '{sync_secret}'\n"
                   "};\n"
               )
               Path('config.js').write_text(content, encoding='utf-8')
