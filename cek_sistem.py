@@ -251,6 +251,11 @@ def check_html_integrity():
         ok('Customer Units: smart search description, SN, art no, product, lokasi')
     else:
         bad('Customer Units: smart search tidak lengkap')
+    if ('keepCustMobileTab' in js and 'customers-cards-mobile' in html
+            and '#customers-cards-mobile' in html):
+        ok('Customer Master HP: tab Customers default + kartu mobile scroll')
+    else:
+        bad('Customer Master HP: perbaikan tampilan mobile tidak lengkap')
     if ('deleteSelectedSpareparts' in js and 'toggleSelectAllSpareparts' in js
             and 'sparepart-checkbox' in js and 'btn-delete-spareparts' in html
             and 'select-all-spareparts-bar' in html):

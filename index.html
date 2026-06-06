@@ -185,7 +185,9 @@
                 color: #71717a;
             }
             .dark .tms-list-loading { color: #a1a1aa; }
-            #spareparts-cards-mobile { max-height: min(70vh, 640px); -webkit-overflow-scrolling: touch; }
+            #spareparts-cards-mobile,
+            #customers-cards-mobile,
+            #customer-units-cards-mobile { max-height: min(70vh, 640px); -webkit-overflow-scrolling: touch; }
 
             .app-view.hidden {
                 content-visibility: hidden;
@@ -5358,6 +5360,10 @@
             document.getElementById('topbar-title').innerText = titles[tabId];
             // Saat masuk tab Service Customer — otomatis tandai semua notif tiket sebagai sudah dibaca
             if (tabId === 'customer-service') { markAllSvcNotifsRead(); }
+            if (tabId === 'customer-master' && !(opts && opts.keepCustMobileTab)) {
+                custMasterMobileTab = 'customers';
+                setCustMasterMobileTab('customers');
+            }
             if (opts && opts.skipUpdate) return;
             updateData(opts && opts.lite ? { lite: true } : undefined);
         }
@@ -11575,6 +11581,7 @@
                 if (u && u.customerId) unitCountByCust.set(u.customerId, (unitCountByCust.get(u.customerId) || 0) + 1);
             });
             const isMobile = isTmsMobileView();
+            const showMobileCards = window.matchMedia('(max-width: 767px)').matches;
             const custRows = [];
             const custCards = [];
             filtered.forEach(c => {
@@ -11598,7 +11605,7 @@
                         <td class="p-4 text-right" onclick="event.stopPropagation()"><button onclick="openCustomerModal(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 hover:bg-blue-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button></td>
                     </tr>`);
                 }
-                if (cardsMobile) {
+                if (showMobileCards && cardsMobile) {
                     custCards.push(`<div class="p-4 transition cursor-pointer ${cardCls}" onclick="selectCustomerAndShowUnits(${c.id})">
                         <div class="flex justify-between items-start gap-3">
                             <input type="checkbox" value="${c.id}" onchange="syncCustMasterSelectAllState('customers')" class="cust-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
@@ -11620,7 +11627,9 @@
             });
             if (!isMobile) container.innerHTML += custRows.join('');
             else container.innerHTML = '';
-            if (cardsMobile && custCards.length) cardsMobile.innerHTML = custCards.join('');
+            if (showMobileCards && cardsMobile) {
+                cardsMobile.innerHTML = custCards.length ? custCards.join('') : '';
+            }
 
             setCustMasterMobileTab(custMasterMobileTab);
             renderCustomerUnitsPanel();
@@ -11654,7 +11663,7 @@
                 if (selectAllUnitsWrap) selectAllUnitsWrap.classList.add('hidden');
                 const empty = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Please select a customer first.</td></tr>`;
                 container.innerHTML = empty;
-                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">Select a customer from the Customers tab to view units.</p>`;
+                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">Pilih customer di tab <strong>Customers</strong> terlebih dahulu untuk melihat unit.</p>`;
                 return;
             }
 
