@@ -934,7 +934,8 @@
 - [x] `audit_strict.py` — benchmark ketat, 0 bottleneck
 - [x] Bump `release.js` v6.7.4 / build 69
 - [x] Bump `sw.js` `tms-cache-v69`
-- [ ] Deploy v6.7.4 ke GitHub Pages + verifikasi live
+- [x] Deploy v6.7.4 ke GitHub Pages (`873f3bb`)
+- [x] Live terverifikasi: `release.js` v6.7.4 / build 69, `sw.js` tms-cache-v69
 
 
 
