@@ -145,16 +145,16 @@ def check_html_integrity():
         else:
             bad(f'Modul SPH: {cid} hilang')
 
-    for fn in ('buildExcelBlob', 'downloadExcelFile', 'downloadBatchTemplate', 'canBatchImport', 'isExcelXlsxFile', 'syncBatchImportButtons'):
+    for fn in ('buildExcelBlob', 'downloadExcelFile', 'downloadBatchTemplate', 'canBatchImport', 'canBatchImportType', 'isExcelXlsxFile', 'syncBatchImportButtons'):
         if f'function {fn}' in js:
             ok(f'Excel batch import: {fn} ada')
         else:
             bad(f'Excel batch import: {fn} hilang')
 
-    if "currentUser.role === 'owner'" in js and 'owner-batch-btn' in html:
-        ok('Batch import dibatasi akun Owner + tombol owner-batch-btn')
+    if 'BATCH_IMPORT_FULL_ROLES' in js and 'BATCH_IMPORT_TSF_TYPES' in js and 'data-batch-type' in html:
+        ok('Batch import: Owner/SPV/Specialist penuh, TSF hanya tool & demo')
     else:
-        bad('Guard batch import Owner tidak ditemukan')
+        bad('Matrix permission batch import tidak ditemukan')
 
     if "accept=\".xlsx" in html and '.xls"' not in html.split('batch-import-file')[1][:120] if 'batch-import-file' in html else False:
         ok('Upload batch hanya menerima .xlsx')

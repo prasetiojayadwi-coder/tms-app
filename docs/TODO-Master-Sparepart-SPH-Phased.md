@@ -992,6 +992,17 @@
 - [x] Deploy v6.7.7 ke GitHub Pages (`5ffd6ea`)
 - [x] Live terverifikasi: v6.7.7 / build 72 / tms-cache-v72
 
+## Phase 7.8 — Batch Import Role Matrix (v6.7.8)
+
+**Target:** Owner + SPV + Specialist semua modul; TSF hanya tool & demo
+
+### Kode
+- [x] `canBatchImportType(type)` — matrix per role
+- [x] `data-batch-type` pada tombol import/template
+- [x] UAT-081 — SPV/Spec full, TSF partial, TS denied
+- [x] Bump v6.7.8 / build 73
+- [ ] Deploy + verifikasi live
+
 
 
 ---

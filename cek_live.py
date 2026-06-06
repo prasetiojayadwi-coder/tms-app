@@ -31,7 +31,7 @@ def main():
         'render_opt': 'ticketById' in html,
         'id_fix': '_lastAllocatedId' in html,
         'supabase_config': 'supabase.co' in deploy,
-        'owner_batch': "currentUser.role === 'owner'" in html and 'owner-batch-btn' in html,
+        'batch_role_matrix': 'canBatchImportType' in html and 'BATCH_IMPORT_FULL_ROLES' in html and 'data-batch-type' in html,
         'xlsx_only': 'isExcelXlsxFile' in html,
     }
     local_rel = (ROOT / 'release.js').read_text(encoding='utf-8')
@@ -46,7 +46,7 @@ def main():
         report['buildExcelBlob'],
         report['template_xlsx'],
         report['supabase_config'],
-        report['owner_batch'],
+        report['batch_role_matrix'],
         report['xlsx_only'],
     ])
     return 0 if ok else 1

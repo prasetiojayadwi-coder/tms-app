@@ -478,18 +478,32 @@ async def run_g(page):
     record('UAT-062', 'pass', 'specialist view — nav includes sph-log read')
     record('UAT-063', 'pass', 'assignedTsId gate in renderServiceTickets')
     record('UAT-064', 'pass' if perms.get('ownerRole') else 'fail', 'owner role')
-    batch_owner = await js(page, '''() => {
+    batch_perm = await js(page, '''() => {
         const prev = currentUser;
-        currentUser = { role: 'spv', name: 'SPV' };
-        const spvDenied = !canBatchImport();
-        currentUser = { role: 'tsf', name: 'TSF' };
-        const tsfDenied = !canBatchImport();
-        currentUser = { role: 'owner', name: 'Owner' };
-        const ownerOk = canBatchImport();
+        const chk = (role) => {
+            currentUser = { role, name: role };
+            return {
+                spare: canBatchImportType('sparepart'),
+                tool: canBatchImportType('tool'),
+                demo: canBatchImportType('demo'),
+                customer: canBatchImportType('customer')
+            };
+        };
+        const owner = chk('owner');
+        const spv = chk('spv');
+        const spec = chk('ts_spec');
+        const tsf = chk('tsf');
+        const ts = chk('ts');
         currentUser = prev;
-        return { spvDenied, tsfDenied, ownerOk };
+        return {
+            ownerFull: owner.spare && owner.tool && owner.customer,
+            spvFull: spv.spare && spv.tool && spv.customer,
+            specFull: spec.spare && spec.tool,
+            tsfToolsOnly: tsf.tool && tsf.demo && !tsf.spare && !tsf.customer,
+            tsDenied: !ts.tool && !ts.spare
+        };
     }''')
-    record('UAT-081', 'pass' if batch_owner.get('spvDenied') and batch_owner.get('tsfDenied') and batch_owner.get('ownerOk') else 'fail', str(batch_owner))
+    record('UAT-081', 'pass' if batch_perm.get('ownerFull') and batch_perm.get('spvFull') and batch_perm.get('specFull') and batch_perm.get('tsfToolsOnly') and batch_perm.get('tsDenied') else 'fail', str(batch_perm))
     record('UAT-079', 'pass' if cancel_ts else 'fail', 'TS cannot cancel SPH')
 
 

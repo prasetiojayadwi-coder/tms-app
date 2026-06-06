@@ -189,7 +189,7 @@
   },
   "UAT-081": {
     "status": "pass",
-    "note": "{'spvDenied': True, 'tsfDenied': True, 'ownerOk': True}"
+    "note": "{'ownerFull': True, 'spvFull': True, 'specFull': True, 'tsfToolsOnly': True, 'tsDenied': True}"
   },
   "UAT-079": {
     "status": "pass",
