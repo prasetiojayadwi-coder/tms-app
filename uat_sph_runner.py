@@ -129,31 +129,27 @@ async def run_a(page):
     }''')
     record('UAT-003', 'pass' if imp.get('added', 0) >= 1 and imp.get('skipped', 0) >= 1 else 'fail', str(imp))
 
-    # UAT-004 — export + template semicolon (Excel Indonesia)
-    csv_chk = await js(page, '''() => {
+    # UAT-004 — template & export Excel (.xlsx), satu kolom per field
+    xlsx_chk = await js(page, '''() => {
         const schema = BATCH_IMPORT_SCHEMAS.sparepart;
-        const tmpl = buildCsvString(schema.columns, []);
-        const headerLine = tmpl.replace(/^\\uFEFF/, '').split('\\n')[0];
-        const expected = 'Art Number;Description;Price;Group;Status;Notes';
-        const parseTest = normalizeImportRow(
-            { 'Art Number': 'CSV-TEST-001', 'Description': 'From CSV', 'Price': '5000', 'Group': 'Avitum', 'Status': 'active', 'Notes': '' },
-            schema
-        );
-        const csv = '\\uFEFFArt Number;Description;Price;Group;Status;Notes\\nUAT-CSV-SEMI-001;Semicolon Import;2500;Avitum;active;ok';
-        const data = new TextEncoder().encode(csv);
-        const wb = XLSX.read(data, { type: 'array', FS: detectCsvDelimiter(csv) });
-        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' })[0];
+        const filenameOk = schema.filename === 'TMS_Template_Spareparts.xlsx';
+        const sheet = XLSX.utils.aoa_to_sheet([
+            schema.columns,
+            ['UAT-XLS-001', 'Excel Import Test', 3500, 'Avitum', 'active', 'ok']
+        ]);
+        const raw = XLSX.utils.sheet_to_json(sheet, { defval: '' })[0];
         const norm = normalizeImportRow(raw, schema);
         const imp = importSparepartsBatch([norm]);
+        const blob = buildExcelBlob(schema.columns, [], 'Template');
         return {
-            headerOk: headerLine === expected,
-            delim: TMS_CSV_DELIM,
-            detectOk: detectCsvDelimiter('Art Number;Description;Price') === ';',
-            parseOk: parseTest['Art Number'] === 'CSV-TEST-001' && parseTest['Price'] === '5000',
-            xlsxSemiOk: norm['Art Number'] === 'UAT-CSV-SEMI-001' && imp.added === 1
+            filenameOk,
+            colsOk: schema.columns.join('|') === 'Art Number|Description|Price|Group|Status|Notes',
+            parseOk: norm['Art Number'] === 'UAT-XLS-001' && norm['Price'] === '3500',
+            importOk: imp.added === 1,
+            blobOk: blob instanceof Blob
         };
     }''')
-    record('UAT-004', 'pass' if csv_chk.get('headerOk') and csv_chk.get('detectOk') and csv_chk.get('parseOk') and csv_chk.get('xlsxSemiOk') else 'fail', str(csv_chk))
+    record('UAT-004', 'pass' if xlsx_chk.get('filenameOk') and xlsx_chk.get('colsOk') and xlsx_chk.get('parseOk') and xlsx_chk.get('importOk') and xlsx_chk.get('blobOk') else 'fail', str(xlsx_chk))
 
     # UAT-005
     filt = await js(page, '''() => {

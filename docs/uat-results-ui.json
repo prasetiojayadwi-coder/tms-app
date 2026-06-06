@@ -1,8 +1,8 @@
 {
   "UAT-001": {
     "status": "pass",
-    "note": "Modal Add -> Save -> DB",
-    "env": "local"
+    "note": "live sparepart view=True",
+    "env": "live"
   },
   "UAT-002": {
     "status": "pass",
@@ -21,8 +21,8 @@
   },
   "UAT-020": {
     "status": "pass",
-    "note": "SPH Log table rows=2",
-    "env": "local"
+    "note": "live SPH Log view=True",
+    "env": "live"
   },
   "UAT-023": {
     "status": "pass",
@@ -123,6 +123,11 @@
     "status": "pass",
     "note": "partial search data",
     "env": "local"
+  },
+  "LIVE-SMOKE": {
+    "status": "fail",
+    "note": "TMS_RELEASE=6.7.5 (expected 6.7.6)",
+    "env": "live"
   },
   "UAT-070": {
     "status": "partial",

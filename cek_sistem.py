@@ -145,21 +145,23 @@ def check_html_integrity():
         else:
             bad(f'Modul SPH: {cid} hilang')
 
-    for fn in ('buildCsvString', 'downloadCsvFile', 'detectCsvDelimiter', 'escapeCsvCell', 'downloadBatchTemplate'):
+    for fn in ('buildExcelBlob', 'downloadExcelFile', 'downloadBatchTemplate'):
         if f'function {fn}' in js:
-            ok(f'CSV batch import: {fn} ada')
+            ok(f'Excel batch import: {fn} ada')
         else:
-            bad(f'CSV batch import: {fn} hilang')
+            bad(f'Excel batch import: {fn} hilang')
 
-    if "const TMS_CSV_DELIM = ';'" in js:
-        ok('CSV delimiter titik koma (;) — satu kolom per field di Excel Indonesia')
+    if 'TMS_Template_Spareparts.xlsx' in js and 'aoa_to_sheet' in js:
+        ok('Template sparepart Excel (.xlsx) — satu kolom per field')
     else:
-        bad('TMS_CSV_DELIM titik koma tidak ditemukan')
+        bad('Template sparepart Excel (.xlsx) tidak ditemukan di kode')
 
-    if 'join(TMS_CSV_DELIM)' in js and 'Art Number' in js and 'Description' in js:
-        ok('Template sparepart: kolom Art Number;Description;Price;Group;Status;Notes')
-    else:
-        warn('Struktur template sparepart tidak terdeteksi di kode')
+    templates_dir = ROOT / 'templates'
+    for name in ('TMS_Template_Spareparts.xlsx', 'TMS_Template_Customers.xlsx'):
+        if (templates_dir / name).exists():
+            ok(f'File template: {name}')
+        else:
+            warn(f'File template belum ada: {name}')
 
     for fn in (
         'lookupSparepartByArtNo', 'searchSparepartsPartial', 'smartFillSphLine', 'showSphArtSuggestions',

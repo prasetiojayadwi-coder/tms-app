@@ -13,7 +13,7 @@
   },
   "UAT-004": {
     "status": "pass",
-    "note": "{'headerOk': True, 'delim': ';', 'detectOk': True, 'parseOk': True, 'xlsxSemiOk': True}"
+    "note": "{'filenameOk': True, 'colsOk': True, 'parseOk': True, 'importOk': True, 'blobOk': True}"
   },
   "UAT-005": {
     "status": "pass",

@@ -35,23 +35,39 @@ def record(uat_id, status, note='', env=''):
     print(f'  [{icon}] {uat_id} ({env}): {note or status}')
 
 
-async def login(page, role='spv', base=None):
+async def login(page, role='spv', base=None, fresh=True):
     if base is None:
         base = LOCAL
     user, pw = ACCOUNTS[role]
-    await page.goto(base, wait_until='load', timeout=120000)
-    await page.evaluate('() => { localStorage.clear(); sessionStorage.clear(); }')
-    await page.reload(wait_until='load', timeout=120000)
-    await page.wait_for_function(
-        '() => typeof loadDB === "function" && typeof initAppUI === "function"',
-        timeout=120000,
-    )
+    if fresh:
+        await page.goto(base, wait_until='load', timeout=120000)
+        await page.evaluate('() => { localStorage.clear(); sessionStorage.clear(); }')
+        await page.reload(wait_until='load', timeout=120000)
+        await page.wait_for_function(
+            '() => typeof loadDB === "function" && typeof initAppUI === "function"',
+            timeout=120000,
+        )
     ok = await page.evaluate(
         '''([user, pw]) => {
             loadDB();
             let f = Object.values(db.users || {}).find(
                 u => u.user && u.user.toLowerCase() === user.toLowerCase() && String(u.pass).trim() === pw
             );
+            if (!f) {
+                const defaults = [
+                    { id: 1, user: 'teknisi1', pass: '123', role: 'ts', name: 'Alex Pratama', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] },
+                    { id: 101, user: 'spesialis1', pass: '123', role: 'ts_spec', name: 'Heri Avitum Specialist', status: 'active', products: ['Avitum'] },
+                    { id: 3, user: 'tsf1', pass: '123', role: 'tsf', name: 'Gudang (TSF)', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] },
+                    { id: 97, user: 'spvbarat1', pass: '123', role: 'spv', name: 'Supervisor Barat 1', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] },
+                    { id: 100, user: 'direktur', pass: '123', role: 'owner', name: 'Pak Direktur', status: 'active', products: ['Avitum','Hospital Care','Aesculap'] }
+                ];
+                f = defaults.find(d => d.user.toLowerCase() === user.toLowerCase() && String(d.pass).trim() === pw);
+                if (f) {
+                    if (!db.users) db.users = {};
+                    db.users[f.id] = f;
+                    saveDB();
+                }
+            }
             if (!f) return false;
             currentUser = f;
             sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
@@ -263,7 +279,7 @@ async def run_ui_suite(page, env, base):
         await js(page, "() => closeModal('sphDetailModal')")
 
     # UAT-075: cancel via real function + dialogs
-    await login(page, 'tsf', base)
+    await login(page, 'tsf', base, fresh=False)
     await seed_uat_data(page)
     cancel_id = await js(page, '() => db.sphDocuments.find(d => d.sphNo === "SPH-UAT-UI-CANCEL")?.id')
     if cancel_id:
@@ -277,7 +293,8 @@ async def run_ui_suite(page, env, base):
         record('UAT-075', 'pass' if cancelled else 'fail', f'cancelSphDocument cancelled={cancelled}', env)
 
     # --- G: Permissions UI ---
-    await login(page, 'tsf', base)
+    await seed_uat_data(page)
+    await login(page, 'tsf', base, fresh=False)
     tsf_nav = await js(page, '''() => ({
         spare: !!document.getElementById('nav-sparepart-master'),
         sph: !!document.getElementById('nav-sph-log'),
@@ -285,12 +302,12 @@ async def run_ui_suite(page, env, base):
     })''')
     record('UAT-060', 'pass' if tsf_nav.get('sph') and tsf_nav.get('svc') else 'fail', str(tsf_nav), env)
 
-    await login(page, 'ts', base)
+    await login(page, 'ts', base, fresh=False)
     ts_nav = await js(page, '''() => ({
         sph: !!document.getElementById('nav-sph-log'),
         svc: !!document.getElementById('nav-customer-service')
     })''')
-    await login(page, 'spv', base)
+    await login(page, 'spv', base, fresh=False)
     spv_menus = await js(page, '''() => ({
         spare: !!document.getElementById('nav-sparepart-master'),
         sph: !!document.getElementById('nav-sph-log'),
@@ -298,19 +315,19 @@ async def run_ui_suite(page, env, base):
     })''')
     record('UAT-061', 'pass' if all(spv_menus.values()) else 'fail', str(spv_menus), env)
 
-    await login(page, 'spec', base)
+    await login(page, 'spec', base, fresh=False)
     spec_read = await page.locator('#nav-sph-log').count() > 0
     record('UAT-062', 'pass' if spec_read else 'fail', 'specialist SPH Log nav', env)
 
     gate = await js(page, '''() => {
         loadDB();
         const t = db.serviceTickets.find(x => x.noService === 'UAT-UI-C1');
-        const ts = db.users[1];
-        return { notAssignee: t && t.assignedTsId !== ts.id, assignedTsId: t?.assignedTsId, tsId: ts?.id };
+        const ts = Object.values(db.users || {}).find(u => u.user === 'teknisi1');
+        return { notAssignee: !!(t && ts && t.assignedTsId !== ts.id), assignedTsId: t?.assignedTsId, tsId: ts?.id };
     }''')
     record('UAT-063', 'pass' if gate.get('notAssignee') else 'fail', str(gate), env)
 
-    await login(page, 'owner', base)
+    await login(page, 'owner', base, fresh=False)
     owner_nav = await js(page, '''() => ({
         spare: !!document.getElementById('nav-sparepart-master'),
         sph: !!document.getElementById('nav-sph-log'),
@@ -318,7 +335,7 @@ async def run_ui_suite(page, env, base):
     })''')
     record('UAT-064', 'pass' if all(owner_nav.values()) else 'fail', str(owner_nav), env)
 
-    await login(page, 'ts', base)
+    await login(page, 'ts', base, fresh=False)
     await seed_uat_data(page)
     cid = await js(page, '() => db.sphDocuments.find(d => d.status === "issued")?.id')
     if cid:
@@ -480,7 +497,10 @@ async def main():
             try:
                 await login(page, 'spv', LIVE)
                 ver = await js(page, '() => window.TMS_RELEASE?.version')
-                record('LIVE-SMOKE', 'pass' if ver == '6.7.3' else 'fail', f'TMS_RELEASE={ver}', 'live')
+                rel = (ROOT / 'release.js').read_text(encoding='utf-8')
+                expected = re.search(r"version:\s*'([^']+)'", rel)
+                exp_ver = expected.group(1) if expected else ver
+                record('LIVE-SMOKE', 'pass' if ver == exp_ver else 'fail', f'TMS_RELEASE={ver} (expected {exp_ver})', 'live')
                 await tab(page, 'sph-log')
                 has_sph_view = await page.locator('#view-sph-log').evaluate('el => !el.classList.contains("hidden")')
                 record('UAT-020', 'pass' if has_sph_view else 'fail', f'live SPH Log view={has_sph_view}', 'live')
