@@ -2106,8 +2106,6 @@
                     </div>
                     <div><label class="input-label">Equipment Name / Unit Description <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-name" required class="input-field" placeholder="Contoh: Defibrillator, Syringe Pump..."></div>
                     <div><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Enter equipment SN..." oninput="smartFillServiceBySn(this.value); checkServiceDuplicate();"></div>
-                    <div><label class="input-label">Brand <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-merk" required class="input-field" placeholder="Contoh: Mindray, B. Braun..."></div>
-                    <div><label class="input-label">Type / Model <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-tipe" required class="input-field" placeholder="Contoh: BeneHeart D3, Infusomat..."></div>
                     <div class="md:col-span-2"><label class="input-label">Complaint / Equipment Issue Description <span class="text-gold-500">*</span></label><textarea id="svc-complaint" required rows="3" class="input-field" placeholder="Describe the issue or equipment damage complaint..."></textarea></div>
                     <div><label class="input-label">Select Field Technician for Pickup <span class="text-gold-500">*</span></label>
                         <select id="svc-assigned-ts" required class="input-field">
@@ -2612,7 +2610,7 @@
                         <span id="svc-det-status-badge" class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border">STATUS</span>
                     </div>
                     <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Hospital / Customer Name</p><p class="text-sm font-bold text-gray-900 dark:text-white" id="svc-det-cust-name">-</p></div>
-                    <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Equipment / Brand / Type</p><p class="text-sm font-bold text-gray-900 dark:text-white" id="svc-det-unit-name">-</p></div>
+                    <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Equipment Description</p><p class="text-sm font-bold text-gray-900 dark:text-white" id="svc-det-unit-name">-</p></div>
                     <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Serial Number (SN)</p><p class="text-sm font-bold text-gray-950 dark:text-white font-mono" id="svc-det-unit-sn">-</p></div>
                     <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Damage Complaint</p><p class="text-sm font-medium text-gray-700 dark:text-lux-300" id="svc-det-complaint">-</p></div>
                     
@@ -9969,7 +9967,7 @@
                 const custName = tmsEscHtml(s.customerName || '-');
                 const custContact = tmsEscHtml(s.customerContact || '-');
                 const descStr = tmsEscHtml(row.descStr);
-                const unitMeta = tmsEscHtml(`${s.unitMerk || '-'} / ${s.unitTipe || '-'} (${s.unitSn || 'SN-'})`);
+                const unitMeta = tmsEscHtml(formatServiceUnitMeta(s));
                 const tsName = tmsEscHtml(row.ts);
                 const waitLbl = `<span class="text-[10px] text-gray-500 dark:text-lux-500 italic font-bold">Menunggu Giliran</span>`;
                 const actionCell = row.actionBtn || waitLbl;
@@ -12438,9 +12436,7 @@
                 unitArtNo: unit.artNo,
                 unitProduct: unit.product,
                 unitName: unit.unitName,
-                unitSn: unit.unitSn,
-                unitMerk: unit.unitMerk,
-                unitTipe: unit.unitTipe
+                unitSn: unit.unitSn
             };
             fillServiceFormFields(payload, { syncDropdowns: false });
             renderServiceHistoryHint(unit.id, unit.customerId, unit.artNo, unit.unitSn);
@@ -12547,11 +12543,25 @@
             }
         }
 
+        function formatServiceUnitMeta(t) {
+            if (!t) return '-';
+            const parts = [];
+            if (t.unitArtNo && t.unitArtNo !== '-') parts.push('Art: ' + t.unitArtNo);
+            if (t.unitSn && t.unitSn !== '-') parts.push('SN: ' + t.unitSn);
+            if (t.unitProduct) parts.push(t.unitProduct);
+            return parts.length ? parts.join(' · ') : '-';
+        }
+
+        function formatServiceUnitTitle(t) {
+            if (!t) return '-';
+            const name = t.unitName || '-';
+            const meta = formatServiceUnitMeta(t);
+            return meta !== '-' ? `${name} (${meta})` : name;
+        }
+
         function fillServiceFormFields(found, opts) {
             opts = opts || {};
             const desc = found.desc || found.unitName || '';
-            const brand = found.merk || found.unitMerk || '';
-            const model = found.tipe || found.unitTipe || '';
             const sn = found.sn || found.unitSn || '';
             const artNo = found.artNo || found.unitArtNo || '';
 
@@ -12566,8 +12576,6 @@
             }
 
             if (desc) document.getElementById('svc-unit-name').value = desc;
-            if (brand) document.getElementById('svc-unit-merk').value = brand;
-            if (model) document.getElementById('svc-unit-tipe').value = model;
             if (sn && sn !== '-') document.getElementById('svc-unit-sn').value = sn;
             if (artNo && artNo !== '-') document.getElementById('svc-unit-art-no').value = artNo;
             if (prod) document.getElementById('svc-unit-product').value = prod;
@@ -12615,7 +12623,7 @@
             const cu = (db.customerUnits || []).find(u => (u.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
             if (cu) {
                 const cust = (db.customers || []).find(c => c.id === cu.customerId);
-                found = { customerId: cu.customerId, customerUnitId: cu.id, unitArtNo: cu.artNo, unitProduct: cu.product, unitName: cu.unitName, unitSn: cu.unitSn, unitMerk: cu.unitMerk, unitTipe: cu.unitTipe, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
+                found = { customerId: cu.customerId, customerUnitId: cu.id, unitArtNo: cu.artNo, unitProduct: cu.product, unitName: cu.unitName, unitSn: cu.unitSn, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
             }
             if (!found) {
                 const prevSvc = (db.serviceTickets || []).filter(s => (s.unitArtNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput)
@@ -12644,7 +12652,7 @@
             const cu = (db.customerUnits || []).find(u => (u.unitSn || '').toLowerCase() === snVal);
             if (cu) {
                 const cust = (db.customers || []).find(c => c.id === cu.customerId);
-                found = { customerId: cu.customerId, customerUnitId: cu.id, unitArtNo: cu.artNo, unitProduct: cu.product, unitName: cu.unitName, unitSn: cu.unitSn, unitMerk: cu.unitMerk, unitTipe: cu.unitTipe, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
+                found = { customerId: cu.customerId, customerUnitId: cu.id, unitArtNo: cu.artNo, unitProduct: cu.product, unitName: cu.unitName, unitSn: cu.unitSn, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
             }
             if (!found) {
                 const prevSvc = (db.serviceTickets || []).filter(s => (s.unitSn || '').toLowerCase() === snVal)
@@ -12676,8 +12684,6 @@
             document.getElementById('svc-unit-product').value = '';
             document.getElementById('svc-unit-name').value = '';
             document.getElementById('svc-unit-sn').value = '';
-            document.getElementById('svc-unit-merk').value = '';
-            document.getElementById('svc-unit-tipe').value = '';
             document.getElementById('svc-complaint').value = '';
             const hintBox = document.getElementById('svc-smartfill-hint');
             if (hintBox) hintBox.classList.add('hidden');
@@ -12763,8 +12769,6 @@
                 unitProduct: document.getElementById('svc-unit-product').value,
                 unitName: document.getElementById('svc-unit-name').value,
                 unitSn: document.getElementById('svc-unit-sn').value || '-',
-                unitMerk: document.getElementById('svc-unit-merk').value,
-                unitTipe: document.getElementById('svc-unit-tipe').value,
                 complaint: document.getElementById('svc-complaint').value,
                 assignedTsId: assignedTsId,
                 repairLoc: document.getElementById('svc-repair-loc').value || 'tsf',
@@ -12796,8 +12800,6 @@
                 document.getElementById('svc-unit-product').value = '';
                 document.getElementById('svc-unit-name').value = '';
                 document.getElementById('svc-unit-sn').value = '';
-                document.getElementById('svc-unit-merk').value = '';
-                document.getElementById('svc-unit-tipe').value = '';
                 document.getElementById('svc-complaint').value = '';
                 onPickServiceCustomer();
                 
@@ -13033,7 +13035,7 @@
                             <td class="p-2.5 font-mono font-bold text-gold-600">${bt.noService}</td>
                             <td class="p-2.5">
                                 <p class="font-bold text-gray-900">${bt.unitName}</p>
-                                <p class="text-[9px] text-gray-500 font-mono">${bt.unitMerk || '-'} / ${bt.unitTipe || '-'} | SN: ${bt.unitSn || '-'}</p>
+                                <p class="text-[9px] text-gray-500 font-mono">${formatServiceUnitMeta(bt)}</p>
                             </td>
                             <td class="p-2.5 text-gray-650 italic">"${bt.complaint || '-'}"</td>
                             <td class="p-2.5 font-bold text-emerald-700">${bt.repairNote || '-'}</td>
@@ -13094,8 +13096,8 @@
                             <p class="text-[9px] text-gray-400 font-black uppercase tracking-wider mb-2">DETAIL ALAT MEDIS</p>
                             <table class="w-full">
                                 <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold w-20">Equipment Description</td><td class="py-1 font-bold text-gray-800 truncate">${s.unitName}</td></tr>
-                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Art No / Brand</td><td class="py-1 font-bold text-gray-800">${s.unitArtNo || '-'} / ${s.unitMerk || '-'}</td></tr>
-                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Model / SN</td><td class="py-1 font-bold text-gray-800">${s.unitTipe || '-'} / ${s.unitSn || '-'}</td></tr>
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Art Number</td><td class="py-1 font-bold text-gray-800">${s.unitArtNo || '-'}</td></tr>
+                                <tr class="border-b border-gray-100"><td class="py-1 text-gray-500 font-bold">Serial Number</td><td class="py-1 font-bold text-gray-800">${s.unitSn || '-'}</td></tr>
                                 <tr><td class="py-1 text-gray-500 font-bold">Product Cat</td><td class="py-1 font-bold text-gray-800">${s.unitProduct || '-'}</td></tr>
                             </table>
                         </div>
@@ -13247,7 +13249,7 @@
 
             document.getElementById('handover-sig-ticket-id').value = id;
             document.getElementById('handover-sig-action').value = action;
-            document.getElementById('handover-sig-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('handover-sig-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('handover-sig-cust-info').innerText = `${s.customerName} | SN: ${s.unitSn || '-'}`;
             
             initHandoverSignatureCanvas();
@@ -13480,7 +13482,7 @@
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
             document.getElementById('svc-analysis-id').value = id;
-            document.getElementById('svc-analysis-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-analysis-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-analysis-no-service').innerText = s.noService;
             document.getElementById('svc-initial-analysis-text').value = '';
             openModal('serviceAnalysisModal');
@@ -13556,7 +13558,7 @@
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
             document.getElementById('svc-quote-id').value = id;
-            document.getElementById('svc-quote-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-quote-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-quote-no-service').innerText = s.noService;
             document.getElementById('svc-quote-initial-analysis').innerText = s.initialAnalysis || '-';
             
@@ -13660,7 +13662,7 @@
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
             document.getElementById('svc-po-id').value = id;
-            document.getElementById('svc-po-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-po-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-po-total-price').innerText = `Rp ${(s.quotePrice || 0).toLocaleString('id-ID')}`;
             document.getElementById('svc-po-number').value = '';
             document.getElementById('svc-po-amount').value = '';
@@ -13728,7 +13730,7 @@
             }
             document.getElementById('svc-repair-id').value = id;
             document.getElementById('svc-repair-mode').value = mode;
-            document.getElementById('svc-repair-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-repair-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-repair-no-service').innerText = s.noService;
             document.getElementById('svc-repair-note-text').value = '';
             renderRepairSparepartChecklist(s);
@@ -13840,7 +13842,7 @@
             const s = db.serviceTickets.find(x => x.id === id);
             if (!s) return;
             document.getElementById('svc-delivery-id').value = id;
-            document.getElementById('svc-delivery-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-delivery-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-delivery-cust-info').innerText = `${s.customerName} (${s.customerContact})`;
             
             const stmtEl = document.getElementById('svc-delivery-statement');
@@ -13993,7 +13995,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="font-bold text-[12.5px] text-gray-900 dark:text-white">${s.unitName}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-0.5">${s.unitMerk || '-'} / ${s.unitTipe || '-'} | SN: ${s.unitSn || '-'}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-0.5">${formatServiceUnitMeta(s)}</p>
                                 <p class="text-[9.5px] text-gold-600 dark:text-gold-500 font-mono mt-1 font-bold">${s.noService}</p>
                             </div>
                             <span class="px-2 py-0.5 rounded text-[8.5px] font-black uppercase ${isValOnsite ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20' : 'bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20'}">${isValOnsite ? 'On-Site' : 'Workshop'}</span>
@@ -14311,8 +14313,8 @@
             }
 
             const headers = [
-                'No. Service','Customer/RS','PIC Customer','No HP/Kontak','Nama Unit','Merk/Brand',
-                'Model/Tipe','Serial Number','Art Number','Product','Keluhan Awal',
+                'No. Service','Customer/RS','PIC Customer','No HP/Kontak','Nama Unit',
+                'Serial Number','Art Number','Product','Keluhan Awal',
                 'Teknisi PJ','Status','Tgl Masuk','Update Terakhir',
                 'Analisa Awal TS','Analisa TSF','Rincian Perbaikan','Harga (Rp)','No PO','Tgl PO',
                 'TTD Pickup','TTD TSF','TTD Lapangan','TTD BAST','Foto Sebelum','Foto Sesudah'
@@ -14330,8 +14332,7 @@
                 const tglMasuk = new Date(t.id).toLocaleDateString('id-ID');
                 return [
                     t.noService, t.customerName, t.picName || '-', t.customerContact,
-                    t.unitName, t.unitMerk || '-', t.unitTipe || '-', t.unitSn || '-',
-                    t.unitArtNo || '-', t.unitProduct || '-', (t.complaint || '-').replace(/"/g,'""'),
+                    t.unitName, t.unitSn || '-', t.unitArtNo || '-', t.unitProduct || '-', (t.complaint || '-').replace(/"/g,'""'),
                     tsUser.name, statusLabels[t.status] || t.status,
                     tglMasuk, lastUpdate,
                     (t.initialAnalysis || '-').replace(/"/g,'""'),
@@ -14385,8 +14386,8 @@
                 `━━━━━━━━━━━━━━━━━━━━━\n` +
                 `📋 No. Layanan: *${s.noService}*\n` +
                 `🏥 Customer/RS: *${s.customerName}*\n` +
-                `⚕️ Unit Alat: *${s.unitName}* (${s.unitMerk} ${s.unitTipe})\n` +
-                `🔢 SN: ${s.unitSn || '-'}\n` +
+                `⚕️ Unit Alat: *${s.unitName}*\n` +
+                `🔢 Art: ${s.unitArtNo || '-'} · SN: ${s.unitSn || '-'}\n` +
                 `━━━━━━━━━━━━━━━━━━━━━\n` +
                 `📍 *STATUS SAAT INI: ${statusText}*` +
                 completedNote +
@@ -14498,7 +14499,7 @@
             
             document.getElementById('svc-det-no-service').innerText = s.noService;
             document.getElementById('svc-det-cust-name').innerText = s.customerName;
-            document.getElementById('svc-det-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-det-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-det-unit-sn').innerText = s.unitSn || '-';
             document.getElementById('svc-det-complaint').innerText = s.complaint || '-';
             
