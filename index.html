@@ -515,7 +515,7 @@
             </div>
             
             <div class="relative z-10 flex items-center gap-6 text-[10px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest">
-                <span>&copy; 2026 TMS Enterprise</span><span class="w-1 h-1 bg-gray-300 dark:bg-lux-700 rounded-full"></span><span>Encrypted System V6.0</span>
+                <span>&copy; 2026 TMS Enterprise</span><span class="w-1 h-1 bg-gray-300 dark:bg-lux-700 rounded-full"></span><span id="login-footer-version">Encrypted System</span>
             </div>
         </div>
         
@@ -2800,6 +2800,13 @@
                 : { version: '0', build: 0, date: '', title: 'System Update', summary: 'A new version is available.', changes: [] };
         }
 
+        function syncLoginFooterVersion() {
+            const el = document.getElementById('login-footer-version');
+            if (!el) return;
+            const rel = getTmsRelease();
+            el.innerText = rel.version ? `Encrypted System V${rel.version}` : 'Encrypted System';
+        }
+
         function getLastSeenVersion() {
             try { return localStorage.getItem(TMS_VERSION_KEY) || ''; } catch (e) { return ''; }
         }
@@ -2886,6 +2893,8 @@
         document.addEventListener("DOMContentLoaded", () => {
             const boot = document.getElementById('app-boot-loader');
             if (boot) { boot.classList.add('hide'); setTimeout(() => boot.remove(), 400); }
+
+            syncLoginFooterVersion();
 
             const isDark = document.documentElement.classList.contains('dark');
             if(document.getElementById('theme-icon-dash')) document.getElementById('theme-icon-dash').className = isDark ? 'fa-solid fa-moon text-xl' : 'fa-solid fa-sun text-xl';

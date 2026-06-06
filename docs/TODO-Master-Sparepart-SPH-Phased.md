@@ -39,6 +39,7 @@
 | Phase 6 | v6.7.0 | ✅ Done | AC-39–42 | T-30–32 |
 | Phase 6.1 | v6.7.1 | ✅ Done | Cancel hardening | — |
 | **Phase 7** | v6.7.1 | ✅ Done | Release | Live verified |
+| Phase 7.1 | v6.7.2 | ✅ Done | Footer sync + doc push | — |
 
 
 
@@ -862,6 +863,38 @@
 
 
 
+## Phase 7.1 — Post-Deploy Polish (v6.7.2)
+
+
+
+**Target:** v6.7.2 — tutup gap audit Phase 7
+
+
+
+### Kode
+
+- [x] `syncLoginFooterVersion()` — footer login baca `TMS_RELEASE.version` (bukan hardcoded V6.0)
+
+- [x] Bump `release.js` v6.7.2 / build 67
+
+- [x] Bump `sw.js` `tms-cache-v67`
+
+
+
+### Dokumentasi & Git
+
+- [x] PRD §12 — tambah baris Phase 7 Deploy + Phase 7.1
+
+- [x] Push commit TODO penanda Phase 7 (`434388f`) ke remote
+
+- [x] Deploy v6.7.2 ke GitHub Pages
+
+
+
+---
+
+
+
 ## Backlog Opsional (di luar PRD inti)
 
 
@@ -1030,5 +1063,5 @@ Jalankan sebelum bump versi / deploy — **semua T-01 s/d T-32**:
 
 
 
-*Updated: 2026-06-06 — v1.4 TODO: Phase 7 Deploy complete — live v6.7.1 build 66, commit 5b58504*
+*Updated: 2026-06-06 — v1.5 TODO: Phase 7.1 complete — footer sync v6.7.2 build 67*
 

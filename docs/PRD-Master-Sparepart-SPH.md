@@ -4,7 +4,7 @@
 |-------|-------|
 | **Product** | TMS — Tool Management System |
 | **Module** | Master Sparepart, SPH Builder, SPH Log, Service & Repair Integration |
-| **Version** | **1.4.0** (Target Release: v6.7.1) |
+| **Version** | **1.4.1** (Target Release: v6.7.2) |
 | **Date** | 2026-06-06 |
 | **Status** | Approved — Full Specification (Phase 1–6 complete) |
 
@@ -904,6 +904,8 @@ Field ini **immutable** setelah tiket dibuat (BR-14).
 | Phase 5 | PDF SPH export + partial Smart Fill search | v6.6.0 → **v6.7.0** ✅ |
 | Phase 6 | SPH cancel flow + On-Site modal UX + Combined SPH customer picker | **v6.7.0** ✅ |
 | Phase 6.1 | Cancel hardening + doc preview + stat Cancelled | **v6.7.1** ✅ |
+| **Phase 7** | **Deploy GitHub Pages + live verification** | **v6.7.1** ✅ |
+| Phase 7.1 | Login footer version sync + doc push | **v6.7.2** |
 
 ---
 
@@ -988,4 +990,4 @@ Field ini **immutable** setelah tiket dibuat (BR-14).
 ---
 
 *Document owner: TMS Product Team*  
-*Last updated: 2026-06-06 — v1.4.0: Phase 5–6 complete, AC-36–42, T-28–32, cancel hardening v6.7.1*
+*Last updated: 2026-06-06 — v1.4.1: Phase 7 Deploy documented, login footer sync v6.7.2*
