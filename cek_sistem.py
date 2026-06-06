@@ -97,6 +97,17 @@ def check_html_integrity():
     if onsubmit_ok:
         ok('Semua handler onsubmit valid')
 
+    missing_event = []
+    for attr in ('onchange', 'oninput', 'onkeyup'):
+        for m in re.finditer(attr + r'="([^"]+)"', html):
+            cm = re.match(r'^([a-zA-Z_$][\w$]*)\s*\(', m.group(1))
+            if cm and cm.group(1) not in func_defs:
+                missing_event.append(f'{attr}:{cm.group(1)}')
+    if missing_event:
+        bad(f'Handler event tanpa fungsi: {", ".join(sorted(set(missing_event)))}')
+    else:
+        ok('Semua handler onchange/oninput/onkeyup valid')
+
     tabs = set(re.findall(r"switchTab\('([^']+)'\)", html))
     views = set(re.findall(r'id="view-([^"]+)"', html))
     missing_views = sorted(tabs - views)
@@ -122,7 +133,7 @@ def check_html_integrity():
         else:
             bad(f'Master Data Customer: {cid} hilang')
 
-    for fn in ('renderCustomerMaster', 'populateServiceCustomerSelects', 'onPickServiceCustomer', 'onPickServiceUnit', 'getUnitServiceHistory', 'openServiceModalForUnit', 'smartFillServiceByCustomerName', 'applyLastServiceComplaint'):
+    for fn in ('renderCustomerMaster', 'debouncedRenderCustomerMaster', 'populateServiceCustomerSelects', 'onPickServiceCustomer', 'onPickServiceUnit', 'getUnitServiceHistory', 'buildServiceHistoryIndex', 'openServiceModalForUnit', 'smartFillServiceByCustomerName', 'applyLastServiceComplaint'):
         if f'function {fn}' in js:
             ok(f'Master Data Customer: {fn} ada')
         else:

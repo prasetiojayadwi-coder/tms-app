@@ -1,7 +1,7 @@
 {
-  "name": "Tools Management System",
-  "short_name": "TMS Asset",
-  "description": "Platform eksekutif untuk mengelola, melacak, dan memvalidasi pergerakan alat ukur secara real-time.",
+  "name": "TMS — Sistem Manajemen Alat",
+  "short_name": "TMS",
+  "description": "Platform manajemen aset untuk melacak inventaris, layanan pelanggan, dan serah terima alat secara real-time.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#09090b",
