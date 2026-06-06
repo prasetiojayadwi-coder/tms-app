@@ -38,7 +38,7 @@
 
 | Phase 6 | v6.7.0 | ✅ Done | AC-39–42 | T-30–32 |
 | Phase 6.1 | v6.7.1 | ✅ Done | Cancel hardening | — |
-| **Phase 7** | v6.7.1 | 🔄 Deploy | Release | Live verify |
+| **Phase 7** | v6.7.1 | ✅ Done | Release | Live verified |
 
 
 
@@ -568,7 +568,7 @@
 
 - [x] Jalankan `cek_sistem.py` — modul SPH + integritas handler
 
-- [ ] Commit message mengikuti style repo (menunggu permintaan user)
+- [x] Commit message mengikuti style repo — `5b58504`
 
 
 
@@ -826,35 +826,35 @@
 
 ### Git & GitHub Pages
 
-- [ ] `git add` — index.html, release.js, sw.js, cek_sistem.py, docs/
+- [x] `git add` — index.html, release.js, sw.js, cek_sistem.py, docs/
 
-- [ ] `git commit` — message style repo (Bahasa Indonesia)
+- [x] `git commit` — `Rilis v6.7.1 modul Master Sparepart dan SPH...` (`5b58504`)
 
-- [ ] `git push origin main`
+- [x] `git push origin main` — `457a2a2..5b58504`
 
-- [ ] Tunggu GitHub Pages deploy (~1–3 menit)
+- [x] GitHub Pages deploy selesai (~45 detik)
 
 
 
 ### Post-deploy Verification
 
-- [ ] Live `release.js` → version `6.7.1`, build `66`
+- [x] Live `release.js` → version `6.7.1`, build `66` ✅
 
-- [ ] Live `sw.js` → `tms-cache-v66`
+- [x] Live `sw.js` → `tms-cache-v66` ✅
 
-- [ ] Live app: menu Sparepart Master + SPH Log tampil
+- [x] Live app: menu **Sparepart Master** + **SPH Log** tampil ✅
 
-- [ ] Live app: SPH detail modal (bukan alert)
+- [x] Live app: **SPH Detail** modal + Export PDF + Cancel SPH ✅
 
-- [ ] URL: https://prasetiojayadwi-coder.github.io/tms-app/
+- [x] URL: https://prasetiojayadwi-coder.github.io/tms-app/ ✅
 
 
 
 ### QA Deploy
 
-- [ ] Live version match local
+- [x] Live version match local (6.7.1 / build 66)
 
-- [ ] PWA cache bump terdeteksi (update banner)
+- [x] PWA cache bump v66 — changelog 7 item di `TMS_RELEASE`
 
 
 
@@ -1020,7 +1020,7 @@ Jalankan sebelum bump versi / deploy — **semua T-01 s/d T-32**:
 
 | §12 Phase 5–6 | Phase 5–6.1 ✅ |
 
-| §12 Phase 7 Deploy | Phase 7 |
+| §12 Phase 7 Deploy | Phase 7 ✅ |
 
 | Backlog opsional | § Backlog |
 
@@ -1030,5 +1030,5 @@ Jalankan sebelum bump versi / deploy — **semua T-01 s/d T-32**:
 
 
 
-*Updated: 2026-06-06 — v1.3 TODO: Phase 7 Deploy in progress, PRD v1.4.0 ref, build v66*
+*Updated: 2026-06-06 — v1.4 TODO: Phase 7 Deploy complete — live v6.7.1 build 66, commit 5b58504*
 
