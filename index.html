@@ -219,8 +219,22 @@
             #spareparts-cards-mobile,
             #customers-cards-mobile,
             #customer-units-cards-mobile,
-            #service-tickets-cards-mobile { max-height: min(70vh, 640px); min-height: 120px; -webkit-overflow-scrolling: touch; }
+            #service-tickets-cards-mobile { max-height: min(70vh, 640px); min-height: 120px; -webkit-overflow-scrolling: touch; padding-bottom: 5rem; }
             #view-customer-service .cust-touch-btn { min-height: 44px; }
+            #service-tickets-cards-mobile .svc-ticket-action,
+            #service-tickets-cards-mobile .svc-ticket-track,
+            #service-tickets-cards-mobile .svc-ticket-receipt,
+            #service-tickets-cards-mobile .svc-ticket-delete {
+                min-height: 48px; width: 100%; touch-action: manipulation;
+                -webkit-tap-highlight-color: rgba(234, 179, 8, 0.15);
+            }
+            #service-tickets-cards-mobile .svc-mob-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+            .tms-card-btn--primary {
+                background-color: #18181b !important; color: #fafafa !important; border-color: #18181b !important;
+            }
+            .dark .tms-card-btn--primary {
+                background-color: #e4e4e7 !important; color: #18181b !important; border-color: #e4e4e7 !important;
+            }
 
             .app-view.hidden {
                 content-visibility: hidden;
@@ -2587,7 +2601,7 @@
                     <button type="button" onclick="closeModal('handoverSignatureModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Cancel</button>
                     <button type="button" id="btn-back-handover-sig" onclick="backHandoverSigStep()" class="hidden flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 transition"><i class="fa-solid fa-arrow-left"></i> Back</button>
                     <button type="submit" id="btn-submit-handover-sig" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Confirm</button>
-                </div>          </div>
+                </div>
             </form>
         </div>
     </div>
@@ -5304,6 +5318,7 @@
         }
 
         function initAppUI() {
+            bindServiceTicketCardActions();
             const mobileLite = isTmsMobileView();
             const tabOpts = mobileLite ? { lite: true } : undefined;
             document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); document.getElementById('nav-user-name').innerText = currentUser.name; 
@@ -9782,67 +9797,113 @@
             select.innerHTML = options;
         }
 
+        function svcTicketBtn(id, handler, label, icon, primary, extra) {
+            const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
+            const ex = extra ? ` data-svc-extra="${extra}"` : '';
+            return `<button type="button" data-svc-id="${id}" data-svc-handler="${handler}"${ex} class="${cls}"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+        }
+
+        function runServiceTicketAction(btn) {
+            const id = parseInt(btn.dataset.svcId, 10);
+            const handler = btn.dataset.svcHandler;
+            const extra = btn.dataset.svcExtra || '';
+            if (!id || !handler) return;
+            const runners = {
+                actionServiceTicket: () => actionServiceTicket(id, extra),
+                openQuotationModal: () => openQuotationModal(id),
+                openAnalysisModal: () => openAnalysisModal(id),
+                openOnsiteRepair: () => openOnsiteRepair(id),
+                openTsfQuickRepair: () => openTsfQuickRepair(id),
+                openPoModal: () => openPoModal(id),
+                openServiceRepairModal: () => openServiceRepairModal(id),
+                openServiceDeliveryModal: () => openServiceDeliveryModal(id),
+                showServiceDetail: () => showServiceDetail(id),
+                openServiceReceiptModal: () => openServiceReceiptModal(id),
+                deleteServiceTicket: () => deleteServiceTicket(id)
+            };
+            if (runners[handler]) runners[handler]();
+        }
+
+        function bindServiceTicketCardActions() {
+            ['service-tickets-cards-mobile', 'service-tickets-container'].forEach(cid => {
+                const el = document.getElementById(cid);
+                if (!el || el._svcActionBound) return;
+                el._svcActionBound = true;
+                el.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete');
+                    if (!btn) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    runServiceTicketAction(btn);
+                }, { passive: false });
+            });
+        }
+
+        function isAssignedServiceTs(s) {
+            return currentUser.role === 'ts' && Number(currentUser.id) === Number(s.assignedTsId);
+        }
+
         function buildServiceTicketRow(s) {
             const userMap = db.users || {};
             const ts = userMap[s.assignedTsId] ? userMap[s.assignedTsId].name : 'Belum Ditunjuk';
             const date = new Date(s.id).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-            const pri = 'tms-svc-btn tms-svc-btn--primary';
-            const sec = 'tms-svc-btn';
+            const pri = true;
+            const sec = false;
             let statusBadge = '';
             let actionBtn = '';
             let ownerDeleteBtn = '';
             if (currentUser.role === 'owner') {
-                ownerDeleteBtn = `<button onclick="deleteServiceTicket(${s.id})" class="tms-icon-btn tms-icon-btn--danger" title="Hapus Tiket"><i class="fa-solid fa-trash text-[10px]"></i></button>`;
+                ownerDeleteBtn = `<button type="button" data-svc-id="${s.id}" data-svc-handler="deleteServiceTicket" class="tms-icon-btn tms-icon-btn--danger svc-ticket-delete" title="Hapus Tiket"><i class="fa-solid fa-trash text-[10px]"></i></button>`;
             }
             if (s.status === 'registered') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
-                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                    actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'pickup')" class="${pri}"><i class="fa-solid fa-truck-pickup mr-1"></i> Pickup Unit</button>`;
+                if (isAssignedServiceTs(s)) {
+                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
                 }
             } else if (s.status === 'picked_up') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
-                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
+                if (isAssignedServiceTs(s)) {
                     if (s.repairLoc === 'onsite') {
-                        const sphBtn = canIssueSphForTicket(s) ? `<button onclick="openQuotationModal(${s.id})" class="${sec}"><i class="fa-solid fa-file-invoice mr-1"></i> On-Site SPH</button>` : '';
-                        const quickBtn = `<button onclick="openOnsiteRepair(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
-                        actionBtn = `<div class="flex flex-wrap gap-1.5">${sphBtn}${quickBtn}</div>`;
+                        const sphBtn = canIssueSphForTicket(s) ? svcTicketBtn(s.id, 'openQuotationModal', 'On-Site SPH', 'fa-file-invoice', sec) : '';
+                        const quickBtn = svcTicketBtn(s.id, 'openOnsiteRepair', 'Quick Repair', 'fa-screwdriver-wrench', pri);
+                        actionBtn = `<div class="flex flex-wrap gap-1.5 svc-mob-actions">${sphBtn}${quickBtn}</div>`;
                     } else {
-                        actionBtn = `<button onclick="openAnalysisModal(${s.id})" class="${pri}"><i class="fa-solid fa-file-waveform mr-1"></i> Analisa Awal</button>`;
+                        actionBtn = svcTicketBtn(s.id, 'openAnalysisModal', 'Analisa Awal', 'fa-file-waveform', pri);
                     }
                 }
             } else if (s.status === 'initial_analyzed') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 whitespace-nowrap">Kirim ke TSF</span>`;
                 if (currentUser.role === 'tsf') {
-                    actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'receive_tsf')" class="${pri}"><i class="fa-solid fa-warehouse mr-1"></i> Terima di TSF</button>`;
+                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Terima di TSF', 'fa-warehouse', pri, 'receive_tsf');
                 }
             } else if (s.status === 'received_tsf') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20 whitespace-nowrap">Diterima TSF</span>`;
                 if (currentUser.role === 'tsf') {
-                    const quotBtn = `<button onclick="openQuotationModal(${s.id})" class="${sec}"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Damage Quotation</button>`;
-                    const quickBtn = `<button onclick="openTsfQuickRepair(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
-                    actionBtn = `<div class="flex flex-wrap gap-1.5">${quotBtn}${quickBtn}</div>`;
+                    const quotBtn = svcTicketBtn(s.id, 'openQuotationModal', 'Damage Quotation', 'fa-file-invoice-dollar', sec);
+                    const quickBtn = svcTicketBtn(s.id, 'openTsfQuickRepair', 'Quick Repair', 'fa-screwdriver-wrench', pri);
+                    actionBtn = `<div class="flex flex-wrap gap-1.5 svc-mob-actions">${quotBtn}${quickBtn}</div>`;
                 }
             } else if (s.status === 'quoted') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-indigo-50 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">Penawaran Dikirim</span>`;
                 if (currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
-                    actionBtn = `<button onclick="openPoModal(${s.id})" class="${pri}"><i class="fa-solid fa-file-circle-check mr-1"></i> Input PO</button>`;
+                    actionBtn = svcTicketBtn(s.id, 'openPoModal', 'Input PO', 'fa-file-circle-check', pri);
                 }
             } else if (s.status === 'po_issued') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20 whitespace-nowrap">Perbaikan (PO)</span>`;
-                if (s.repairLoc === 'onsite' && currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                    actionBtn = `<button onclick="openOnsiteRepair(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Repair & BAST</button>`;
+                if (s.repairLoc === 'onsite' && isAssignedServiceTs(s)) {
+                    actionBtn = svcTicketBtn(s.id, 'openOnsiteRepair', 'Repair & BAST', 'fa-screwdriver-wrench', pri);
                 } else if (currentUser.role === 'tsf' && s.repairLoc !== 'onsite') {
-                    actionBtn = `<button onclick="openServiceRepairModal(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Selesai Perbaikan</button>`;
+                    actionBtn = svcTicketBtn(s.id, 'openServiceRepairModal', 'Selesai Perbaikan', 'fa-screwdriver-wrench', pri);
                 }
             } else if (s.status === 'repaired') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-pink-50 text-pink-600 dark:bg-pink-950/20 dark:text-pink-400 border border-pink-200 dark:border-pink-500/20 whitespace-nowrap">Kembali ke Lapangan</span>`;
-                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                    actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'receive_field')" class="${pri}"><i class="fa-solid fa-handshake-angle mr-1"></i> Terima di Lapangan</button>`;
+                if (isAssignedServiceTs(s)) {
+                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Terima di Lapangan', 'fa-handshake-angle', pri, 'receive_field');
                 }
             } else if (s.status === 'received_field') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-teal-50 text-teal-600 dark:bg-teal-950/20 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20 whitespace-nowrap">Siap Penyerahan</span>`;
-                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                    actionBtn = `<button onclick="openServiceDeliveryModal(${s.id})" class="${pri}"><i class="fa-solid fa-check mr-1"></i> Serahkan & BAST</button>`;
+                if (isAssignedServiceTs(s)) {
+                    actionBtn = svcTicketBtn(s.id, 'openServiceDeliveryModal', 'Serahkan & BAST', 'fa-check', pri);
                 }
             } else if (s.status === 'completed') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 whitespace-nowrap">Selesai & BAST</span>`;
@@ -9975,7 +10036,7 @@
                         <td class="p-5 text-center"><input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
                         <td class="p-5 font-mono text-[12px] font-bold text-gray-900 dark:text-white whitespace-nowrap">
                             <div class="flex flex-col gap-1.5 items-start">
-                                <span onclick="showServiceDetail(${s.id})" class="cursor-pointer hover:underline font-bold">${noSvc}</span>
+                                <span role="button" tabindex="0" data-svc-id="${s.id}" data-svc-handler="showServiceDetail" class="svc-ticket-track cursor-pointer hover:underline font-bold">${noSvc}</span>
                                 <span class="text-[9px] text-gray-400 dark:text-lux-500 font-mono font-bold">${row.date}</span>
                             </div>
                         </td>
@@ -9994,8 +10055,8 @@
                         <td class="p-5 whitespace-nowrap">
                             <div class="flex flex-col gap-1.5 items-start">
                                 ${row.statusBadge}
-                                <span onclick="showServiceDetail(${s.id})" class="text-[9.5px] text-gray-500 hover:text-gray-900 dark:hover:text-white hover:underline cursor-pointer font-bold uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Track Status</span>
-                                ${s.status !== 'registered' ? `<span onclick="openServiceReceiptModal(${s.id})" class="text-[9.5px] text-gray-500 hover:text-gray-900 dark:hover:text-white hover:underline cursor-pointer font-bold uppercase tracking-wider mt-1 block"><i class="fa-solid fa-print mr-1"></i> Tanda Terima</span>` : ''}
+                                <span role="button" data-svc-id="${s.id}" data-svc-handler="showServiceDetail" class="svc-ticket-track text-[9.5px] text-gray-500 hover:text-gray-900 dark:hover:text-white hover:underline cursor-pointer font-bold uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Track Status</span>
+                                ${s.status !== 'registered' ? `<span role="button" data-svc-id="${s.id}" data-svc-handler="openServiceReceiptModal" class="svc-ticket-receipt text-[9.5px] text-gray-500 hover:text-gray-900 dark:hover:text-white hover:underline cursor-pointer font-bold uppercase tracking-wider mt-1 block"><i class="fa-solid fa-print mr-1"></i> Tanda Terima</span>` : ''}
                             </div>
                         </td>
                         <td class="p-5 text-center whitespace-nowrap">
@@ -10006,10 +10067,14 @@
                         </td>
                     </tr>`);
                 if (cardsMobile) {
+                    const mobPriCls = 'tms-card-btn tms-card-btn--primary svc-ticket-action';
+                    const mobActBtn = row.actionBtn
+                        ? row.actionBtn.replace(/tms-svc-btn tms-svc-btn--primary svc-ticket-action/g, mobPriCls).replace(/tms-svc-btn svc-ticket-action/g, 'tms-card-btn svc-ticket-action')
+                        : '';
                     cardRows.push(`<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
                         <div class="flex justify-between items-start gap-3">
-                            <input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1">
-                            <div class="min-w-0 flex-1">
+                            <input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
+                            <div class="min-w-0 flex-1 svc-ticket-track cursor-pointer" role="button" data-svc-id="${s.id}" data-svc-handler="showServiceDetail">
                                 <p class="font-mono text-[11px] font-bold text-gray-900 dark:text-white">${noSvc}</p>
                                 <p class="text-[9px] text-gray-400 dark:text-lux-500 mt-0.5">${row.date}</p>
                                 <p class="font-bold text-[14px] text-gray-900 dark:text-white mt-2 leading-snug">${custName}</p>
@@ -10020,11 +10085,11 @@
                             <div class="shrink-0">${row.statusBadge}</div>
                         </div>
                         <div class="tms-card-actions flex-wrap">
-                            <button onclick="showServiceDetail(${s.id})" class="tms-card-btn"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Track</button>
-                            ${s.status !== 'registered' ? `<button onclick="openServiceReceiptModal(${s.id})" class="tms-card-btn"><i class="fa-solid fa-print mr-1"></i>Tanda Terima</button>` : ''}
-                            ${currentUser.role === 'owner' ? `<button onclick="deleteServiceTicket(${s.id})" class="tms-card-btn tms-card-btn--danger"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>` : ''}
+                            <button type="button" data-svc-id="${s.id}" data-svc-handler="showServiceDetail" class="tms-card-btn svc-ticket-track"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Track</button>
+                            ${s.status !== 'registered' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="openServiceReceiptModal" class="tms-card-btn svc-ticket-receipt"><i class="fa-solid fa-print mr-1"></i>Tanda Terima</button>` : ''}
+                            ${currentUser.role === 'owner' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="deleteServiceTicket" class="tms-card-btn tms-card-btn--danger svc-ticket-delete"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>` : ''}
                         </div>
-                        ${row.actionBtn ? `<div class="flex flex-wrap gap-2 mt-2">${row.actionBtn}</div>` : `<p class="text-[10px] text-gray-400 dark:text-lux-500 italic mt-2 text-center">Menunggu giliran</p>`}
+                        ${mobActBtn ? `<div class="svc-mob-actions">${mobActBtn}</div>` : `<p class="text-[10px] text-gray-400 dark:text-lux-500 italic mt-2 text-center">Menunggu giliran</p>`}
                     </div>`);
                 }
             });
@@ -10032,6 +10097,7 @@
                 tableHtml: tableRows.join(''),
                 cardsHtml: cardRows.join('')
             });
+            bindServiceTicketCardActions();
         }
 
         function generateCustomerCode() {
