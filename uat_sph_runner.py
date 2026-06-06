@@ -258,6 +258,26 @@ async def run_a(page):
     }''')
     record('UAT-083', 'pass' if cu_del.get('legacyAdded') and cu_del.get('deleted1') and cu_del.get('left2') and cu_del.get('legacyDesc') else 'fail', str(cu_del))
 
+    # UAT-084 — single Delete: customer & unit terpilih
+    cu_sel = await js(page, '''() => {
+        loadDB();
+        const c1 = { id: 9900841, code: 'C-A', name: 'RS UAT Sel Del A', picName: 'PIC', contact: '0', status: 'active', updatedAt: new Date().toISOString() };
+        const c2 = { id: 9900842, code: 'C-B', name: 'RS UAT Sel Del B', picName: 'PIC', contact: '0', status: 'active', updatedAt: new Date().toISOString() };
+        db.customers = (db.customers || []).filter(c => ![9900841, 9900842].includes(c.id));
+        db.customers.push(c1, c2);
+        db.customerUnits = (db.customerUnits || []).filter(u => ![9900841, 9900842].includes(u.customerId));
+        db.customerUnits.push({ id: 99008411, customerId: c1.id, artNo: 'X1', product: 'Avitum', unitName: 'U1', unitSn: 'SN-U1', status: 'active', updatedAt: new Date().toISOString() });
+        const rCust = removeCustomersByIds([c2.id], { skipConfirm: true });
+        const rUnit = removeCustomerUnitsByIds([99008411], { skipConfirm: true });
+        return {
+            custDeleted: rCust.deleted === 1,
+            custLeft: (db.customers || []).some(c => c.id === c1.id) && !(db.customers || []).some(c => c.id === c2.id),
+            unitDeleted: rUnit.deleted === 1,
+            unitLeft: !(db.customerUnits || []).some(u => u.id === 99008411)
+        };
+    }''')
+    record('UAT-084', 'pass' if cu_sel.get('custDeleted') and cu_sel.get('custLeft') and cu_sel.get('unitDeleted') and cu_sel.get('unitLeft') else 'fail', str(cu_sel))
+
 
 # --- Section B: SPH Builder ---
 

@@ -39,6 +39,10 @@
     "status": "pass",
     "note": "{'legacyAdded': True, 'deleted1': True, 'left2': True, 'legacyDesc': True}"
   },
+  "UAT-084": {
+    "status": "pass",
+    "note": "{'custDeleted': True, 'custLeft': True, 'unitDeleted': True, 'unitLeft': True}"
+  },
   "UAT-010": {
     "status": "pass",
     "note": "{'quoted': True, 'sphNo': 'SPH-2606-0001', 'quotePrice': 4000000, 'subtotal': 3500000}"

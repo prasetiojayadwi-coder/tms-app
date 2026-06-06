@@ -3,15 +3,14 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '6.8.2',
-    build: 77,
+    version: '6.8.3',
+    build: 78,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'Customer unit — kolom Description, tanpa Merk/Tipe, hapus terpilih atau semua.',
+    summary: 'Customer Master — satu tombol Delete untuk customer & unit terpilih.',
     changes: [
-        { icon: 'fa-file-lines', text: 'Unit Name diganti Description (form, tabel, template Excel)' },
-        { icon: 'fa-ban', text: 'Kolom Merk & Type dihapus dari unit customer' },
-        { icon: 'fa-trash', text: 'Hapus Terpilih & Hapus Semua unit per customer' },
-        { icon: 'fa-file-import', text: 'Import Excel tetap terima header lama Unit Name' }
+        { icon: 'fa-trash', text: 'Unit: satu tombol Delete (centang lalu hapus)' },
+        { icon: 'fa-hospital', text: 'Customer: centang + tombol Delete (hapus beserta unit)' },
+        { icon: 'fa-check-double', text: 'Hapus ganda (Terpilih/Semua) dihilangkan' }
     ]
 };
