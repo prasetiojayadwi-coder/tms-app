@@ -8921,7 +8921,16 @@
         }
 
         // Utils
-        function openModal(id) { const m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex'); setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10); } 
+        function openModal(id) {
+            const m = document.getElementById(id);
+            if (!m || !m.children[0]) {
+                showToast('Form tidak tersedia', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10);
+        } 
         function closeModal(id) { 
             const m = document.getElementById(id); 
             m.classList.add('opacity-0'); 
@@ -9797,6 +9806,10 @@
             return `${prefix}${String(maxSeq + 1).padStart(4, '0')}`;
         }
 
+        function findServiceTicket(id) {
+            return (db.serviceTickets || []).find(x => Number(x.id) === Number(id)) || null;
+        }
+
         function populateServiceTsSelect() {
             const select = document.getElementById('svc-assigned-ts');
             if (!select) return;
@@ -9811,8 +9824,12 @@
 
         function svcTicketBtn(id, handler, label, icon, primary, extra) {
             const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
+            const sid = Number(id);
             const ex = extra ? ` data-svc-extra="${extra}"` : '';
-            return `<button type="button" data-svc-id="${id}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+            const call = handler === 'actionServiceTicket'
+                ? `actionServiceTicket(${sid}, '${extra || ''}')`
+                : `${handler}(${sid})`;
+            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="${call}; return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
         function runServiceTicketAction(btn) {
@@ -9850,12 +9867,13 @@
                 el._svcActionBound = true;
                 const onTap = (e) => {
                     const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete');
-                    if (!btn || btn.tagName === 'BUTTON' && btn.getAttribute('onclick')) return;
+                    if (!btn) return;
+                    if (btn.tagName === 'BUTTON' && btn.getAttribute('onclick')) return;
+                    e.preventDefault();
                     e.stopPropagation();
                     runServiceTicketAction(btn);
                 };
                 el.addEventListener('click', onTap);
-                el.addEventListener('touchend', onTap);
             });
         }
 
@@ -11674,7 +11692,7 @@
             }
             const lines = getValidSphLines(_sphBuilderLines);
             if (!lines.length) { showToast('Validation', 'Add at least one sparepart line.', 'error'); return; }
-            const tickets = _sphBuilderTicketIds.map(id => db.serviceTickets.find(x => x.id === id)).filter(Boolean);
+            const tickets = _sphBuilderTicketIds.map(id => findServiceTicket(id)).filter(Boolean);
             const custIds = [...new Set(tickets.map(t => t.customerId))];
             if (custIds.length !== 1) { showToast('Validation', 'All tickets must belong to the same customer.', 'error'); return; }
             const labor = parseFloat(document.getElementById('sph-builder-labor').value) || 0;
@@ -12917,7 +12935,7 @@
 
         function openServiceReceiptModal(id) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             
             document.getElementById('svc-receipt-active-id').value = id;
@@ -12959,7 +12977,7 @@
         function renderServiceReceiptTab(docType) {
             const id = parseInt(document.getElementById('svc-receipt-active-id').value);
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             
             // Highlight active tab
@@ -13290,7 +13308,7 @@
         async function downloadServiceReceiptPDF() {
             const id = parseInt(document.getElementById('svc-receipt-active-id').value);
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
 
             try { await loadTmsScript('pdf'); } catch(e) {
@@ -13319,8 +13337,11 @@
 
         function actionServiceTicket(id, action) {
             loadDB();
-            const s = db.serviceTickets.find(x => Number(x.id) === Number(id));
-            if (!s) return;
+            const s = findServiceTicket(id);
+            if (!s) {
+                showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
 
             if (['pickup', 'receive_tsf', 'receive_field'].includes(action)) {
                 openHandoverSignatureModal(id, action);
@@ -13331,13 +13352,17 @@
             saveDB();
             updateData();
         }
+        window.actionServiceTicket = actionServiceTicket;
 
         let handoverSigStep = 1;
 
         function openHandoverSignatureModal(id, action) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
-            if (!s) return;
+            const s = findServiceTicket(id);
+            if (!s) {
+                showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
 
             document.getElementById('handover-sig-ticket-id').value = id;
             document.getElementById('handover-sig-action').value = action;
@@ -13444,8 +13469,11 @@
             loadDB();
             const id = parseInt(document.getElementById('handover-sig-ticket-id').value);
             const action = document.getElementById('handover-sig-action').value;
-            const s = db.serviceTickets.find(x => x.id === id);
-            if (!s) return;
+            const s = findServiceTicket(id);
+            if (!s) {
+                showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
 
             if (action === 'pickup' && handoverSigStep === 1) {
                 if (!handoverGiverDraw || handoverGiverDraw.isBlank()) {
@@ -13578,7 +13606,7 @@
 
         function openAnalysisModal(id) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             document.getElementById('svc-analysis-id').value = id;
             document.getElementById('svc-analysis-unit-name').innerText = formatServiceUnitTitle(s);
@@ -13591,7 +13619,7 @@
             e.preventDefault();
             loadDB();
             const id = parseInt(document.getElementById('svc-analysis-id').value);
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
 
             const text = document.getElementById('svc-initial-analysis-text').value;
@@ -13654,7 +13682,7 @@
 
         function openQuotationModal(id) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             document.getElementById('svc-quote-id').value = id;
             document.getElementById('svc-quote-unit-name').innerText = formatServiceUnitTitle(s);
@@ -13683,7 +13711,7 @@
             e.preventDefault();
             loadDB();
             const id = parseInt(document.getElementById('svc-quote-id').value);
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             
             const decision = document.getElementById('svc-tsf-decision').value;
@@ -13758,7 +13786,7 @@
 
         function openPoModal(id) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             document.getElementById('svc-po-id').value = id;
             document.getElementById('svc-po-unit-name').innerText = formatServiceUnitTitle(s);
@@ -13775,7 +13803,7 @@
             e.preventDefault();
             loadDB();
             const id = parseInt(document.getElementById('svc-po-id').value);
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             
             const poNumber = document.getElementById('svc-po-number').value;
@@ -13821,7 +13849,7 @@
 
         function setupServiceRepairModal(id, mode) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return false;
             if (mode === 'tsf_quick' && s.status !== 'received_tsf') {
                 showToast('Not Available', 'TSF Quick Repair hanya saat unit sudah diterima di workshop.', 'error');
@@ -13870,7 +13898,7 @@
             e.preventDefault();
             loadDB();
             const id = parseInt(document.getElementById('svc-repair-id').value);
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             
             const text = document.getElementById('svc-repair-note-text').value;
@@ -13938,7 +13966,7 @@
 
         function openServiceDeliveryModal(id) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             document.getElementById('svc-delivery-id').value = id;
             document.getElementById('svc-delivery-unit-name').innerText = formatServiceUnitTitle(s);
@@ -13974,7 +14002,7 @@
             }
             loadDB();
             const id = parseInt(document.getElementById('svc-delivery-id').value);
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
             
             const sigGiver = svcGiverDraw.canvas.toDataURL();
@@ -14156,7 +14184,7 @@
             const ticketIds = Array.from(noteInputs).map(input => parseInt(input.getAttribute('data-ticket-id')));
             
             ticketIds.forEach(id => {
-                const s = db.serviceTickets.find(x => x.id === id);
+                const s = findServiceTicket(id);
                 if (!s) return;
                 
                 const repairNoteText = Array.from(noteInputs).find(input => parseInt(input.getAttribute('data-ticket-id')) === id).value.trim();
@@ -14458,7 +14486,7 @@
         // ====================================================================
         function sendWhatsAppNotification(id) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) { showToast("Error", "Tiket tidak ditemukan.", "error"); return; }
 
             const phone = (s.customerContact || '').replace(/[^0-9]/g,'');
@@ -14575,7 +14603,7 @@
 
         function showServiceDetail(id) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (!s) return;
 
             // Auto mark notif as read saat detail tiket dibuka
@@ -14757,7 +14785,7 @@
             
             const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
             idsToDelete.forEach(id => {
-                const s = db.serviceTickets.find(x => x.id === id);
+                const s = findServiceTicket(id);
                 if (s) {
                     addToHistory(`${currentUser.role.toUpperCase()} menghapus massal tiket service: ${s.noService}.`);
                 }
@@ -14781,7 +14809,7 @@
             }
             if(!confirm("Hapus tiket perbaikan ini secara permanen? Data riwayat juga akan hilang.")) return;
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = findServiceTicket(id);
             if (s) {
                 addToHistory(`${currentUser.role.toUpperCase()} menghapus permanen tiket service: ${s.noService}.`);
                 db.serviceTickets = db.serviceTickets.filter(x => x.id !== id);

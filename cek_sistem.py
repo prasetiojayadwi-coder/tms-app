@@ -304,9 +304,21 @@ def check_html_integrity():
     else:
         bad('Tombol HP: tmsCardsVisible tidak ada — risiko kartu kosong di HP')
     if 'window.runServiceTicketAction' in js and 'runServiceTicketAction(this)' in js:
-        ok('Tombol HP: service Pickup/Track onclick + window fallback')
+        ok('Tombol HP: service Track/Receipt onclick + window fallback')
     else:
         bad('Tombol HP: runServiceTicketAction tidak lengkap')
+    if 'function findServiceTicket' in js and 'findServiceTicket(id)' in js and 'window.actionServiceTicket' in js:
+        ok('Service Pickup: findServiceTicket + actionServiceTicket global')
+    else:
+        bad('Service Pickup: findServiceTicket / actionServiceTicket tidak lengkap')
+    if (
+        'actionServiceTicket(${sid}' in js
+        or "onclick=\"actionServiceTicket(" in js
+        or "onclick=\\\"actionServiceTicket(" in js
+    ):
+        ok('Service Pickup: tombol langsung actionServiceTicket')
+    else:
+        bad('Service Pickup: onclick actionServiceTicket tidak ada')
     dyn_calls = set()
     for m in re.finditer(r'onclick=\\"([a-zA-Z_$][\w$]*)\s*\(', js):
         dyn_calls.add(m.group(1))
