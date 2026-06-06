@@ -1,19 +1,20 @@
-/**
- * TMS Release manifest — bump version & changelog on every deploy.
- * Service Worker cache version (sw.js) should match `build`.
- */
-window.TMS_RELEASE = {
-    version: '6.3.0',
-    build: 61,
-    date: '2026-06-06',
-    title: 'System Update Available',
-    summary: 'Batch Excel import for Customer Master, Special Tools, and Backup Units — plus a mobile-friendly Customer Master layout.',
-    changes: [
-        { icon: 'fa-file-import', text: 'Batch Excel import — upload .xlsx/.csv with one field per column for customers, units, tools, and backup units' },
-        { icon: 'fa-download', text: 'Downloadable import templates with correct column headers for each module' },
-        { icon: 'fa-mobile-screen', text: 'Customer Master mobile UI — tab switcher, card layout, and larger touch targets on phone' },
-        { icon: 'fa-tags', text: 'Product categories — Avitum, Hospital Care, and Aesculap with auto-migration' },
-        { icon: 'fa-hospital', text: 'Customer Master linked to Customer Service & Repair workflows' },
-        { icon: 'fa-bell', text: 'Update notification with changelog summary on new releases' }
-    ]
-};
+/**
+ * TMS Release manifest — bump version & changelog on every deploy.
+ * Service Worker cache version (sw.js) should match `build`.
+ */
+window.TMS_RELEASE = {
+    version: '6.7.1',
+    build: 66,
+    date: '2026-06-06',
+    title: 'System Update Available',
+    summary: 'SPH cancel hardening, doc preview in detail modal, and Phase 5–6 documentation sync.',
+    changes: [
+        { icon: 'fa-ban', text: 'Cancel SPH — reset toolStatus, role guard, and service notifications on revert' },
+        { icon: 'fa-file-image', text: 'SPH detail modal — embedded preview for PO and SPH attachments' },
+        { icon: 'fa-chart-simple', text: 'SPH Log — Cancelled stat counter added' },
+        { icon: 'fa-file-pdf', text: 'Export SPH to PDF — corporate layout for single and combined quotations' },
+        { icon: 'fa-magnifying-glass', text: 'Partial Smart Fill — autocomplete Art Number with keyboard navigation' },
+        { icon: 'fa-building', text: 'Combined SPH customer picker when multiple customers are eligible' },
+        { icon: 'fa-location-dot', text: 'On-Site quotation modal — no Un-Repair option, path-specific labels' }
+    ]
+};

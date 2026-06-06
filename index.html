@@ -919,6 +919,74 @@
                 </div>
             </section>
 
+            <!-- MASTER SPAREPART -->
+            <section id="view-sparepart-master" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in max-w-7xl mx-auto w-full">
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
+                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-violet-600 dark:text-violet-400"><i class="fa-solid fa-gears mr-2"></i> Sparepart Master</h2>
+                    <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Central sparepart catalog for SPH quotations and repair tracking. Smart Fill links Art Number to Description & Price.</p>
+                    <div class="grid grid-cols-3 gap-2 sm:gap-4 mt-4">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sp-stat-total">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="sp-stat-active">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-widest">Discontinued</p><p class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1" id="sp-stat-disc">0</p></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field flex-1 min-w-[200px] text-[12px]" placeholder="Search Art Number, Description, Group...">
+                        <button onclick="openSparepartModal()" class="bg-violet-600 hover:bg-violet-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
+                        <button onclick="openBatchImportModal('sparepart')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
+                        <button onclick="downloadBatchTemplate('sparepart')" class="bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                        <button onclick="exportSparepartsCSV()" class="bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-emerald-600 dark:text-emerald-500 font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5"></i> Export</button>
+                    </div>
+                    <div class="flex gap-2 w-full overflow-x-auto pb-1 pt-3 custom-scrollbar">
+                        <button onclick="setSparepartFilter('all')" id="flt-sp-all" class="sp-filter-btn px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">All</button>
+                        <button onclick="setSparepartFilter('Avitum')" id="flt-sp-Avitum" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Avitum</button>
+                        <button onclick="setSparepartFilter('Hospital Care')" id="flt-sp-HospitalCare" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Hospital Care</button>
+                        <button onclick="setSparepartFilter('Aesculap')" id="flt-sp-Aesculap" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Aesculap</button>
+                        <button onclick="setSparepartFilter('General')" id="flt-sp-General" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">General</button>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-[12px] min-w-[700px]">
+                            <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400">
+                                <tr><th class="p-4">Art Number</th><th class="p-4">Description</th><th class="p-4">Price</th><th class="p-4">Group</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th></tr>
+                            </thead>
+                            <tbody id="spareparts-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SPH LOG / REGISTRY -->
+            <section id="view-sph-log" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in max-w-7xl mx-auto w-full">
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
+                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-violet-600 dark:text-violet-400"><i class="fa-solid fa-file-invoice mr-2"></i> SPH Log</h2>
+                    <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Every issued SPH is registered here. Track which quotations have become PO and which are still pending.</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mt-4">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total SPH</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sph-stat-total">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-amber-200 dark:border-amber-900/40 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-widest">Pending PO</p><p class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1" id="sph-stat-pending">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-emerald-200 dark:border-emerald-900/40 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">PO Received</p><p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="sph-stat-po">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-red-200 dark:border-red-900/40 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-red-600 dark:text-red-400 font-bold uppercase tracking-widest">Cancelled</p><p class="text-xl sm:text-2xl font-black text-red-600 dark:text-red-400 mt-1" id="sph-stat-cancelled">0</p></div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-4">
+                        <input type="text" id="search-sph-log" onkeyup="debouncedRenderSphLog()" class="input-field flex-1 min-w-[200px] text-[12px]" placeholder="Search SPH No., customer, PO number...">
+                        <button onclick="setSphLogFilter('all')" id="flt-sph-all" class="sph-log-filter px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest">All</button>
+                        <button onclick="setSphLogFilter('issued')" id="flt-sph-issued" class="sph-log-filter px-4 py-2.5 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-xl text-[10px] font-black uppercase tracking-widest">Pending PO</button>
+                        <button onclick="setSphLogFilter('po_received')" id="flt-sph-po_received" class="sph-log-filter px-4 py-2.5 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-xl text-[10px] font-black uppercase tracking-widest">PO Received</button>
+                        <button onclick="setSphLogFilter('cancelled')" id="flt-sph-cancelled" class="sph-log-filter px-4 py-2.5 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancelled</button>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-[12px] min-w-[900px]">
+                            <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400">
+                                <tr><th class="p-4">SPH No.</th><th class="p-4">Customer</th><th class="p-4">Path</th><th class="p-4">Service Tickets</th><th class="p-4">Total</th><th class="p-4">SPH Status</th><th class="p-4">PO No.</th><th class="p-4 text-right">Actions</th></tr>
+                            </thead>
+                            <tbody id="sph-log-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <!-- PUSAT LAYANAN PELANGGAN (CUSTOMER SERVICE CENTER) -->
             <section id="view-customer-service" class="app-view hidden flex-col gap-6 animate-fade-in max-w-7xl mx-auto w-full">
                 <!-- Section Header -->
@@ -931,6 +999,8 @@
                         <button id="btn-bulk-delete-service" onclick="bulkDeleteServiceTickets()" class="hidden bg-red-600 hover:bg-red-700 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-2"></i> Delete Selected</button>
                         <button onclick="exportServiceTicketsCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(5,150,105,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-2"></i> Ekspor Excel</button>
                         <button id="btn-bulk-bast" onclick="openBulkBastModal()" class="hidden bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(20,184,166,0.3)] hover:from-teal-500 hover:to-emerald-500 transition whitespace-nowrap"><i class="fa-solid fa-layer-group mr-2"></i> Gabungkan BAST</button>
+                        <button id="btn-create-combined-sph" onclick="openSphBuilderModal()" class="hidden bg-violet-600 hover:bg-violet-700 text-white font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(124,58,237,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-file-invoice mr-2"></i> Combined SPH</button>
+                        <p id="combined-sph-hint" class="hidden w-full sm:w-auto text-[10px] text-violet-600 dark:text-violet-400 font-bold text-right"></p>
                         <button id="btn-register-service" onclick="openServiceModal()" class="hidden bg-gold-500 text-white dark:text-black font-black px-5 py-3 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i> Daftar Customer Units</button>
                     </div>
                 </div>
@@ -1916,11 +1986,110 @@
         </div>
     </div>
 
-    <!-- Modal Form: Advanced Analysis & Quotation (TSF) -->
-    <div id="serviceQuotationModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+    <!-- Modal: Sparepart Master -->
+    <div id="sparepartModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
         <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
             <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
-                <h3 class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white"><i class="fa-solid fa-file-invoice-dollar text-gold-500 mr-2"></i> Advanced Analysis & Quotation</h3>
+                <h3 class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white" id="sparepart-modal-title"><i class="fa-solid fa-gears text-violet-500 mr-2"></i> Add Sparepart</h3>
+                <button type="button" onclick="closeModal('sparepartModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitSparepart(event)" class="p-6 sm:p-8">
+                <input type="hidden" id="sp-edit-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                    <div class="md:col-span-2"><label class="input-label">Art Number <span class="text-gold-500">*</span></label><input type="text" id="sp-art" required class="input-field font-mono uppercase" oninput="validateSparepartForm()"></div>
+                    <div class="md:col-span-2"><label class="input-label">Description <span class="text-gold-500">*</span></label><input type="text" id="sp-desc" required class="input-field"></div>
+                    <div><label class="input-label">Price (IDR) <span class="text-gold-500">*</span></label><input type="number" id="sp-price" required min="0" class="input-field font-mono"></div>
+                    <div><label class="input-label">Group <span class="text-gold-500">*</span></label>
+                        <select id="sp-group" required class="input-field"><option value="Avitum">Avitum</option><option value="Hospital Care">Hospital Care</option><option value="Aesculap">Aesculap</option><option value="General">General</option></select>
+                    </div>
+                    <div><label class="input-label">Status <span class="text-gold-500">*</span></label>
+                        <select id="sp-status" required class="input-field"><option value="active">Active</option><option value="discontinued">Discontinued</option><option value="obsolete">Obsolete</option></select>
+                    </div>
+                    <div class="md:col-span-2"><label class="input-label">Notes</label><textarea id="sp-notes" rows="2" class="input-field"></textarea></div>
+                </div>
+                <div id="sparepart-form-error" class="text-[10px] text-red-500 font-bold hidden mb-4"></div>
+                <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
+                    <button type="submit" id="btn-save-sparepart" class="px-8 py-4 bg-violet-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-violet-700 transition">Save Sparepart</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Combined SPH Builder -->
+    <div id="sphBuilderModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-3xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto mt-4 mb-4">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-5 sm:p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] sticky top-0 z-20">
+                <h3 class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white"><i class="fa-solid fa-file-invoice text-violet-500 mr-2"></i> Create Combined SPH</h3>
+                <button type="button" onclick="closeModal('sphBuilderModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitSphBuilder(event)" class="p-5 sm:p-8 space-y-5">
+                <div class="bg-violet-50/50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-900/40 p-4 rounded-xl">
+                    <p class="text-[9px] text-violet-600 dark:text-violet-400 font-black uppercase tracking-widest mb-1">Customer</p>
+                    <p class="text-sm font-black text-gray-900 dark:text-white" id="sph-builder-customer">-</p>
+                    <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">Select service tickets from the same customer to combine into one SPH.</p>
+                </div>
+                <div id="sph-builder-tickets" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
+                <div>
+                    <label class="input-label">TSF Advanced Inspection Result <span class="text-gold-500">*</span></label>
+                    <textarea id="sph-builder-analysis" required rows="2" class="input-field" placeholder="Combined inspection summary..."></textarea>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="input-label mb-0">Sparepart Lines <span class="text-gold-500">*</span></label>
+                        <button type="button" onclick="addSphLineRow('sph-builder-lines')" class="text-[10px] font-black uppercase text-violet-600 hover:text-violet-500"><i class="fa-solid fa-plus mr-1"></i> Add Line</button>
+                    </div>
+                    <div id="sph-builder-lines" class="space-y-2"></div>
+                </div>
+                <div><label class="input-label">Labor / Service Amount (IDR)</label><input type="number" id="sph-builder-labor" min="0" value="0" class="input-field font-mono" oninput="recalcSphTotals('sph-builder')"></div>
+                <div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 p-4 rounded-xl">
+                    <p class="text-[9px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-widest mb-2">Customer SPH Preview (Art Number · Description · Harga)</p>
+                    <div id="sph-builder-preview" class="overflow-x-auto"></div>
+                    <p class="text-right text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono mt-3" id="sph-builder-total">Total: Rp 0</p>
+                </div>
+                <div><label class="input-label">Upload Official SPH Document (optional)</label><input type="file" id="sph-builder-doc" class="input-field file:bg-violet-500/10 file:text-violet-500 file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-3 file:font-bold file:text-xs cursor-pointer" accept="application/pdf,image/*"></div>
+                <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-lux-800">
+                    <button type="submit" class="px-8 py-4 bg-violet-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-violet-700 transition">Issue Combined SPH</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: SPH Detail -->
+    <div id="sphDetailModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
+                <h3 class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white"><i class="fa-solid fa-file-invoice text-violet-500 mr-2"></i> <span id="sph-detail-title">SPH Detail</span></h3>
+                <button type="button" onclick="closeModal('sphDetailModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 sm:p-8 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar" id="sph-detail-body"></div>
+            <div class="border-t border-gray-200 dark:border-lux-800 p-4 flex flex-wrap gap-2 justify-end bg-gray-50 dark:bg-[#09090b]">
+                <button type="button" onclick="exportSphPdf(_sphDetailActiveId)" class="px-4 py-2.5 bg-gray-200 dark:bg-lux-800 text-gray-800 dark:text-white font-black rounded-xl text-[10px] uppercase tracking-widest"><i class="fa-solid fa-file-pdf mr-1"></i> Export PDF</button>
+                <button type="button" id="btn-sph-cancel" onclick="cancelSphDocument(_sphDetailActiveId)" class="hidden px-4 py-2.5 bg-red-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest"><i class="fa-solid fa-ban mr-1"></i> Cancel SPH</button>
+                <button type="button" onclick="closeModal('sphDetailModal')" class="px-4 py-2.5 bg-violet-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Combined SPH Customer Picker -->
+    <div id="sphCustomerPickModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center">
+                <h3 class="font-black text-[13px] uppercase tracking-[0.1em]"><i class="fa-solid fa-building text-violet-500 mr-2"></i> Select Customer</h3>
+                <button type="button" onclick="closeModal('sphCustomerPickModal')" class="text-gray-500"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-[11px] text-gray-500">Multiple customers have eligible tickets for Combined SPH. Choose one:</p>
+                <select id="sph-customer-pick-select" class="input-field"></select>
+                <button type="button" onclick="confirmSphCustomerPick()" class="w-full py-3 bg-violet-600 text-white font-black rounded-xl text-[11px] uppercase tracking-widest">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form: Advanced Analysis & Quotation (TSF) -->
+    <div id="serviceQuotationModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
+                <h3 id="svc-quote-modal-title" class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white"><i class="fa-solid fa-file-invoice-dollar text-gold-500 mr-2"></i> Advanced Analysis & Quotation</h3>
                 <button type="button" onclick="closeModal('serviceQuotationModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="submitServiceQuotation(event)" class="p-6 sm:p-8">
@@ -1931,24 +2100,34 @@
                         <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Service No.</p><p class="font-mono font-bold text-gold-600 dark:text-gold-500" id="svc-quote-no-service">-</p></div>
                         <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Technician Initial Analysis</p><p class="text-gray-700 dark:text-lux-300 italic" id="svc-quote-initial-analysis">-</p></div>
                     </div>
-                    <div>
-                        <label class="input-label">TSF Inspection Decision <span class="text-gold-500">*</span></label>
+                    <div id="svc-tsf-decision-wrap">
+                        <label class="input-label" id="svc-quote-decision-label">TSF Inspection Decision <span class="text-gold-500">*</span></label>
                         <select id="svc-tsf-decision" required class="input-field" onchange="toggleTsfDecision(this.value)">
                             <option value="repair" selected>Repairable — Proceed to SPH & PO</option>
                             <option value="unrepair">Not Repairable — Return Unit</option>
                         </select>
                     </div>
                     <div>
-                        <label class="input-label">TSF Advanced Inspection Result <span class="text-gold-500">*</span></label>
+                        <label class="input-label" id="svc-tsf-analysis-label">TSF Advanced Inspection Result <span class="text-gold-500">*</span></label>
                         <textarea id="svc-tsf-analysis" required rows="3" class="input-field" placeholder="Describe component / module damage found at TSF workshop..."></textarea>
                     </div>
                     <div id="svc-quote-details-container">
-                        <label class="input-label">Repair Details & Spare Parts Replacement <span class="text-gold-500">*</span></label>
-                        <textarea id="svc-quote-details" required rows="3" class="input-field" placeholder="List spare parts to replace and repair services..."></textarea>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="input-label mb-0">Sparepart Lines (from Master) <span class="text-gold-500">*</span></label>
+                            <button type="button" onclick="addSphLineRow('svc-quote-lines')" class="text-[10px] font-black uppercase text-violet-600 hover:text-violet-500"><i class="fa-solid fa-plus mr-1"></i> Add Line</button>
+                        </div>
+                        <div id="svc-quote-lines" class="space-y-2 mb-3"></div>
+                        <div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 p-3 rounded-xl mb-3">
+                            <p class="text-[9px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-widest mb-2">SPH Preview — Customer View</p>
+                            <div id="svc-quote-sph-preview" class="overflow-x-auto text-[11px]"></div>
+                        </div>
+                        <label class="input-label">Labor / Service Amount (IDR)</label>
+                        <input type="number" id="svc-quote-labor" min="0" value="0" class="input-field font-mono mb-3" oninput="recalcSphTotals('svc-quote')">
+                        <textarea id="svc-quote-details" class="hidden"></textarea>
                     </div>
                     <div id="svc-quote-price-container">
-                        <label class="input-label">Estimated Total Quotation (IDR) <span class="text-gold-500">*</span></label>
-                        <input type="number" id="svc-quote-price" required class="input-field font-mono font-bold" placeholder="Rp...">
+                        <label class="input-label">Total Quotation (IDR) <span class="text-gold-500">*</span></label>
+                        <input type="number" id="svc-quote-price" required readonly class="input-field font-mono font-bold bg-gray-50 dark:bg-lux-950" placeholder="Auto-calculated">
                     </div>
                     <div id="svc-quote-doc-container">
                         <label class="input-label">Upload Official SPH Document (PDF / Image)</label>
@@ -2010,11 +2189,15 @@
             </div>
             <form onsubmit="submitServiceRepair(event)" class="p-6 sm:p-8">
                 <input type="hidden" id="svc-repair-id">
+                <input type="hidden" id="svc-repair-mode" value="tsf_po">
                 <div class="space-y-5 mb-6">
                     <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 p-4 rounded-xl">
                         <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase mb-1">Aset Customer</p>
                         <p class="text-sm font-black text-gray-900 dark:text-white" id="svc-repair-unit-name">-</p>
                         <p class="text-[10px] text-gold-600 dark:text-gold-500 font-mono mt-0.5" id="svc-repair-no-service">-</p>
+                    </div>
+                    <div id="svc-repair-mode-hint" class="hidden bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 p-3 rounded-xl">
+                        <p class="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold leading-relaxed"><i class="fa-solid fa-bolt mr-1.5"></i> TSF Quick Repair — perbaikan ringan tanpa SPH/PO (mis. kalibrasi, cleaning, setting). Unit langsung dikirim kembali ke teknisi lapangan.</p>
                     </div>
                     <div class="hidden">
                         <label class="input-label">Status Hasil Perbaikan <span class="text-gold-500">*</span></label>
@@ -2025,7 +2208,12 @@
                     </div>
                     <div>
                         <label class="input-label">Work Notes / Repair Actions <span class="text-gold-500">*</span></label>
-                        <textarea id="svc-repair-note-text" required rows="4" class="input-field" placeholder="Describe repair actions, internal calibration, functional tests..."></textarea>
+                        <textarea id="svc-repair-note-text" required rows="3" class="input-field" placeholder="Describe repair actions, internal calibration, functional tests..."></textarea>
+                    </div>
+                    <div id="svc-repair-spareparts-wrapper" class="hidden">
+                        <label class="input-label"><i class="fa-solid fa-gears mr-1.5 text-violet-500"></i> Confirm Spare Parts Replaced</label>
+                        <p class="text-[10px] text-gray-500 dark:text-lux-400 mb-2">Check spareparts actually installed. Customer will see this list after completion.</p>
+                        <div id="svc-repair-spareparts-list" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
                     </div>
                     <div>
                         <label class="input-label"><i class="fa-solid fa-camera mr-1.5 text-emerald-500"></i> Unit Condition Photo (After Repair)</label>
@@ -2236,9 +2424,14 @@
                     <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Damage Complaint</p><p class="text-sm font-medium text-gray-700 dark:text-lux-300" id="svc-det-complaint">-</p></div>
                     
                     <div class="sm:col-span-2 pt-3 border-t border-gray-200/50 dark:border-lux-800" id="svc-det-quoted-info-wrapper">
-                        <p class="text-[9px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-wider">TSF Quotation & Cost Estimate</p>
-                        <p class="text-sm font-black text-gray-900 dark:text-white mt-1" id="svc-det-quote-details">-</p>
+                        <p class="text-[9px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-wider">SPH — Sparepart Quotation</p>
+                        <div id="svc-det-sph-table" class="mt-2 overflow-x-auto"></div>
+                        <p class="text-sm font-black text-gray-900 dark:text-white mt-2" id="svc-det-quote-details">-</p>
                         <p class="text-xs font-bold text-emerald-600 dark:text-emerald-500 mt-1 font-mono" id="svc-det-quote-price">Rp 0</p>
+                        <div id="svc-det-replaced-wrapper" class="hidden mt-3 pt-3 border-t border-gray-200/50 dark:border-lux-800">
+                            <p class="text-[9px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-wider">Spare Parts Replaced (Actual)</p>
+                            <div id="svc-det-replaced-table" class="mt-2 overflow-x-auto"></div>
+                        </div>
                         <div id="svc-det-sph-doc-wrapper" class="mt-2 hidden">
                             <a id="svc-det-sph-doc-link" href="#" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold rounded-lg text-[10px] uppercase tracking-wider hover:bg-emerald-500 hover:text-white transition">
                                 <i class="fa-solid fa-file-pdf"></i> View SPH Document
@@ -2927,6 +3120,12 @@
             serviceTickets: [],
             customers: [],
             customerUnits: [],
+            spareparts: [
+                { id: 301, artNo: 'ART-SP-001', description: 'Power Supply Module 24V', price: 2500000, group: 'Avitum', status: 'active', notes: '', updatedAt: new Date().toISOString() },
+                { id: 302, artNo: 'ART-SP-002', description: 'Display PCB Assembly', price: 8750000, group: 'Hospital Care', status: 'active', notes: '', updatedAt: new Date().toISOString() },
+                { id: 303, artNo: 'ART-SP-003', description: 'Pump Head Seal Kit', price: 1200000, group: 'Aesculap', status: 'active', notes: '', updatedAt: new Date().toISOString() }
+            ],
+            sphDocuments: [],
             deletedIds: []
         };
         
@@ -3389,6 +3588,8 @@
             (db.serviceTickets || []).forEach(x => x && x.id && ids.push(x.id));
             (db.customers || []).forEach(x => x && x.id && ids.push(x.id));
             (db.customerUnits || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.spareparts || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.sphDocuments || []).forEach(x => x && x.id && ids.push(x.id));
             (db.messages || []).forEach(x => x && x.id && ids.push(x.id));
             (db.historyLog || []).forEach(x => x && x.id && ids.push(x.id));
             const max = ids.length ? Math.max(...ids) : 0;
@@ -3550,6 +3751,10 @@
                 return true;
             });
             if ((target.customerUnits || []).length !== beforeCUnit) changed = true;
+
+            const beforeSp = (target.spareparts || []).length;
+            target.spareparts = dedupeKeyed(dedupeById(target.spareparts), sp => normArtKey(sp.artNo));
+            if ((target.spareparts || []).length !== beforeSp) changed = true;
 
             const histMap = new Map();
             (target.historyLog || []).forEach(h => {
@@ -3977,6 +4182,10 @@
             
             if (!db.serviceTickets || !Array.isArray(db.serviceTickets)) db.serviceTickets = [];
             else db.serviceTickets = db.serviceTickets.filter(x => x && typeof x === 'object');
+            if (!db.spareparts || !Array.isArray(db.spareparts)) db.spareparts = [];
+            else db.spareparts = db.spareparts.filter(x => x && typeof x === 'object');
+            if (!db.sphDocuments || !Array.isArray(db.sphDocuments)) db.sphDocuments = [];
+            else db.sphDocuments = db.sphDocuments.filter(x => x && typeof x === 'object');
 
             if (!db.customers || !Array.isArray(db.customers)) db.customers = [];
             else db.customers = db.customers.filter(x => x && typeof x === 'object');
@@ -4289,7 +4498,9 @@
             } 
         });
 
-        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null;
+        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sphDetailActiveId = null; let _sphArtSuggestTimer = null; let _sphArtSuggestActive = null; let _sphCustPickData = null;
+        const TMS_SPAREPART_GROUPS = ['Avitum', 'Hospital Care', 'Aesculap', 'General'];
+        const TMS_SPAREPART_STATUSES = ['active', 'discontinued', 'obsolete'];
         let knownRequestIds = null;
         let previousRequestStates = null;
         let previousServiceTicketStates = null;
@@ -4745,6 +4956,8 @@
                     <a href="#" onclick="switchTab('demo-inventory')" id="nav-demo-inventory" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-box-archive w-4 text-center text-sm"></i> Unit Backup & Demo</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Customer Service</div>
                     <a href="#" onclick="switchTab('customer-master')" id="nav-customer-master" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-hospital w-4 text-center text-sm"></i> Customer Master</a>
+                    <a href="#" onclick="switchTab('sparepart-master')" id="nav-sparepart-master" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-gears w-4 text-center text-sm"></i> Sparepart Master</a>
+                    <a href="#" onclick="switchTab('sph-log')" id="nav-sph-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-file-invoice w-4 text-center text-sm"></i> SPH Log</a>
                     <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex justify-between items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service & Repair</div><div class="flex items-center gap-1 shrink-0"><span id="badge-svc-update" class="relative inline-flex items-center justify-center bg-gold-500 text-white dark:text-black text-[9px] font-black min-w-[18px] h-[18px] px-1 rounded-full hidden shadow-[0_0_8px_rgba(234,179,8,0.6)] animate-pulse">0</span><span id="badge-svc-stagnant" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)]">!</span></div></a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Administration</div>
                     <a href="#" onclick="switchTab('spv-maintenance')" id="nav-spv-maintenance" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-gears w-4 text-center text-sm"></i> Maintenance</a>
@@ -4758,6 +4971,8 @@
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Special Tools</div>
                     <a href="#" onclick="switchTab('spv-assets')" id="nav-spv-assets" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-wrench w-4 text-center text-sm"></i> Tool Inventory</a>
                     <a href="#" onclick="switchTab('spv-maintenance')" id="nav-spv-maintenance" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-gears w-4 text-center text-sm"></i> Maintenance</a>
+                    <a href="#" onclick="switchTab('sparepart-master')" id="nav-sparepart-master" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-boxes-stacked w-4 text-center text-sm"></i> Sparepart Master</a>
+                    <a href="#" onclick="switchTab('sph-log')" id="nav-sph-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-file-invoice w-4 text-center text-sm"></i> SPH Log</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Operations</div>
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Ticket Log</a>
                     <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Physical Handover</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
@@ -4769,6 +4984,8 @@
                     <a href="#" onclick="switchTab('ts-radar')" id="nav-ts-radar" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-globe w-4 text-center text-sm"></i> Asset Directory</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Customer Service</div>
                     <a href="#" onclick="switchTab('customer-master')" id="nav-customer-master" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-hospital w-4 text-center text-sm"></i> Customer Master</a>
+                    <a href="#" onclick="switchTab('sparepart-master')" id="nav-sparepart-master" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-gears w-4 text-center text-sm"></i> Sparepart Master</a>
+                    <a href="#" onclick="switchTab('sph-log')" id="nav-sph-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-file-invoice w-4 text-center text-sm"></i> SPH Log</a>
                     <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex justify-between items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service & Repair</div><div class="flex items-center gap-1 shrink-0"><span id="badge-svc-update" class="relative inline-flex items-center justify-center bg-gold-500 text-white dark:text-black text-[9px] font-black min-w-[18px] h-[18px] px-1 rounded-full hidden shadow-[0_0_8px_rgba(234,179,8,0.6)] animate-pulse">0</span><span id="badge-svc-stagnant" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)]">!</span></div></a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Operations</div>
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Ticket Log</a>
@@ -4794,7 +5011,7 @@
             else { document.getElementById('prof-name').value = currentUser.name; document.getElementById('prof-user').value = currentUser.user; document.getElementById('prof-pass').value = currentUser.pass; document.getElementById('prof-nik').value = currentUser.nik || ''; document.getElementById('prof-jabatan').value = currentUser.jabatan || ''; document.getElementById('prof-email').value = currentUser.email || ''; document.getElementById('prof-phone').value = currentUser.phone || ''; }
             if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); }
             
-            const titles = {'profile': 'User Profile', 'spv-dash':'Dashboard', 'spec-dash': 'Specialist Dashboard', 'spv-assets':'Special Tools Inventory', 'demo-inventory':'Backup & Demo Units', 'customer-master':'Customer Master Data', 'spv-personnel':'Personnel', 'spv-approvals':'Access Authorization', 'spv-maintenance':'Maintenance', 'ts-dash':'TS Dashboard', 'ts-toolbox':'My Assets', 'ts-radar':'Asset Directory', 'ts-handover':'Physical Handover', 'tickets-log': 'Borrow Ticket Log', 'customer-service': 'Customer Service & Repair'};
+            const titles = {'profile': 'User Profile', 'spv-dash':'Dashboard', 'spec-dash': 'Specialist Dashboard', 'spv-assets':'Special Tools Inventory', 'demo-inventory':'Backup & Demo Units', 'customer-master':'Customer Master Data', 'sparepart-master':'Sparepart Master', 'sph-log':'SPH Log', 'spv-personnel':'Personnel', 'spv-approvals':'Access Authorization', 'spv-maintenance':'Maintenance', 'ts-dash':'TS Dashboard', 'ts-toolbox':'My Assets', 'ts-radar':'Asset Directory', 'ts-handover':'Physical Handover', 'tickets-log': 'Borrow Ticket Log', 'customer-service': 'Customer Service & Repair'};
             document.getElementById('topbar-title').innerText = titles[tabId];
             // Saat masuk tab Service Customer — otomatis tandai semua notif tiket sebagai sudah dibaca
             if (tabId === 'customer-service') { markAllSvcNotifsRead(); }
@@ -5493,14 +5710,16 @@
             if(activeTab === 'customer-service') renderServiceTickets();
             
             if(currentUser.role === 'ts') { 
-                if(activeTab === 'ts-dash') renderTsDash(); if(activeTab === 'ts-toolbox') renderTsToolbox(); if(activeTab === 'ts-radar') renderTsRadar(); if(activeTab === 'customer-master') renderCustomerMaster(); if(activeTab === 'ts-handover') renderTsHandover();
+                if(activeTab === 'ts-dash') renderTsDash(); if(activeTab === 'ts-toolbox') renderTsToolbox(); if(activeTab === 'ts-radar') renderTsRadar(); if(activeTab === 'customer-master') renderCustomerMaster(); if(activeTab === 'sparepart-master') renderSparepartMaster(); if(activeTab === 'sph-log') renderSphLog(); if(activeTab === 'ts-handover') renderTsHandover();
             } else if(currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
                 if(activeTab === 'spec-dash') renderSpecDash();
                 if(activeTab === 'spv-assets') renderSpvAssets();
+                if(activeTab === 'sparepart-master') renderSparepartMaster();
+                if(activeTab === 'sph-log') renderSphLog();
                 if(activeTab === 'spv-maintenance') renderSpvMaintenance();
                 if(activeTab === 'ts-handover') renderTsHandover();
             } else if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { 
-            if(activeTab === 'spv-dash') renderSpvDash(); if(activeTab === 'spv-assets') renderSpvAssets(); if(activeTab === 'demo-inventory') renderDemoInventory(); if(activeTab === 'customer-master') renderCustomerMaster(); if(activeTab === 'spv-personnel') renderSpvPersonnel(); if(activeTab === 'spv-approvals') renderSpvApprovals(); if(activeTab === 'spv-maintenance') renderSpvMaintenance();
+            if(activeTab === 'spv-dash') renderSpvDash(); if(activeTab === 'spv-assets') renderSpvAssets(); if(activeTab === 'demo-inventory') renderDemoInventory(); if(activeTab === 'customer-master') renderCustomerMaster(); if(activeTab === 'sparepart-master') renderSparepartMaster(); if(activeTab === 'sph-log') renderSphLog(); if(activeTab === 'spv-personnel') renderSpvPersonnel(); if(activeTab === 'spv-approvals') renderSpvApprovals(); if(activeTab === 'spv-maintenance') renderSpvMaintenance();
                 if((currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') && activeTab === 'ts-handover') renderTsHandover();
             }
             
@@ -9078,6 +9297,23 @@
                 }
             }
 
+            const combinedSphBtn = document.getElementById('btn-create-combined-sph');
+            const combinedSphHint = document.getElementById('combined-sph-hint');
+            if (combinedSphBtn) {
+                const canSph = currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner';
+                const eligible = canSph && hasEligibleCombinedSph();
+                if (eligible) combinedSphBtn.classList.remove('hidden');
+                else combinedSphBtn.classList.add('hidden');
+                if (combinedSphHint && canSph) {
+                    const { byCust, custIds } = getCombinedSphCustomerGroups();
+                    if (custIds.length) {
+                        const parts = custIds.map(cid => `${byCust[cid].name}: ${byCust[cid].tickets.length} tiket`);
+                        combinedSphHint.innerText = custIds.length > 1 ? `Combined SPH tersedia — ${parts.join(' · ')}` : `Combined SPH — ${parts[0]}`;
+                        combinedSphHint.classList.remove('hidden');
+                    } else combinedSphHint.classList.add('hidden');
+                } else if (combinedSphHint) combinedSphHint.classList.add('hidden');
+            }
+
             const query = (document.getElementById('search-service').value || '').toLowerCase().trim();
             const statusFilter = document.getElementById('filter-service-status').value;
 
@@ -9145,7 +9381,9 @@
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
                     if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
                         if (s.repairLoc === 'onsite') {
-                            actionBtn = `<button onclick="openOnsiteRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Perbaikan & BAST</button>`;
+                            const sphBtn = canIssueSphForTicket(s) ? `<button onclick="openQuotationModal(${s.id})" class="px-3 py-1.5 bg-violet-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-violet-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-invoice mr-1"></i> On-Site SPH</button>` : '';
+                            const quickBtn = `<button onclick="openOnsiteRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
+                            actionBtn = `<div class="flex flex-wrap gap-1.5">${sphBtn}${quickBtn}</div>`;
                         } else {
                             actionBtn = `<button onclick="openAnalysisModal(${s.id})" class="px-3 py-1.5 bg-blue-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-blue-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-waveform mr-1"></i> Analisa Awal</button>`;
                         }
@@ -9158,7 +9396,9 @@
                 } else if (s.status === 'received_tsf') {
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20 whitespace-nowrap">Diterima TSF</span>`;
                     if (currentUser.role === 'tsf') {
-                        actionBtn = `<button onclick="openQuotationModal(${s.id})" class="px-3 py-1.5 bg-purple-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-purple-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Damage Quotation</button>`;
+                        const quotBtn = `<button onclick="openQuotationModal(${s.id})" class="px-3 py-1.5 bg-purple-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-purple-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Damage Quotation</button>`;
+                        const quickBtn = `<button onclick="openTsfQuickRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
+                        actionBtn = `<div class="flex flex-wrap gap-1.5">${quotBtn}${quickBtn}</div>`;
                     }
                 } else if (s.status === 'quoted') {
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-indigo-50 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">Penawaran Dikirim</span>`;
@@ -9167,7 +9407,9 @@
                     }
                 } else if (s.status === 'po_issued') {
                     statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20 whitespace-nowrap">Perbaikan (PO)</span>`;
-                    if (currentUser.role === 'tsf') {
+                    if (s.repairLoc === 'onsite' && currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
+                        actionBtn = `<button onclick="openOnsiteRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Repair & BAST</button>`;
+                    } else if (currentUser.role === 'tsf' && s.repairLoc !== 'onsite') {
                         actionBtn = `<button onclick="openServiceRepairModal(${s.id})" class="px-3 py-1.5 bg-orange-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-orange-550 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Selesai Perbaikan</button>`;
                     }
                 } else if (s.status === 'repaired') {
@@ -9388,6 +9630,13 @@
                 columns: ['Inventory No', 'Art Number', 'Description', 'Category', 'Serial Number', 'Merk', 'Type', 'Condition', 'Buy Date', 'Cal Date', 'Price', 'Reason'],
                 required: ['Description', 'Category'],
                 filename: 'TMS_Template_Backup_Units.csv'
+            },
+            sparepart: {
+                title: 'Import Spareparts',
+                desc: 'Upload sparepart master data. Required: Art Number, Description, Price.',
+                columns: ['Art Number', 'Description', 'Price', 'Group', 'Status', 'Notes'],
+                required: ['Art Number', 'Description', 'Price'],
+                filename: 'TMS_Template_Spareparts.csv'
             }
         };
 
@@ -9644,6 +9893,7 @@
             else if (_batchImportType === 'customer-unit') result = importCustomerUnitsBatch(_batchImportRows);
             else if (_batchImportType === 'tool') result = importToolsBatch(_batchImportRows, false);
             else if (_batchImportType === 'demo') result = importToolsBatch(_batchImportRows, true);
+            else if (_batchImportType === 'sparepart') result = importSparepartsBatch(_batchImportRows);
             else return;
 
             if (result.added > 0) {
@@ -9656,6 +9906,7 @@
             const errNote = result.errors.length ? ` ${result.errors.length} issue(s) — check skipped rows.` : '';
             showToast('Import Complete', `${result.added} added, ${result.skipped} skipped.${errNote}`, result.added ? 'success' : 'error');
             if (_batchImportType === 'customer' || _batchImportType === 'customer-unit') renderCustomerMaster();
+            if (_batchImportType === 'sparepart') renderSparepartMaster();
             if (btn) btn.innerText = 'Import Data';
         }
 
@@ -9685,6 +9936,843 @@
                 custPanel?.classList.remove('max-md:hidden');
                 unitPanel?.classList.remove('max-md:hidden');
             }
+        }
+
+        function normalizeSparepartGroup(val) {
+            const v = (val || '').trim();
+            if (TMS_SPAREPART_GROUPS.includes(v)) return v;
+            const n = normalizeProductCategory(v);
+            return TMS_SPAREPART_GROUPS.includes(n) ? n : 'General';
+        }
+
+        function normalizeSparepartStatus(val) {
+            const v = (val || 'active').toLowerCase();
+            if (v.includes('discont')) return 'discontinued';
+            if (v.includes('obsolet') || v.includes('nonaktif')) return 'obsolete';
+            return 'active';
+        }
+
+        function findSparepartConflicts(fields, excludeId) {
+            const conflicts = [];
+            (db.spareparts || []).forEach(sp => {
+                if (!sp || sp.id === excludeId) return;
+                if (fields.artNo && normArtKey(fields.artNo) && normArtKey(sp.artNo) === normArtKey(fields.artNo)) {
+                    conflicts.push({ field: 'artNo', label: 'Art Number', value: fields.artNo, existing: sp.description });
+                }
+            });
+            return conflicts;
+        }
+
+        function lookupSparepartByArtNo(artNo) {
+            loadDB();
+            const key = normArtKey(artNo);
+            if (!key) return null;
+            return (db.spareparts || []).find(sp => sp && normArtKey(sp.artNo) === key) || null;
+        }
+
+        function searchSparepartsPartial(query, limit = 8) {
+            loadDB();
+            const raw = (query || '').trim();
+            const key = normArtKey(raw);
+            if (!key || key.length < 2) return [];
+            const qLower = raw.toLowerCase();
+            return (db.spareparts || []).filter(sp => {
+                if (!sp || sp.status === 'obsolete') return false;
+                const art = normArtKey(sp.artNo);
+                const desc = (sp.description || '').toLowerCase();
+                return art.includes(key) || desc.includes(qLower);
+            }).slice(0, limit);
+        }
+
+        function generateSphNumber() {
+            loadDB();
+            const date = new Date();
+            const yy = date.getFullYear().toString().slice(-2);
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const prefix = `SPH-${yy}${mm}-`;
+            let maxSeq = 0;
+            (db.sphDocuments || []).forEach(d => {
+                if (d.sphNo && d.sphNo.startsWith(prefix)) {
+                    const seq = parseInt(d.sphNo.split('-')[2]);
+                    if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+                }
+            });
+            const used = new Set((db.sphDocuments || []).map(d => normInvKey(d.sphNo)).filter(Boolean));
+            for (let i = 1; i < 10000; i++) {
+                const candidate = `${prefix}${String(maxSeq + i).padStart(4, '0')}`;
+                if (!used.has(normInvKey(candidate))) return candidate;
+            }
+            return `${prefix}${String(maxSeq + 1).padStart(4, '0')}`;
+        }
+
+        function createEmptySphLine() {
+            return { sparepartId: null, artNo: '', description: '', unitPrice: 0, qty: 1, subtotal: 0, serviceTicketId: null };
+        }
+
+        function calcSphLineSubtotal(line) {
+            const qty = Math.max(1, parseInt(line.qty) || 1);
+            const price = parseFloat(line.unitPrice) || 0;
+            line.qty = qty;
+            line.subtotal = qty * price;
+            return line.subtotal;
+        }
+
+        function buildSphCustomerTableHtml(lines) {
+            const valid = (lines || []).filter(l => l.artNo || l.description);
+            if (!valid.length) return '<p class="text-[10px] text-gray-400 italic">No sparepart lines yet.</p>';
+            let rows = valid.map(l => `<tr class="border-b border-gray-200/50 dark:border-lux-800">
+                <td class="py-2 pr-3 font-mono text-[10px] font-bold text-violet-600 dark:text-violet-400 whitespace-nowrap">${l.artNo || '-'}</td>
+                <td class="py-2 pr-3 text-[11px]">${l.description || '-'}</td>
+                <td class="py-2 font-mono text-[11px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">Rp ${(parseFloat(l.unitPrice) || 0).toLocaleString('id-ID')}</td>
+            </tr>`).join('');
+            return `<table class="w-full text-left"><thead><tr class="text-[9px] uppercase tracking-widest text-gray-500 dark:text-lux-400"><th class="pb-2 pr-3">Art Number</th><th class="pb-2 pr-3">Description</th><th class="pb-2">Harga</th></tr></thead><tbody>${rows}</tbody></table>`;
+        }
+
+        function formatQuoteDetailsFromLines(lines, labor) {
+            const parts = (lines || []).filter(l => l.artNo || l.description).map(l => `${l.artNo}: ${l.description} (Rp ${(l.subtotal || 0).toLocaleString('id-ID')})`);
+            let text = parts.join('; ');
+            if (labor > 0) text += (text ? '; ' : '') + `Labor/Service: Rp ${labor.toLocaleString('id-ID')}`;
+            return text || '-';
+        }
+
+        function getSphLinesRef(containerId) {
+            if (containerId === 'sph-builder-lines') return _sphBuilderLines;
+            return _sphQuoteLines;
+        }
+
+        function renderSphLineRows(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const lines = getSphLinesRef(containerId);
+            const prefix = containerId === 'sph-builder-lines' ? 'sph-b' : 'sph-q';
+            container.innerHTML = '';
+            if (!lines.length) lines.push(createEmptySphLine());
+            lines.forEach((line, idx) => {
+                container.innerHTML += `
+                    <div class="grid grid-cols-12 gap-2 items-end bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 rounded-xl" data-sph-line="${idx}">
+                        <div class="col-span-12 sm:col-span-3 relative">
+                            <label class="text-[8px] font-black uppercase text-gray-400">Art Number</label>
+                            <input type="text" autocomplete="off" class="input-field text-[11px] font-mono py-2" value="${line.artNo || ''}" oninput="smartFillSphLine('${containerId}', ${idx}, this.value)" onkeydown="handleSphArtKeydown(event, '${containerId}', ${idx})" onblur="setTimeout(() => hideSphArtSuggestions('${containerId}', ${idx}), 150)">
+                            <div id="sph-art-suggest-${containerId}-${idx}" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar"></div>
+                        </div>
+                        <div class="col-span-12 sm:col-span-4">
+                            <label class="text-[8px] font-black uppercase text-gray-400">Description</label>
+                            <input type="text" class="input-field text-[11px] py-2" value="${line.description || ''}" oninput="updateSphLineField('${containerId}', ${idx}, 'description', this.value)">
+                        </div>
+                        <div class="col-span-4 sm:col-span-2">
+                            <label class="text-[8px] font-black uppercase text-gray-400">Harga</label>
+                            <input type="number" min="0" class="input-field text-[11px] font-mono py-2" value="${line.unitPrice || 0}" oninput="updateSphLineField('${containerId}', ${idx}, 'unitPrice', this.value)">
+                        </div>
+                        <div class="col-span-3 sm:col-span-1">
+                            <label class="text-[8px] font-black uppercase text-gray-400">Qty</label>
+                            <input type="number" min="1" class="input-field text-[11px] py-2" value="${line.qty || 1}" oninput="updateSphLineField('${containerId}', ${idx}, 'qty', this.value)">
+                        </div>
+                        <div class="col-span-3 sm:col-span-1 flex items-end">
+                            <button type="button" onclick="removeSphLineRow('${containerId}', ${idx})" class="w-full py-2 rounded-lg bg-red-100 dark:bg-red-950/30 text-red-600 text-[10px] font-black"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function addSphLineRow(containerId) {
+            getSphLinesRef(containerId).push(createEmptySphLine());
+            renderSphLineRows(containerId);
+            recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+        }
+
+        function removeSphLineRow(containerId, idx) {
+            const lines = getSphLinesRef(containerId);
+            if (lines.length <= 1) { lines[0] = createEmptySphLine(); }
+            else lines.splice(idx, 1);
+            renderSphLineRows(containerId);
+            recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+        }
+
+        function updateSphLineField(containerId, idx, field, value) {
+            const lines = getSphLinesRef(containerId);
+            if (!lines[idx]) return;
+            if (field === 'unitPrice' || field === 'qty') lines[idx][field] = parseFloat(value) || 0;
+            else lines[idx][field] = value;
+            calcSphLineSubtotal(lines[idx]);
+            recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+        }
+
+        function smartFillSphLine(containerId, idx, artNo) {
+            const lines = getSphLinesRef(containerId);
+            if (!lines[idx]) return;
+            lines[idx].artNo = artNo;
+            const sp = lookupSparepartByArtNo(artNo);
+            if (!sp) {
+                clearTimeout(_sphArtSuggestTimer);
+                _sphArtSuggestTimer = setTimeout(() => showSphArtSuggestions(containerId, idx, artNo), 200);
+                recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+                return;
+            }
+            hideSphArtSuggestions(containerId, idx);
+            if (sp.status === 'obsolete') {
+                showToast('Blocked', `Sparepart ${sp.artNo} is obsolete and cannot be added to SPH.`, 'error');
+                lines[idx].artNo = '';
+                renderSphLineRows(containerId);
+                return;
+            }
+            if (sp.status === 'discontinued') showToast('Warning', `${sp.artNo} is discontinued — use with caution.`, 'error');
+            lines[idx].sparepartId = sp.id;
+            lines[idx].description = sp.description;
+            lines[idx].unitPrice = sp.price;
+            calcSphLineSubtotal(lines[idx]);
+            renderSphLineRows(containerId);
+            recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+        }
+
+        function showSphArtSuggestions(containerId, idx, query) {
+            const el = document.getElementById(`sph-art-suggest-${containerId}-${idx}`);
+            if (!el) return;
+            const results = searchSparepartsPartial(query);
+            if (!results.length) { el.classList.add('hidden'); el.innerHTML = ''; _sphArtSuggestActive = null; return; }
+            el.innerHTML = results.map((sp, i) => {
+                const artEsc = (sp.artNo || '').replace(/"/g, '&quot;');
+                return `<button type="button" class="sph-art-opt block w-full text-left px-3 py-2 text-[11px] hover:bg-violet-100 dark:hover:bg-violet-950/40 border-b border-gray-100 dark:border-lux-800 last:border-0 ${i === 0 ? 'bg-violet-50 dark:bg-violet-950/20' : ''}" data-art="${artEsc}" onmousedown="pickSphArtSuggestion('${containerId}', ${idx}, this.dataset.art)"><span class="font-mono font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</span> <span class="text-gray-500">— ${sp.description || '-'}</span></button>`;
+            }).join('');
+            el.classList.remove('hidden');
+            _sphArtSuggestActive = { containerId, idx, count: results.length, highlight: 0 };
+        }
+
+        function hideSphArtSuggestions(containerId, idx) {
+            const el = document.getElementById(`sph-art-suggest-${containerId}-${idx}`);
+            if (el) { el.classList.add('hidden'); el.innerHTML = ''; }
+            if (_sphArtSuggestActive && _sphArtSuggestActive.containerId === containerId && _sphArtSuggestActive.idx === idx) _sphArtSuggestActive = null;
+        }
+
+        function pickSphArtSuggestion(containerId, idx, artNo) {
+            hideSphArtSuggestions(containerId, idx);
+            const lines = getSphLinesRef(containerId);
+            if (!lines[idx]) return;
+            lines[idx].artNo = artNo;
+            const sp = lookupSparepartByArtNo(artNo);
+            if (!sp) return;
+            if (sp.status === 'obsolete') {
+                showToast('Blocked', `Sparepart ${sp.artNo} is obsolete and cannot be added to SPH.`, 'error');
+                lines[idx].artNo = '';
+                renderSphLineRows(containerId);
+                return;
+            }
+            if (sp.status === 'discontinued') showToast('Warning', `${sp.artNo} is discontinued — use with caution.`, 'error');
+            lines[idx].sparepartId = sp.id;
+            lines[idx].description = sp.description;
+            lines[idx].unitPrice = sp.price;
+            calcSphLineSubtotal(lines[idx]);
+            renderSphLineRows(containerId);
+            recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+        }
+
+        function handleSphArtKeydown(e, containerId, idx) {
+            if (!_sphArtSuggestActive || _sphArtSuggestActive.containerId !== containerId || _sphArtSuggestActive.idx !== idx) return;
+            const el = document.getElementById(`sph-art-suggest-${containerId}-${idx}`);
+            if (!el || el.classList.contains('hidden')) return;
+            const opts = el.querySelectorAll('.sph-art-opt');
+            if (!opts.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                _sphArtSuggestActive.highlight = Math.min(_sphArtSuggestActive.highlight + 1, opts.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                _sphArtSuggestActive.highlight = Math.max(_sphArtSuggestActive.highlight - 1, 0);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const pick = opts[_sphArtSuggestActive.highlight];
+                if (pick) pickSphArtSuggestion(containerId, idx, pick.dataset.art);
+                return;
+            } else if (e.key === 'Escape') {
+                hideSphArtSuggestions(containerId, idx);
+                return;
+            } else return;
+            opts.forEach((o, i) => {
+                o.classList.toggle('bg-violet-50', i === _sphArtSuggestActive.highlight);
+                o.classList.toggle('dark:bg-violet-950/20', i === _sphArtSuggestActive.highlight);
+            });
+        }
+
+        function recalcSphTotals(mode) {
+            const lines = mode === 'sph-builder' ? _sphBuilderLines : _sphQuoteLines;
+            const laborEl = document.getElementById(mode === 'sph-builder' ? 'sph-builder-labor' : 'svc-quote-labor');
+            const labor = laborEl ? (parseFloat(laborEl.value) || 0) : 0;
+            let partsTotal = 0;
+            lines.forEach(l => { partsTotal += calcSphLineSubtotal(l); });
+            const total = partsTotal + labor;
+            const previewId = mode === 'sph-builder' ? 'sph-builder-preview' : 'svc-quote-sph-preview';
+            const totalId = mode === 'sph-builder' ? 'sph-builder-total' : 'svc-quote-price';
+            const previewEl = document.getElementById(previewId);
+            if (previewEl) previewEl.innerHTML = buildSphCustomerTableHtml(lines);
+            const totalEl = document.getElementById(totalId);
+            if (totalEl) totalEl.value = total;
+            if (mode === 'sph-builder' && totalEl) totalEl.innerText = `Total: Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function getValidSphLines(lines) {
+            return (lines || []).filter(l => (l.artNo || '').trim() && (l.description || '').trim());
+        }
+
+        function isOnsiteRepairTicket(s) {
+            return s && s.repairLoc === 'onsite';
+        }
+
+        function canIssueSphForTicket(s) {
+            if (!s || s.sphDocumentId) return false;
+            if (s.status === 'received_tsf') return true;
+            if (s.status === 'picked_up' && isOnsiteRepairTicket(s)) return true;
+            return false;
+        }
+
+        function syncSphPoFromServiceTicket(s, poData) {
+            if (!s || !s.sphDocumentId) return false;
+            const sph = (db.sphDocuments || []).find(d => d.id === s.sphDocumentId);
+            if (!sph) return false;
+            const now = new Date().toISOString();
+            sph.status = 'po_received';
+            sph.poNumber = poData.poNumber;
+            sph.poAmount = poData.poAmount;
+            sph.poDate = poData.poDate;
+            if (poData.docPo) sph.docPo = poData.docPo;
+            sph.poReceivedAt = now;
+            sph.poReceivedBy = currentUser ? currentUser.id : null;
+            sph.updatedAt = now;
+            (sph.serviceTicketIds || []).forEach(tid => {
+                const t = (db.serviceTickets || []).find(x => x.id === tid);
+                if (!t || t.status !== 'quoted') return;
+                t.poNumber = poData.poNumber;
+                t.poAmount = poData.poAmount;
+                t.poDate = poData.poDate;
+                if (poData.docPo) t.docPo = poData.docPo;
+                t.status = 'po_issued';
+                t.history.unshift({ t: now, m: `PO "${poData.poNumber}" synced to SPH ${sph.sphNo}. Repair authorized.` });
+                t.updatedAt = now;
+                notifyServiceUpdate(t, 'po_issued');
+            });
+            sph.history = sph.history || [];
+            sph.history.unshift({ t: now, m: `PO ${poData.poNumber} received — Rp ${(poData.poAmount || 0).toLocaleString('id-ID')}.` });
+            return true;
+        }
+
+        function applySphToTickets(sphDoc, tickets, lines, labor, tsfAnalysis, docSph) {
+            const now = new Date().toISOString();
+            const total = sphDoc.totalAmount;
+            tickets.forEach((s, i) => {
+                const ticketLines = lines.filter(l => !l.serviceTicketId || l.serviceTicketId === s.id);
+                const ticketSubtotal = ticketLines.reduce((sum, l) => sum + (l.subtotal || 0), 0);
+                const shareLabor = tickets.length === 1 ? labor : (i === 0 ? labor : 0);
+                s.sparepartLines = ticketLines.length ? JSON.parse(JSON.stringify(ticketLines)) : JSON.parse(JSON.stringify(lines));
+                s.sphDocumentId = sphDoc.id;
+                s.tsfAnalysis = tsfAnalysis;
+                s.quoteDetails = formatQuoteDetailsFromLines(s.sparepartLines, shareLabor);
+                s.quotePrice = ticketSubtotal + shareLabor || (i === 0 ? total : ticketSubtotal);
+                s.toolStatus = 'repaired';
+                if (docSph) s.docSph = docSph;
+                s.status = 'quoted';
+                s.history.unshift({ t: now, m: `SPH ${sphDoc.sphNo} issued (${sphDoc.repairPath === 'onsite' ? 'On-Site' : 'TSF'}). ${s.sparepartLines.length} sparepart line(s). Total: Rp ${s.quotePrice.toLocaleString('id-ID')}.` });
+                notifyServiceUpdate(s, 'quoted');
+                s.updatedAt = now;
+            });
+            sphDoc.history = sphDoc.history || [];
+            sphDoc.history.unshift({ t: now, m: `SPH issued for ${tickets.length} service ticket(s).` });
+            addToHistory(`SPH ${sphDoc.sphNo} registered — ${sphDoc.customerName} — Rp ${total.toLocaleString('id-ID')}.`);
+        }
+
+        function debouncedRenderSphLog() {
+            clearTimeout(_sphLogSearchTimer);
+            _sphLogSearchTimer = setTimeout(renderSphLog, 200);
+        }
+
+        function setSphLogFilter(filter) {
+            currentSphLogFilter = filter;
+            document.querySelectorAll('.sph-log-filter').forEach(btn => {
+                btn.className = 'sph-log-filter px-4 py-2.5 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-xl text-[10px] font-black uppercase tracking-widest';
+            });
+            const map = { all: 'flt-sph-all', issued: 'flt-sph-issued', po_received: 'flt-sph-po_received', cancelled: 'flt-sph-cancelled' };
+            const active = document.getElementById(map[filter]);
+            if (active) active.className = 'sph-log-filter px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest';
+            renderSphLog();
+        }
+
+        function renderSphLog() {
+            loadDB();
+            const docs = (db.sphDocuments || []).slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            const q = (document.getElementById('search-sph-log')?.value || '').toLowerCase();
+            const statTotal = document.getElementById('sph-stat-total');
+            const statPending = document.getElementById('sph-stat-pending');
+            const statPo = document.getElementById('sph-stat-po');
+            const statCancelled = document.getElementById('sph-stat-cancelled');
+            if (statTotal) statTotal.innerText = docs.length;
+            if (statPending) statPending.innerText = docs.filter(d => d.status === 'issued').length;
+            if (statPo) statPo.innerText = docs.filter(d => d.status === 'po_received').length;
+            if (statCancelled) statCancelled.innerText = docs.filter(d => d.status === 'cancelled').length;
+            const container = document.getElementById('sph-log-container');
+            if (!container) return;
+            container.innerHTML = '';
+            const filtered = docs.filter(d => {
+                const tickets = (d.serviceTicketIds || []).map(id => (db.serviceTickets || []).find(t => t.id === id)).filter(Boolean);
+                const ticketNos = tickets.map(t => t.noService).join(' ');
+                const hay = `${d.sphNo || ''} ${d.customerName || ''} ${d.poNumber || ''} ${ticketNos}`.toLowerCase();
+                const matchQ = hay.includes(q);
+                const matchF = currentSphLogFilter === 'all' || d.status === currentSphLogFilter;
+                return matchQ && matchF;
+            });
+            if (!filtered.length) {
+                container.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400 italic">No SPH records yet.</td></tr>';
+                return;
+            }
+            filtered.forEach(d => {
+                const tickets = (d.serviceTicketIds || []).map(id => (db.serviceTickets || []).find(t => t.id === id)).filter(Boolean);
+                const ticketLabel = tickets.map(t => t.noService).join(', ') || '-';
+                const pathBadge = d.repairPath === 'onsite'
+                    ? '<span class="px-2 py-0.5 rounded bg-teal-100 dark:bg-teal-950/30 text-[9px] font-black text-teal-700 dark:text-teal-400 uppercase">On-Site</span>'
+                    : '<span class="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950/30 text-[9px] font-black text-purple-700 dark:text-purple-400 uppercase">TSF</span>';
+                const stColors = { issued: 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400', po_received: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400', cancelled: 'bg-red-100 text-red-600' };
+                const stLabel = d.status === 'po_received' ? 'PO Received' : (d.status === 'cancelled' ? 'Cancelled' : (d.status === 'issued' ? 'Pending PO' : (d.status || 'issued')));
+                container.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
+                    <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${d.sphNo}</td>
+                    <td class="p-4 text-[12px] font-bold">${d.customerName || '-'}</td>
+                    <td class="p-4">${pathBadge}</td>
+                    <td class="p-4 text-[10px] font-mono text-gray-600 dark:text-lux-400">${ticketLabel}</td>
+                    <td class="p-4 font-mono text-[11px] font-bold">Rp ${(d.totalAmount || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded text-[9px] font-black uppercase ${stColors[d.status] || stColors.issued}">${stLabel}</span></td>
+                    <td class="p-4 font-mono text-[10px]">${d.poNumber || '<span class="text-gray-400 italic">—</span>'}</td>
+                    <td class="p-4 text-right space-x-1">
+                        <button onclick="showSphDetail(${d.id})" class="px-3 py-1.5 bg-violet-600 text-white font-black rounded-lg text-[9px] uppercase tracking-widest hover:bg-violet-500"><i class="fa-solid fa-eye mr-1"></i> Detail</button>
+                        <button onclick="exportSphPdf(${d.id})" class="px-3 py-1.5 bg-gray-200 dark:bg-lux-800 text-gray-800 dark:text-white font-black rounded-lg text-[9px] uppercase tracking-widest hover:bg-gray-300"><i class="fa-solid fa-file-pdf mr-1"></i> PDF</button>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function canCancelSphDocument() {
+            return currentUser && (currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner');
+        }
+
+        function buildCompressedDocPreviewHtml(dataUrl, label) {
+            if (!dataUrl) return '';
+            if (dataUrl.startsWith('data:image/')) {
+                return `<div class="mt-2"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">${label}</p><img src="${dataUrl}" class="max-h-40 rounded-lg border border-gray-200 dark:border-lux-700" alt="${label}"></div>`;
+            }
+            if (dataUrl.startsWith('data:application/pdf')) {
+                return `<div class="mt-2"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">${label}</p><embed src="${dataUrl}" type="application/pdf" class="w-full h-48 rounded-lg border border-gray-200 dark:border-lux-700"></div>`;
+            }
+            return `<p class="text-[10px] text-gray-500 mt-1">${label} attached.</p>`;
+        }
+
+        function showSphDetail(sphId) {
+            loadDB();
+            const d = (db.sphDocuments || []).find(x => x.id === sphId);
+            if (!d) return;
+            _sphDetailActiveId = sphId;
+            const tickets = (d.serviceTicketIds || []).map(id => (db.serviceTickets || []).find(t => t.id === id)).filter(Boolean);
+            const pathLabel = d.repairPath === 'onsite' ? 'On-Site Repair' : 'TSF Workshop';
+            const stLabel = d.status === 'po_received' ? 'PO Received' : (d.status === 'cancelled' ? 'Cancelled' : 'Pending PO');
+            const lines = d.lines || [];
+            const partsTotal = lines.reduce((s, l) => s + (l.subtotal || 0), 0);
+            const labor = d.laborAmount || 0;
+            let linesHtml = lines.length ? `<table class="w-full text-left text-[11px] border border-gray-200 dark:border-lux-800 rounded-xl overflow-hidden"><thead class="bg-gray-50 dark:bg-[#131316] text-[9px] uppercase tracking-widest text-gray-500"><tr><th class="p-2">Art No.</th><th class="p-2">Description</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Harga</th><th class="p-2 text-right">Subtotal</th></tr></thead><tbody>${lines.map(l => `<tr class="border-t border-gray-100 dark:border-lux-800"><td class="p-2 font-mono font-bold text-violet-600">${l.artNo || '-'}</td><td class="p-2">${l.description || '-'}</td><td class="p-2 text-right">${l.qty || 1}</td><td class="p-2 text-right font-mono">Rp ${(l.unitPrice || 0).toLocaleString('id-ID')}</td><td class="p-2 text-right font-mono font-bold">Rp ${(l.subtotal || 0).toLocaleString('id-ID')}</td></tr>`).join('')}</tbody></table>` : '<p class="text-[11px] text-gray-400 italic">No sparepart lines.</p>';
+            const ticketHtml = tickets.length ? tickets.map(t => `<button type="button" onclick="closeModal('sphDetailModal');showServiceDetail(${t.id})" class="block w-full text-left px-3 py-2 mb-1 bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-lg text-[11px] hover:bg-violet-50 dark:hover:bg-violet-950/20"><span class="font-mono font-bold text-gold-600">${t.noService}</span> — ${t.unitName} <span class="text-[10px] text-gray-500">(${t.status})</span></button>`).join('') : '<p class="text-[11px] text-gray-400 italic">No linked tickets.</p>';
+            const hist = (d.history || []).slice(0, 8).map(h => `<li class="text-[10px] text-gray-600 dark:text-lux-400"><span class="font-mono text-gray-400">${h.t ? new Date(h.t).toLocaleString('id-ID') : '-'}</span> — ${h.m || '-'}</li>`).join('') || '<li class="text-[10px] text-gray-400 italic">No history.</li>';
+            const poDocPreview = buildCompressedDocPreviewHtml(d.docPo, 'PO Document');
+            const sphDocPreview = buildCompressedDocPreviewHtml(d.docSph, 'SPH Document');
+            const poBlock = d.poNumber ? `<div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 p-3 rounded-xl text-[11px]"><p class="font-black text-emerald-700 dark:text-emerald-400 uppercase text-[9px] mb-1">Purchase Order</p><p><strong>${d.poNumber}</strong> — Rp ${(d.poAmount || 0).toLocaleString('id-ID')} — ${d.poDate || '-'}</p>${poDocPreview}</div>` : '<p class="text-[11px] text-amber-600 font-bold">PO belum diterima.</p>';
+            document.getElementById('sph-detail-title').innerText = d.sphNo;
+            document.getElementById('sph-detail-body').innerHTML = `
+                <div class="grid grid-cols-2 gap-3 text-[11px]">
+                    <div><p class="text-[9px] uppercase text-gray-400 font-black">Customer</p><p class="font-bold">${d.customerName || '-'}</p></div>
+                    <div><p class="text-[9px] uppercase text-gray-400 font-black">Path</p><p class="font-bold">${pathLabel}</p></div>
+                    <div><p class="text-[9px] uppercase text-gray-400 font-black">Status</p><p class="font-bold">${stLabel}</p></div>
+                    <div><p class="text-[9px] uppercase text-gray-400 font-black">Total</p><p class="font-mono font-bold text-emerald-600">Rp ${(d.totalAmount || 0).toLocaleString('id-ID')}</p></div>
+                </div>
+                ${d.notes ? `<div class="text-[11px]"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">Inspection Notes</p><p class="italic text-gray-600 dark:text-lux-300">${d.notes}</p></div>` : ''}
+                <div><p class="text-[9px] uppercase text-gray-400 font-black mb-2">Sparepart Lines</p>${linesHtml}
+                    <div class="flex justify-end gap-4 mt-2 text-[11px] font-mono"><span>Parts: Rp ${partsTotal.toLocaleString('id-ID')}</span><span>Labor: Rp ${labor.toLocaleString('id-ID')}</span></div></div>
+                ${poBlock}
+                ${sphDocPreview ? `<div>${sphDocPreview}</div>` : ''}
+                <div><p class="text-[9px] uppercase text-gray-400 font-black mb-2">Linked Service Tickets</p>${ticketHtml}</div>
+                <div><p class="text-[9px] uppercase text-gray-400 font-black mb-2">History</p><ul class="space-y-1">${hist}</ul></div>`;
+            const cancelBtn = document.getElementById('btn-sph-cancel');
+            if (cancelBtn) cancelBtn.classList.toggle('hidden', !(canCancelSphDocument() && d.status === 'issued'));
+            openModal('sphDetailModal');
+        }
+
+        function buildSphPdfHtml(d) {
+            const tickets = (d.serviceTicketIds || []).map(id => (db.serviceTickets || []).find(t => t.id === id)).filter(Boolean);
+            const ticketRows = tickets.map(t => `<tr><td>${t.noService}</td><td>${t.unitName}</td><td>${t.unitSn || '-'}</td></tr>`).join('');
+            const lineRows = (d.lines || []).map((l, i) => `<tr><td>${i + 1}</td><td class="mono">${l.artNo || '-'}</td><td>${l.description || '-'}</td><td class="right">${l.qty || 1}</td><td class="right">Rp ${(l.unitPrice || 0).toLocaleString('id-ID')}</td><td class="right">Rp ${(l.subtotal || 0).toLocaleString('id-ID')}</td></tr>`).join('');
+            const partsTotal = (d.lines || []).reduce((s, l) => s + (l.subtotal || 0), 0);
+            const labor = d.laborAmount || 0;
+            const pathLabel = d.repairPath === 'onsite' ? 'On-Site' : 'TSF Workshop';
+            return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>SPH-${d.sphNo}</title><style>
+                body{font-family:Arial,sans-serif;margin:24px;color:#111;font-size:12px}
+                h1{font-size:18px;margin:0 0 4px} .sub{color:#555;font-size:11px;margin-bottom:16px}
+                table{width:100%;border-collapse:collapse;margin:12px 0} th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}
+                th{background:#f3f4f6;font-size:10px;text-transform:uppercase} .right{text-align:right} .mono{font-family:monospace}
+                .totals{margin-top:8px;text-align:right;font-weight:bold} .sig{margin-top:40px;display:flex;justify-content:space-between}
+                .sig div{width:45%;text-align:center;border-top:1px solid #333;padding-top:8px;font-size:11px}
+            </style></head><body>
+                <h1>SURAT PENAWARAN HARGA (SPH)</h1>
+                <p class="sub">TMS — Technical Maintenance Service · ${pathLabel}</p>
+                <table><tr><td><strong>No. SPH</strong></td><td class="mono">${d.sphNo}</td><td><strong>Tanggal</strong></td><td>${d.createdAt ? new Date(d.createdAt).toLocaleDateString('id-ID') : '-'}</td></tr>
+                <tr><td><strong>Customer</strong></td><td colspan="3">${d.customerName || '-'}</td></tr></table>
+                ${tickets.length ? `<p><strong>Unit / Service:</strong></p><table><thead><tr><th>Service No.</th><th>Unit</th><th>Serial No.</th></tr></thead><tbody>${ticketRows}</tbody></table>` : ''}
+                <table><thead><tr><th>#</th><th>Art Number</th><th>Description</th><th>Qty</th><th>Harga Satuan</th><th>Subtotal</th></tr></thead><tbody>${lineRows || '<tr><td colspan="6">No lines</td></tr>'}</tbody></table>
+                <div class="totals"><div>Subtotal Parts: Rp ${partsTotal.toLocaleString('id-ID')}</div><div>Labor / Service: Rp ${labor.toLocaleString('id-ID')}</div><div style="font-size:14px;margin-top:6px">TOTAL: Rp ${(d.totalAmount || 0).toLocaleString('id-ID')}</div></div>
+                ${d.notes ? `<p style="margin-top:16px"><strong>Catatan Pemeriksaan:</strong><br>${d.notes}</p>` : ''}
+                <div class="sig"><div>Disiapkan oleh<br><br><br>TMS / TSF</div><div>Disetujui Customer<br><br><br>_________________</div></div>
+                <script>window.onload=function(){document.title='SPH-${d.sphNo}';window.print();}<\/script>
+            </body></html>`;
+        }
+
+        function exportSphPdf(sphId) {
+            loadDB();
+            const d = (db.sphDocuments || []).find(x => x.id === sphId);
+            if (!d) { showToast('Error', 'SPH not found.', 'error'); return; }
+            const win = window.open('', '_blank');
+            if (!win) { showToast('Blocked', 'Allow pop-ups to export PDF.', 'error'); return; }
+            win.document.write(buildSphPdfHtml(d));
+            win.document.close();
+        }
+
+        function cancelSphDocument(sphId) {
+            if (!sphId) return;
+            if (!canCancelSphDocument()) {
+                showToast('Not Allowed', 'Hanya TSF, SPV, atau Owner yang dapat membatalkan SPH.', 'error');
+                return;
+            }
+            const reason = prompt('Alasan pembatalan SPH:');
+            if (!reason || !reason.trim()) return;
+            if (!confirm('Batalkan SPH ini? Tiket terkait akan dikembalikan ke status sebelum SPH.')) return;
+            loadDB();
+            const sph = (db.sphDocuments || []).find(x => x.id === sphId);
+            if (!sph) return;
+            if (sph.status !== 'issued') {
+                showToast('Not Allowed', 'Hanya SPH berstatus Pending PO yang dapat dibatalkan.', 'error');
+                return;
+            }
+            const now = new Date().toISOString();
+            sph.status = 'cancelled';
+            sph.updatedAt = now;
+            sph.history = sph.history || [];
+            sph.history.unshift({ t: now, m: `SPH cancelled: ${reason.trim()}` });
+            (sph.serviceTicketIds || []).forEach(tid => {
+                const t = (db.serviceTickets || []).find(x => x.id === tid);
+                if (!t) return;
+                delete t.sphDocumentId;
+                t.sparepartLines = [];
+                t.quoteDetails = '';
+                t.quotePrice = 0;
+                t.tsfAnalysis = '';
+                if (t.docSph) delete t.docSph;
+                if (t.toolStatus) delete t.toolStatus;
+                const prevStatus = isOnsiteRepairTicket(t) ? 'picked_up' : 'received_tsf';
+                t.status = prevStatus;
+                t.history.unshift({ t: now, m: `SPH ${sph.sphNo} dibatalkan — ${reason.trim()}. Status dikembalikan ke ${prevStatus}.` });
+                t.updatedAt = now;
+                notifyServiceUpdate(t, prevStatus);
+            });
+            addToHistory(`SPH ${sph.sphNo} dibatalkan oleh ${currentUser ? currentUser.name : 'user'} — ${reason.trim()}.`);
+            saveDB();
+            updateData();
+            closeModal('sphDetailModal');
+            showToast('SPH Cancelled', `${sph.sphNo} telah dibatalkan.`, 'success');
+        }
+
+        function debouncedRenderSparepartMaster() {
+            clearTimeout(_sparepartSearchTimer);
+            _sparepartSearchTimer = setTimeout(renderSparepartMaster, 200);
+        }
+
+        function setSparepartFilter(filter) {
+            currentSparepartFilter = filter;
+            document.querySelectorAll('.sp-filter-btn').forEach(btn => {
+                btn.className = 'sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap hover:bg-gray-200 dark:hover:bg-lux-700 transition';
+            });
+            const id = filter === 'all' ? 'flt-sp-all' : 'flt-sp-' + filter.replace(/\s/g, '');
+            const active = document.getElementById(id);
+            if (active) active.className = 'sp-filter-btn px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-md transition';
+            renderSparepartMaster();
+        }
+
+        function renderSparepartMaster() {
+            loadDB();
+            const items = (db.spareparts || []).slice();
+            const q = (document.getElementById('search-spareparts')?.value || '').toLowerCase();
+            const statTotal = document.getElementById('sp-stat-total');
+            const statActive = document.getElementById('sp-stat-active');
+            const statDisc = document.getElementById('sp-stat-disc');
+            if (statTotal) statTotal.innerText = items.length;
+            if (statActive) statActive.innerText = items.filter(s => s.status === 'active').length;
+            if (statDisc) statDisc.innerText = items.filter(s => s.status === 'discontinued').length;
+            const container = document.getElementById('spareparts-container');
+            if (!container) return;
+            container.innerHTML = '';
+            const filtered = items.filter(sp => {
+                const hay = `${sp.artNo || ''} ${sp.description || ''} ${sp.group || ''}`.toLowerCase();
+                const matchQ = hay.includes(q);
+                const matchF = currentSparepartFilter === 'all' || sp.group === currentSparepartFilter;
+                return matchQ && matchF;
+            }).sort((a, b) => (a.artNo || '').localeCompare(b.artNo || ''));
+            if (!filtered.length) {
+                container.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No spareparts yet. Add or import from Excel.</td></tr>';
+                return;
+            }
+            filtered.forEach(sp => {
+                const stColors = { active: 'text-emerald-600', discontinued: 'text-amber-600', obsolete: 'text-red-500' };
+                container.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
+                    <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</td>
+                    <td class="p-4 text-[12px] font-bold">${sp.description}</td>
+                    <td class="p-4 font-mono text-[11px]">Rp ${(sp.price || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase">${sp.group || 'General'}</span></td>
+                    <td class="p-4"><span class="text-[10px] font-black uppercase ${stColors[sp.status] || ''}">${sp.status || 'active'}</span></td>
+                    <td class="p-4 text-right"><div class="flex justify-end gap-2">
+                        <button onclick="openSparepartModal(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-violet-500 hover:bg-violet-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                        <button onclick="deleteSparepart(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    </div></td></tr>`;
+            });
+        }
+
+        function openSparepartModal(editId) {
+            loadDB();
+            document.getElementById('sp-edit-id').value = editId || '';
+            const err = document.getElementById('sparepart-form-error');
+            if (err) err.classList.add('hidden');
+            if (editId) {
+                const sp = (db.spareparts || []).find(x => x.id === editId);
+                if (!sp) return;
+                document.getElementById('sparepart-modal-title').innerHTML = '<i class="fa-solid fa-gears text-violet-500 mr-2"></i> Edit Sparepart';
+                document.getElementById('sp-art').value = sp.artNo || '';
+                document.getElementById('sp-desc').value = sp.description || '';
+                document.getElementById('sp-price').value = sp.price || 0;
+                document.getElementById('sp-group').value = sp.group || 'General';
+                document.getElementById('sp-status').value = sp.status || 'active';
+                document.getElementById('sp-notes').value = sp.notes || '';
+            } else {
+                document.getElementById('sparepart-modal-title').innerHTML = '<i class="fa-solid fa-gears text-violet-500 mr-2"></i> Add Sparepart';
+                document.getElementById('sp-art').value = '';
+                document.getElementById('sp-desc').value = '';
+                document.getElementById('sp-price').value = '';
+                document.getElementById('sp-group').value = 'Avitum';
+                document.getElementById('sp-status').value = 'active';
+                document.getElementById('sp-notes').value = '';
+            }
+            validateSparepartForm();
+            openModal('sparepartModal');
+        }
+
+        function validateSparepartForm() {
+            const err = document.getElementById('sparepart-form-error');
+            const btn = document.getElementById('btn-save-sparepart');
+            if (!err || !btn) return true;
+            const fields = { artNo: (document.getElementById('sp-art')?.value || '').trim() };
+            const excludeId = parseInt(document.getElementById('sp-edit-id')?.value) || null;
+            const conflicts = findSparepartConflicts(fields, excludeId);
+            if (!conflicts.length) { err.classList.add('hidden'); btn.disabled = false; return true; }
+            err.innerHTML = `${conflicts[0].label} <strong>${conflicts[0].value}</strong> already used by <strong>${conflicts[0].existing}</strong>.`;
+            err.classList.remove('hidden');
+            btn.disabled = true;
+            return false;
+        }
+
+        function submitSparepart(e) {
+            e.preventDefault();
+            loadDB();
+            if (!validateSparepartForm()) return;
+            const editId = parseInt(document.getElementById('sp-edit-id').value) || null;
+            const now = new Date().toISOString();
+            const record = {
+                id: editId || allocateUniqueId(),
+                artNo: document.getElementById('sp-art').value.trim(),
+                description: document.getElementById('sp-desc').value.trim(),
+                price: parseFloat(document.getElementById('sp-price').value) || 0,
+                group: document.getElementById('sp-group').value,
+                status: document.getElementById('sp-status').value,
+                notes: document.getElementById('sp-notes').value.trim(),
+                updatedAt: now
+            };
+            db.spareparts = db.spareparts || [];
+            if (editId) {
+                const idx = db.spareparts.findIndex(x => x.id === editId);
+                if (idx >= 0) db.spareparts[idx] = record;
+            } else db.spareparts.push(record);
+            addToHistory(`Sparepart Master: ${editId ? 'Updated' : 'Added'} ${record.artNo}.`);
+            saveDB(); updateData(); closeModal('sparepartModal');
+            showToast('Saved', `${record.artNo} saved to Sparepart Master.`, 'success');
+        }
+
+        function deleteSparepart(id) {
+            if (!confirm('Delete this sparepart from master?')) return;
+            loadDB();
+            const sp = (db.spareparts || []).find(x => x.id === id);
+            db.spareparts = (db.spareparts || []).filter(x => x.id !== id);
+            if (sp) addToHistory(`Sparepart Master: Deleted ${sp.artNo}.`);
+            saveDB(); updateData();
+            showToast('Deleted', 'Sparepart removed.', 'success');
+        }
+
+        function exportSparepartsCSV() {
+            loadDB();
+            const headers = ['Art Number', 'Description', 'Price', 'Group', 'Status', 'Notes'];
+            const rows = (db.spareparts || []).map(sp => [`"${sp.artNo}"`, `"${sp.description || ''}"`, sp.price || 0, `"${sp.group || ''}"`, `"${sp.status || ''}"`, `"${sp.notes || ''}"`]);
+            const csv = '\uFEFF' + [headers.join(',')].concat(rows.map(r => r.join(','))).join('\n');
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            link.download = 'TMS_Spareparts_Export.csv';
+            document.body.appendChild(link); link.click(); link.remove();
+            showToast('Export Successful', 'Sparepart CSV downloaded.', 'success');
+        }
+
+        function importSparepartsBatch(rows) {
+            let added = 0, skipped = 0;
+            const errors = [];
+            db.spareparts = db.spareparts || [];
+            rows.forEach((row, idx) => {
+                const artNo = row['Art Number'];
+                const desc = row['Description'];
+                const price = parseFloat(row['Price']);
+                if (!artNo || !desc || isNaN(price)) { skipped++; errors.push(`Row ${idx + 1}: missing required fields`); return; }
+                if (findSparepartConflicts({ artNo }, null).length) { skipped++; errors.push(`Row ${idx + 1}: duplicate Art Number`); return; }
+                db.spareparts.push({
+                    id: allocateUniqueId(), artNo: artNo.trim(), description: desc.trim(), price,
+                    group: normalizeSparepartGroup(row['Group']), status: normalizeSparepartStatus(row['Status']),
+                    notes: row['Notes'] || '', updatedAt: new Date().toISOString()
+                });
+                added++;
+            });
+            return { added, skipped, errors };
+        }
+
+        function getEligibleSphTickets() {
+            return (db.serviceTickets || []).filter(s => s && s.customerId && canIssueSphForTicket(s));
+        }
+
+        function hasEligibleCombinedSph() {
+            loadDB();
+            const eligible = getEligibleSphTickets();
+            const byCust = {};
+            eligible.forEach(s => { byCust[s.customerId] = (byCust[s.customerId] || 0) + 1; });
+            return Object.values(byCust).some(c => c >= 2);
+        }
+
+        function getCombinedSphCustomerGroups() {
+            loadDB();
+            const eligible = getEligibleSphTickets();
+            const byCust = {};
+            eligible.forEach(s => {
+                if (!byCust[s.customerId]) byCust[s.customerId] = { name: s.customerName, tickets: [] };
+                byCust[s.customerId].tickets.push(s);
+            });
+            const custIds = Object.keys(byCust).filter(cid => byCust[cid].tickets.length >= 2).map(cid => parseInt(cid));
+            return { byCust, custIds };
+        }
+
+        function launchSphBuilderForCustomer(cid, byCust) {
+            const group = byCust[cid];
+            if (!group || group.tickets.length < 2) return;
+            _sphBuilderTicketIds = group.tickets.map(t => t.id);
+            _sphBuilderLines = [createEmptySphLine()];
+            document.getElementById('sph-builder-customer').innerText = group.name;
+            const ticketBox = document.getElementById('sph-builder-tickets');
+            ticketBox.innerHTML = group.tickets.map(t => `
+                <label class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-xl cursor-pointer">
+                    <input type="checkbox" class="sph-ticket-chk w-4 h-4 accent-violet-500" value="${t.id}" checked onchange="syncSphBuilderTickets()">
+                    <div><p class="text-[11px] font-black">${t.noService} — ${t.unitName}</p><p class="text-[10px] text-gray-500 font-mono">SN: ${t.unitSn || '-'}</p></div>
+                </label>`).join('');
+            document.getElementById('sph-builder-analysis').value = '';
+            document.getElementById('sph-builder-labor').value = 0;
+            document.getElementById('sph-builder-doc').value = '';
+            renderSphLineRows('sph-builder-lines');
+            recalcSphTotals('sph-builder');
+            openModal('sphBuilderModal');
+        }
+
+        function openSphBuilderModal() {
+            const { byCust, custIds } = getCombinedSphCustomerGroups();
+            if (!custIds.length) {
+                showToast('Not Available', 'Need at least 2 eligible service tickets from the same customer.', 'error');
+                return;
+            }
+            if (custIds.length === 1) {
+                launchSphBuilderForCustomer(custIds[0], byCust);
+                return;
+            }
+            _sphCustPickData = { byCust, custIds };
+            const sel = document.getElementById('sph-customer-pick-select');
+            if (sel) {
+                sel.innerHTML = custIds.map(cid => {
+                    const g = byCust[cid];
+                    return `<option value="${cid}">${g.name} (${g.tickets.length} tickets)</option>`;
+                }).join('');
+            }
+            openModal('sphCustomerPickModal');
+        }
+
+        function confirmSphCustomerPick() {
+            const cid = parseInt(document.getElementById('sph-customer-pick-select')?.value);
+            if (!_sphCustPickData || !cid) return;
+            closeModal('sphCustomerPickModal');
+            launchSphBuilderForCustomer(cid, _sphCustPickData.byCust);
+        }
+
+        function syncSphBuilderTickets() {
+            _sphBuilderTicketIds = Array.from(document.querySelectorAll('.sph-ticket-chk:checked')).map(el => parseInt(el.value));
+        }
+
+        async function submitSphBuilder(e) {
+            e.preventDefault();
+            loadDB();
+            syncSphBuilderTickets();
+            if (_sphBuilderTicketIds.length < 2) {
+                showToast('Validation', 'Select at least 2 service tickets for combined SPH.', 'error');
+                return;
+            }
+            const lines = getValidSphLines(_sphBuilderLines);
+            if (!lines.length) { showToast('Validation', 'Add at least one sparepart line.', 'error'); return; }
+            const tickets = _sphBuilderTicketIds.map(id => db.serviceTickets.find(x => x.id === id)).filter(Boolean);
+            const custIds = [...new Set(tickets.map(t => t.customerId))];
+            if (custIds.length !== 1) { showToast('Validation', 'All tickets must belong to the same customer.', 'error'); return; }
+            const labor = parseFloat(document.getElementById('sph-builder-labor').value) || 0;
+            const tsfAnalysis = document.getElementById('sph-builder-analysis').value;
+            const partsTotal = lines.reduce((s, l) => s + (l.subtotal || 0), 0);
+            const now = new Date().toISOString();
+            let docSph = null;
+            const fileInput = document.getElementById('sph-builder-doc');
+            if (fileInput?.files?.[0]) {
+                try { docSph = await compressImage(fileInput.files[0]); } catch (err) { console.error(err); }
+            }
+            const sphDoc = {
+                id: allocateUniqueId(), sphNo: generateSphNumber(), customerId: custIds[0], customerName: tickets[0].customerName,
+                serviceTicketIds: tickets.map(t => t.id),
+                lines: JSON.parse(JSON.stringify(lines)), laborAmount: labor, totalAmount: partsTotal + labor,
+                status: 'issued', repairPath: 'tsf',
+                poNumber: null, poAmount: null, poDate: null, docPo: null, poReceivedAt: null, poReceivedBy: null,
+                docSph, createdBy: currentUser.id, createdAt: now, updatedAt: now, notes: tsfAnalysis, history: []
+            };
+            db.sphDocuments = db.sphDocuments || [];
+            db.sphDocuments.push(sphDoc);
+            applySphToTickets(sphDoc, tickets, lines, labor, tsfAnalysis, docSph);
+            playNotificationSound(); saveDB(); updateData(); closeModal('sphBuilderModal');
+            showToast('SPH Issued', `${sphDoc.sphNo} created for ${tickets.length} units — see SPH Log.`, 'success');
+        }
+
+        function renderRepairSparepartChecklist(s) {
+            const wrapper = document.getElementById('svc-repair-spareparts-wrapper');
+            const list = document.getElementById('svc-repair-spareparts-list');
+            if (!wrapper || !list) return;
+            const lines = s.sparepartLines || [];
+            if (!lines.length) { wrapper.classList.add('hidden'); return; }
+            wrapper.classList.remove('hidden');
+            list.innerHTML = lines.map((l, i) => `
+                <label class="flex items-start gap-3 p-3 bg-violet-50/50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-900/40 rounded-xl cursor-pointer">
+                    <input type="checkbox" class="svc-replaced-chk mt-1 w-4 h-4 accent-violet-500" data-idx="${i}" checked>
+                    <div><p class="text-[11px] font-mono font-bold text-violet-600">${l.artNo || '-'}</p><p class="text-[11px]">${l.description || '-'}</p><p class="text-[10px] font-mono text-emerald-600">Rp ${(l.unitPrice || 0).toLocaleString('id-ID')}</p></div>
+                </label>`).join('');
+        }
+
+        function collectReplacedSpareparts(s) {
+            const lines = s.sparepartLines || [];
+            const checked = Array.from(document.querySelectorAll('.svc-replaced-chk:checked')).map(el => parseInt(el.dataset.idx));
+            return lines.filter((_, i) => checked.includes(i)).map(l => ({ ...l, replacedAt: new Date().toISOString() }));
         }
 
         function debouncedRenderCustomerMaster() {
@@ -11287,18 +12375,22 @@
                 s.signatureSendFieldGiver = sigGiver;
                 s.signatureFieldGiver = sigGiver;
 
+                const wasTsfQuick = !!s.tempTsfQuickRepair;
                 delete s.tempRepairNote;
                 delete s.tempToolStatus;
                 delete s.tempUnitPhotoAfter;
+                delete s.tempTsfQuickRepair;
+                if (wasTsfQuick) s.repairCompletionType = 'tsf_quick';
 
                 const statusText = s.toolStatus === 'unrepaired' ? 'Gagal Diperbaiki (Unrepaired)' : 'Selesai Diperbaiki (Repaired)';
+                const quickPrefix = wasTsfQuick ? 'TSF Quick Repair (tanpa SPH/PO): ' : '';
 
                 s.history.unshift({
                     t: new Date().toISOString(),
-                    m: `Laporan Kerja TSF: "${s.repairNote}". Unit dikirim kembali ke Teknisi Lapangan. Kondisi: ${statusText}.`,
+                    m: `${quickPrefix}Laporan Kerja TSF: "${s.repairNote}". Unit dikirim kembali ke Teknisi Lapangan. Kondisi: ${statusText}.`,
                     sigGiver: sigGiver
                 });
-                addToHistory(`Perbaikan Selesai: TSF (${currentUser.name}) menyelesaikan perbaikan ${s.noService} dengan kondisi ${statusText}.`, null, sigGiver);
+                addToHistory(`${wasTsfQuick ? 'TSF Quick Repair' : 'Perbaikan Selesai'}: TSF (${currentUser.name}) menyelesaikan perbaikan ${s.noService} dengan kondisi ${statusText}.`, null, sigGiver);
                 notifyServiceUpdate(s, 'repaired');
                 showToast("Perbaikan Disubmit", "Status berhasil diperbarui.", "success");
             } else if (action === 'receive_field') {
@@ -11378,6 +12470,27 @@
             }
         }
 
+        function configureQuotationModalForTicket(s) {
+            const isOnsite = isOnsiteRepairTicket(s);
+            const decisionWrap = document.getElementById('svc-tsf-decision-wrap');
+            const analysisLabel = document.getElementById('svc-tsf-analysis-label');
+            const titleEl = document.getElementById('svc-quote-modal-title');
+            const analysisField = document.getElementById('svc-tsf-analysis');
+            const submitBtn = document.querySelector('#serviceQuotationModal button[type="submit"]');
+            if (isOnsite) {
+                if (decisionWrap) decisionWrap.classList.add('hidden');
+                if (analysisLabel) analysisLabel.innerHTML = 'On-Site Inspection Result <span class="text-gold-500">*</span>';
+                if (analysisField) analysisField.placeholder = 'Describe findings from on-site inspection...';
+                if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-file-invoice text-gold-500 mr-2"></i> On-Site Analysis & SPH';
+                if (submitBtn && document.getElementById('svc-tsf-decision')?.value !== 'unrepair') submitBtn.innerText = 'Issue On-Site SPH';
+            } else {
+                if (decisionWrap) decisionWrap.classList.remove('hidden');
+                if (analysisLabel) analysisLabel.innerHTML = 'TSF Advanced Inspection Result <span class="text-gold-500">*</span>';
+                if (analysisField) analysisField.placeholder = 'Describe component / module damage found at TSF workshop...';
+                if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-file-invoice-dollar text-gold-500 mr-2"></i> Advanced Analysis & Quotation';
+            }
+        }
+
         function openQuotationModal(id) {
             loadDB();
             const s = db.serviceTickets.find(x => x.id === id);
@@ -11392,10 +12505,14 @@
                 decisionSelect.value = 'repair';
             }
             toggleTsfDecision('repair');
+            configureQuotationModalForTicket(s);
 
             document.getElementById('svc-tsf-analysis').value = '';
             document.getElementById('svc-quote-details').value = '';
-            document.getElementById('svc-quote-price').value = '';
+            document.getElementById('svc-quote-labor').value = '0';
+            _sphQuoteLines = (s.sparepartLines && s.sparepartLines.length) ? JSON.parse(JSON.stringify(s.sparepartLines)) : [createEmptySphLine()];
+            renderSphLineRows('svc-quote-lines');
+            recalcSphTotals('svc-quote');
             const fileInput = document.getElementById('svc-quote-doc');
             if (fileInput) fileInput.value = '';
             openModal('serviceQuotationModal');
@@ -11439,8 +12556,14 @@
                 return;
             }
             
-            const details = document.getElementById('svc-quote-details').value;
-            const price = parseFloat(document.getElementById('svc-quote-price').value);
+            const lines = getValidSphLines(_sphQuoteLines);
+            if (!lines.length) {
+                showToast('Validation', 'Add at least one sparepart line from Master.', 'error');
+                return;
+            }
+            const labor = parseFloat(document.getElementById('svc-quote-labor').value) || 0;
+            const price = parseFloat(document.getElementById('svc-quote-price').value) || 0;
+            const details = formatQuoteDetailsFromLines(lines, labor);
             
             const fileInput = document.getElementById('svc-quote-doc');
             let docSph = null;
@@ -11452,27 +12575,24 @@
                 }
             }
             
-            s.tsfAnalysis = tsfAnalysis;
-            s.quoteDetails = details;
-            s.quotePrice = price;
-            s.toolStatus = 'repaired'; // default to repaired
-            if (docSph) {
-                s.docSph = docSph;
-            }
-            s.status = 'quoted';
-            s.history.unshift({
-                t: new Date().toISOString(),
-                m: `Pengecekan TSF: "${tsfAnalysis}". Rincian Quote: "${details}". Total Penawaran: Rp ${price.toLocaleString('id-ID')}.` + (docSph ? ` (Dokumen SPH Terlampir)` : ``)
-            });
-            
-            addToHistory(`Penawaran TSF Dibuat: ${s.noService} dinilai Rp ${price.toLocaleString('id-ID')} oleh ${currentUser.name}.`);
-            notifyServiceUpdate(s, 'quoted');
-            s.updatedAt = new Date().toISOString();
+            const now = new Date().toISOString();
+            const sphDoc = {
+                id: allocateUniqueId(), sphNo: generateSphNumber(), customerId: s.customerId, customerName: s.customerName,
+                serviceTicketIds: [s.id], lines: JSON.parse(JSON.stringify(lines)), laborAmount: labor,
+                totalAmount: price, status: 'issued', repairPath: isOnsiteRepairTicket(s) ? 'onsite' : 'tsf',
+                poNumber: null, poAmount: null, poDate: null, docPo: null, poReceivedAt: null, poReceivedBy: null,
+                docSph, createdBy: currentUser.id, createdAt: now, updatedAt: now, notes: tsfAnalysis, history: []
+            };
+            db.sphDocuments = db.sphDocuments || [];
+            db.sphDocuments.push(sphDoc);
+            applySphToTickets(sphDoc, [s], lines, labor, tsfAnalysis, docSph);
+            s.updatedAt = now;
             playNotificationSound();
             saveDB();
             updateData();
             closeModal('serviceQuotationModal');
-            showToast("Penawaran Dikirim", "Menunggu input Purchase Order.", "success");
+            const pathLabel = sphDoc.repairPath === 'onsite' ? 'On-Site' : 'TSF';
+            showToast("SPH Issued", `${sphDoc.sphNo} (${pathLabel}) — awaiting PO.`, "success");
         }
 
         function openPoModal(id) {
@@ -11511,60 +12631,78 @@
                 }
             }
             
-            s.poNumber = poNumber;
-            s.poAmount = poAmount;
-            s.poDate = poDate;
-            if (docPo) {
-                s.docPo = docPo;
+            const poData = { poNumber, poAmount, poDate, docPo };
+            const now = new Date().toISOString();
+            if (s.sphDocumentId && syncSphPoFromServiceTicket(s, poData)) {
+                const sph = (db.sphDocuments || []).find(d => d.id === s.sphDocumentId);
+                addToHistory(`PO ${poNumber} synced to SPH ${sph ? sph.sphNo : ''} via ${s.noService} by ${currentUser.name}.`);
+                showToast("PO Synced", `SPH ${sph ? sph.sphNo : ''} marked PO Received. All linked tickets updated.`, "success");
+            } else {
+                s.poNumber = poNumber;
+                s.poAmount = poAmount;
+                s.poDate = poDate;
+                if (docPo) s.docPo = docPo;
+                s.status = 'po_issued';
+                s.history.unshift({
+                    t: now,
+                    m: `Purchase Order Diterima: No PO "${poNumber}" terbit tanggal ${poDate} dengan Nominal Rp ${poAmount.toLocaleString('id-ID')}. Perbaikan unit disetujui.` + (docPo ? ` (Dokumen PO Terlampir)` : ``)
+                });
+                addToHistory(`Purchase Order Di-input: ${s.noService} dengan PO No. ${poNumber} senilai Rp ${poAmount.toLocaleString('id-ID')} oleh ${currentUser.name}.`);
+                notifyServiceUpdate(s, 'po_issued');
+                s.updatedAt = now;
+                showToast("PO Terbit", "Repair authorized.", "success");
             }
-            s.status = 'po_issued';
-            s.history.unshift({
-                t: new Date().toISOString(),
-                m: `Purchase Order Diterima: No PO "${poNumber}" terbit tanggal ${poDate} dengan Nominal Rp ${poAmount.toLocaleString('id-ID')}. Perbaikan unit disetujui.` + (docPo ? ` (Dokumen PO Terlampir)` : ``)
-            });
-            
-            addToHistory(`Purchase Order Di-input: ${s.noService} dengan PO No. ${poNumber} senilai Rp ${poAmount.toLocaleString('id-ID')} oleh ${currentUser.name}.`);
-            notifyServiceUpdate(s, 'po_issued');
-            s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
             updateData();
             closeModal('servicePoModal');
-            showToast("PO Terbit", "TSF otomatis diotorisasi untuk memperbaiki.", "success");
+        }
+
+        function setupServiceRepairModal(id, mode) {
+            loadDB();
+            const s = db.serviceTickets.find(x => x.id === id);
+            if (!s) return false;
+            if (mode === 'tsf_quick' && s.status !== 'received_tsf') {
+                showToast('Not Available', 'TSF Quick Repair hanya saat unit sudah diterima di workshop.', 'error');
+                return false;
+            }
+            document.getElementById('svc-repair-id').value = id;
+            document.getElementById('svc-repair-mode').value = mode;
+            document.getElementById('svc-repair-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
+            document.getElementById('svc-repair-no-service').innerText = s.noService;
+            document.getElementById('svc-repair-note-text').value = '';
+            renderRepairSparepartChecklist(s);
+
+            const titleEl = document.querySelector('#serviceRepairModal h3');
+            const hintEl = document.getElementById('svc-repair-mode-hint');
+            const submitBtn = document.querySelector('#serviceRepairModal button[type="submit"]');
+            if (mode === 'onsite') {
+                if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-screwdriver-wrench text-gold-500 mr-2"></i> On-Site Quick Repair`;
+                if (hintEl) hintEl.classList.add('hidden');
+                if (submitBtn) submitBtn.innerText = 'Selesaikan & BAST Penyerahan';
+            } else if (mode === 'tsf_quick') {
+                if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-screwdriver-wrench text-gold-500 mr-2"></i> TSF Quick Repair`;
+                if (hintEl) hintEl.classList.remove('hidden');
+                if (submitBtn) submitBtn.innerText = 'Selesaikan & Kirim ke Lapangan';
+            } else {
+                if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-screwdriver-wrench text-gold-500 mr-2"></i> TSF Repair Completion Report`;
+                if (hintEl) hintEl.classList.add('hidden');
+                if (submitBtn) submitBtn.innerText = 'Complete & Send to Field Technician';
+            }
+            openModal('serviceRepairModal');
+            return true;
         }
 
         function openServiceRepairModal(id) {
-            loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
-            if (!s) return;
-            document.getElementById('svc-repair-id').value = id;
-            document.getElementById('svc-repair-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
-            document.getElementById('svc-repair-no-service').innerText = s.noService;
-            document.getElementById('svc-repair-note-text').value = '';
-            
-            const submitBtn = document.querySelector('#serviceRepairModal button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.innerText = "Complete & Send to Field Technician";
-            }
-            
-            openModal('serviceRepairModal');
+            setupServiceRepairModal(id, 'tsf_po');
+        }
+
+        function openTsfQuickRepair(id) {
+            setupServiceRepairModal(id, 'tsf_quick');
         }
 
         function openOnsiteRepair(id) {
-            loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
-            if (!s) return;
-            document.getElementById('svc-repair-id').value = id;
-            document.getElementById('svc-repair-unit-name').innerText = `${s.unitName} (${s.unitMerk} ${s.unitTipe})`;
-            document.getElementById('svc-repair-no-service').innerText = s.noService;
-            document.getElementById('svc-repair-note-text').value = '';
-            
-            const submitBtn = document.querySelector('#serviceRepairModal button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.innerText = "Selesaikan & BAST Penyerahan";
-            }
-            
-            openModal('serviceRepairModal');
+            setupServiceRepairModal(id, 'onsite');
         }
 
         async function submitServiceRepair(e) {
@@ -11576,8 +12714,21 @@
             
             const text = document.getElementById('svc-repair-note-text').value;
             const statusVal = document.getElementById('svc-repair-status') ? document.getElementById('svc-repair-status').value : 'repaired';
+            const replaced = collectReplacedSpareparts(s);
+            if (replaced.length) {
+                s.replacedSpareparts = replaced;
+                s.history.unshift({ t: new Date().toISOString(), m: `Spare parts replaced: ${replaced.map(r => r.artNo).join(', ')}.` });
+            }
+            const repairMode = document.getElementById('svc-repair-mode') ? document.getElementById('svc-repair-mode').value : 'tsf_po';
+            if (repairMode === 'tsf_quick' && s.status !== 'received_tsf') {
+                showToast('Not Available', 'TSF Quick Repair hanya saat unit sudah diterima di workshop.', 'error');
+                return;
+            }
+
             s.tempRepairNote = text;
             s.tempToolStatus = statusVal;
+            if (repairMode === 'tsf_quick') s.tempTsfQuickRepair = true;
+            else delete s.tempTsfQuickRepair;
 
             // Save photo after temporarily (multiple)
             const photoAfterInput = document.getElementById('svc-unit-photo-after');
@@ -12301,10 +13452,20 @@
             document.getElementById('svc-det-complaint').innerText = s.complaint || '-';
             
             const quoteWrapper = document.getElementById('svc-det-quoted-info-wrapper');
-            if (s.quotePrice) {
+            const sphTableEl = document.getElementById('svc-det-sph-table');
+            const replacedWrapper = document.getElementById('svc-det-replaced-wrapper');
+            const replacedTableEl = document.getElementById('svc-det-replaced-table');
+            if (s.quotePrice || (s.sparepartLines && s.sparepartLines.length)) {
                 quoteWrapper.classList.remove('hidden');
+                if (sphTableEl) sphTableEl.innerHTML = buildSphCustomerTableHtml(s.sparepartLines || []);
                 document.getElementById('svc-det-quote-details').innerText = s.quoteDetails || '-';
-                document.getElementById('svc-det-quote-price').innerText = `Rp ${s.quotePrice.toLocaleString('id-ID')}`;
+                document.getElementById('svc-det-quote-price').innerText = `Rp ${(s.quotePrice || 0).toLocaleString('id-ID')}`;
+                if (replacedWrapper && replacedTableEl) {
+                    if (s.replacedSpareparts && s.replacedSpareparts.length) {
+                        replacedWrapper.classList.remove('hidden');
+                        replacedTableEl.innerHTML = buildSphCustomerTableHtml(s.replacedSpareparts);
+                    } else replacedWrapper.classList.add('hidden');
+                }
                 
                 const sphDocWrapper = document.getElementById('svc-det-sph-doc-wrapper');
                 const sphDocLink = document.getElementById('svc-det-sph-doc-link');

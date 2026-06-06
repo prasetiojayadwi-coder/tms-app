@@ -139,6 +139,45 @@ def check_html_integrity():
         else:
             bad(f'Master Data Customer: {fn} hilang')
 
+    for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
+        if cid in html:
+            ok(f'Modul SPH: {cid} ada')
+        else:
+            bad(f'Modul SPH: {cid} hilang')
+
+    for fn in (
+        'lookupSparepartByArtNo', 'searchSparepartsPartial', 'smartFillSphLine', 'showSphArtSuggestions',
+        'renderSphLog', 'showSphDetail', 'exportSphPdf', 'cancelSphDocument', 'openSphBuilderModal',
+        'confirmSphCustomerPick', 'getCombinedSphCustomerGroups', 'openTsfQuickRepair',
+        'configureQuotationModalForTicket', 'syncSphPoFromServiceTicket', 'canIssueSphForTicket',
+        'canCancelSphDocument', 'buildCompressedDocPreviewHtml',
+    ):
+        if f'function {fn}' in js:
+            ok(f'Modul SPH: {fn} ada')
+        else:
+            bad(f'Modul SPH: {fn} hilang')
+
+    if 'flt-sph-cancelled' in html and 'sph-stat-cancelled' in html:
+        ok('Modul SPH: filter + stat Cancelled ada')
+    else:
+        bad('Modul SPH: filter/stat Cancelled hilang')
+
+    if 'function showSphDetail' in js and 'alert(`SPH' not in js:
+        ok('Modul SPH: showSphDetail pakai modal (bukan alert)')
+    elif 'alert(`SPH' in js:
+        bad('Modul SPH: showSphDetail masih pakai alert()')
+
+    release_text = (ROOT / 'release.js').read_text(encoding='utf-8')
+    sw_text = (ROOT / 'sw.js').read_text(encoding='utf-8')
+    build_match = re.search(r"build:\s*(\d+)", release_text)
+    cache_match = re.search(r"tms-cache-v(\d+)", sw_text)
+    if build_match and cache_match and build_match.group(1) == cache_match.group(1):
+        ok(f'Versi cache SW match release build v{build_match.group(1)}')
+    elif build_match and cache_match:
+        bad(f'Versi cache SW tidak match: release build {build_match.group(1)} vs sw {cache_match.group(1)}')
+    else:
+        warn('Tidak bisa verifikasi match release.js / sw.js build')
+
     for cid in ['sig-canvas', 'handover-sig-canvas-giver', 'handover-sig-canvas-receiver']:
         if cid in html:
             ok(f'Canvas {cid} ada')
@@ -154,7 +193,6 @@ def check_html_integrity():
     elif 'release.js' not in html:
         warn('release.js tidak direferensikan di index.html')
 
-    sw_text = (ROOT / 'sw.js').read_text(encoding='utf-8')
     if 'release.js' in sw_text:
         ok('Service Worker cache mencakup release.js')
     else:
