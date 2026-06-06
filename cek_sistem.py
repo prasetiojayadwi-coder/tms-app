@@ -40,7 +40,7 @@ def fetch(path, timeout=8):
 def check_files():
     print('\n== File Proyek ==')
     required = [
-        'index.html', 'manifest.json', 'sw.js', 'tms_pwa_icon.png',
+        'index.html', 'manifest.json', 'sw.js', 'release.js', 'tms_pwa_icon.png',
         'Mulai_Server.bat', 'config.example.js', 'config.deploy.js',
         'Jalankan_Setup.bat', 'jalankan_setup.py', 'supabase_setup.sql',
     ]
@@ -145,12 +145,20 @@ def check_html_integrity():
         else:
             bad(f'Canvas {cid} hilang')
 
-    if 'bg-red-650' in html:
-        warn('Class CSS tidak valid: bg-red-650')
-    if 'border-gray-150' in html:
-        warn('Class CSS tidak valid: border-gray-150')
-    if 'border-lux-850' in html:
-        warn('Class CSS tidak valid: border-lux-850')
+    for bad_cls in ('bg-red-650', 'text-red-650', 'text-gray-505', 'text-gray-750', 'bg-gray-150', 'bg-lux-850', 'border-gray-150', 'border-lux-850'):
+        if bad_cls in html:
+            warn(f'Class CSS tidak valid: {bad_cls}')
+
+    if 'release.js' in html and 'TMS_RELEASE' in (ROOT / 'release.js').read_text(encoding='utf-8'):
+        ok('Sistem update: release.js + TMS_RELEASE ada')
+    elif 'release.js' not in html:
+        warn('release.js tidak direferensikan di index.html')
+
+    sw_text = (ROOT / 'sw.js').read_text(encoding='utf-8')
+    if 'release.js' in sw_text:
+        ok('Service Worker cache mencakup release.js')
+    else:
+        warn('release.js belum ada di CORE_ASSETS sw.js')
 
     if 'mezuatmcjqjxfsvepizv' in html or 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9' in html:
         bad('Kredensial Supabase masih tertanam di index.html')
@@ -296,7 +304,7 @@ def check_server():
         warn('Jalankan Mulai_Server.bat terlebih dahulu, lalu ulangi cek ini')
         return
 
-    for path in ['config.js', 'manifest.json', 'sw.js', 'tms_pwa_icon.png']:
+    for path in ['config.js', 'manifest.json', 'sw.js', 'release.js', 'tms_pwa_icon.png']:
         try:
             r = fetch('/' + path)
             r.read()
