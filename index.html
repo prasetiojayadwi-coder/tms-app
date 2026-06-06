@@ -163,6 +163,37 @@
         .dark .tms-icon-btn:hover { background-color: #3f3f46; color: #fafafa; }
         .tms-icon-btn--danger { color: #dc2626 !important; }
         .tms-icon-btn--danger:hover { background-color: #dc2626 !important; color: #fff !important; border-color: #dc2626 !important; }
+        .tms-filter-pill {
+            padding: 10px 16px; border-radius: 12px; font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; border: 1px solid #e4e4e7;
+            background-color: #f4f4f5; color: #52525b; transition: background-color .15s, color .15s, border-color .15s;
+        }
+        .dark .tms-filter-pill { background-color: #27272a; color: #a1a1aa; border-color: #3f3f46; }
+        .tms-filter-pill--active {
+            background-color: #18181b !important; color: #fafafa !important; border-color: #18181b !important;
+        }
+        .dark .tms-filter-pill--active {
+            background-color: #fafafa !important; color: #18181b !important; border-color: #fafafa !important;
+        }
+        .tms-svc-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+            min-height: 34px; padding: 7px 11px; border-radius: 10px;
+            font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+            white-space: nowrap; cursor: pointer; border: 1px solid #d4d4d8;
+            background-color: #fafafa; color: #3f3f46; transition: background-color .15s, color .15s;
+        }
+        .dark .tms-svc-btn { background-color: #27272a; color: #d4d4d8; border-color: #3f3f46; }
+        .tms-svc-btn--primary {
+            background-color: #18181b !important; color: #fafafa !important; border-color: #18181b !important;
+        }
+        .dark .tms-svc-btn--primary { background-color: #e4e4e7 !important; color: #18181b !important; border-color: #e4e4e7 !important; }
+        .tms-svc-btn:hover, .tms-svc-btn--primary:hover { opacity: 0.9; }
+        .tms-empty-state {
+            padding: 2rem 1rem; text-align: center;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+            color: #71717a;
+        }
+        .dark .tms-empty-state { color: #a1a1aa; }
 
         @media (max-width: 767px) {
             #view-customer-master .cust-touch-btn,
@@ -187,7 +218,9 @@
             .dark .tms-list-loading { color: #a1a1aa; }
             #spareparts-cards-mobile,
             #customers-cards-mobile,
-            #customer-units-cards-mobile { max-height: min(70vh, 640px); -webkit-overflow-scrolling: touch; }
+            #customer-units-cards-mobile,
+            #service-tickets-cards-mobile { max-height: min(70vh, 640px); -webkit-overflow-scrolling: touch; }
+            #view-customer-service .cust-touch-btn { min-height: 44px; }
 
             .app-view.hidden {
                 content-visibility: hidden;
@@ -1019,9 +1052,9 @@
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 min-h-0">
                     <div id="cust-panel-customers" class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[320px] md:min-h-[420px]">
                         <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col gap-3">
-                            <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-building text-blue-500 mr-2"></i> Customer / Hospital Data</h3>
+                                <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-building text-gray-500 dark:text-lux-400 mr-2"></i> Customer / Hospital Data</h3>
                             <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap max-md:gap-2">
-                                <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 min-w-[180px] max-md:w-full text-[12px]" placeholder="Search customer, PIC, city...">
+                                <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 min-w-[180px] max-md:w-full text-[12px]" placeholder="Cari customer, PIC, kota...">
                                 <div class="tms-toolbar tms-toolbar--3 w-full md:w-auto">
                                     <label id="cust-select-all-wrap" class="hidden cust-touch-btn tms-select-all cursor-pointer select-none">
                                         <input type="checkbox" id="select-all-customers-bar" onchange="toggleSelectAllCustomers(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
@@ -1046,7 +1079,7 @@
                         <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col gap-3">
                             <div>
                                 <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-gray-500 dark:text-lux-400 mr-2"></i> Customer Units</h3>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer to view units</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Pilih customer untuk melihat unit</p>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap">
                                 <input type="text" id="search-cust-units" onkeyup="debouncedRenderCustomerUnits()" disabled class="input-field flex-1 min-w-[180px] text-[12px]" placeholder="Smart Search: description, SN, art no, product, lokasi...">
@@ -1098,7 +1131,7 @@
                         </div>
                     </div>
                     <div class="flex gap-2 w-full overflow-x-auto pb-1 pt-3 custom-scrollbar">
-                        <button onclick="setSparepartFilter('all')" id="flt-sp-all" class="sp-filter-btn px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">All</button>
+                        <button onclick="setSparepartFilter('all')" id="flt-sp-all" class="sp-filter-btn px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Semua</button>
                         <button onclick="setSparepartFilter('Avitum')" id="flt-sp-Avitum" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Avitum</button>
                         <button onclick="setSparepartFilter('Hospital Care')" id="flt-sp-HospitalCare" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Hospital Care</button>
                         <button onclick="setSparepartFilter('Aesculap')" id="flt-sp-Aesculap" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Aesculap</button>
@@ -1121,7 +1154,7 @@
             <!-- SPH LOG / REGISTRY -->
             <section id="view-sph-log" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in max-w-7xl mx-auto w-full">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
-                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-violet-600 dark:text-violet-400"><i class="fa-solid fa-file-invoice mr-2"></i> SPH Log</h2>
+                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white max-md:tracking-wide"><i class="fa-solid fa-file-invoice mr-2 text-gray-500 dark:text-lux-400"></i> SPH Log</h2>
                     <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Every issued SPH is registered here. Track which quotations have become PO and which are still pending.</p>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mt-4">
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total SPH</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sph-stat-total">0</p></div>
@@ -1131,7 +1164,7 @@
                     </div>
                     <div class="flex flex-wrap gap-2 mt-4">
                         <input type="text" id="search-sph-log" onkeyup="debouncedRenderSphLog()" class="input-field flex-1 min-w-[200px] text-[12px]" placeholder="Search SPH No., customer, PO number...">
-                        <button onclick="setSphLogFilter('all')" id="flt-sph-all" class="sph-log-filter px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest">All</button>
+                        <button onclick="setSphLogFilter('all')" id="flt-sph-all" class="sph-log-filter px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-xl text-[10px] font-black uppercase tracking-widest">Semua</button>
                         <button onclick="setSphLogFilter('issued')" id="flt-sph-issued" class="sph-log-filter px-4 py-2.5 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-xl text-[10px] font-black uppercase tracking-widest">Pending PO</button>
                         <button onclick="setSphLogFilter('po_received')" id="flt-sph-po_received" class="sph-log-filter px-4 py-2.5 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-xl text-[10px] font-black uppercase tracking-widest">PO Received</button>
                         <button onclick="setSphLogFilter('cancelled')" id="flt-sph-cancelled" class="sph-log-filter px-4 py-2.5 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-xl text-[10px] font-black uppercase tracking-widest">Cancelled</button>
@@ -1152,16 +1185,16 @@
             <!-- PUSAT LAYANAN PELANGGAN (CUSTOMER SERVICE CENTER) -->
             <section id="view-customer-service" class="app-view hidden flex-col gap-6 animate-fade-in max-w-7xl mx-auto w-full">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
-                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-screwdriver-wrench mr-2"></i> Service & Repair Customer</h2>
+                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white max-md:tracking-wide"><i class="fa-solid fa-screwdriver-wrench mr-2 text-gray-500 dark:text-lux-400"></i> Service & Repair Customer</h2>
                     <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Alur perbaikan unit customer: registrasi, analisa, penawaran PO, perbaikan bengkel, dan serah terima (BAST).</p>
                     <div class="tms-toolbar tms-toolbar--2 mt-4">
-                        <button id="btn-register-service" onclick="openServiceModal()" class="hidden tms-btn tms-btn--primary"><i class="fa-solid fa-plus mr-1.5"></i> Daftar Unit</button>
-                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Unit Excel</button>
-                        <button onclick="downloadBatchTemplate('customer-unit')" data-batch-type="customer-unit" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-download mr-1.5"></i> Template Unit</button>
-                        <button onclick="exportServiceTicketsCSV()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
-                        <button id="btn-bulk-bast" onclick="openBulkBastModal()" class="hidden tms-btn tms-btn--outline"><i class="fa-solid fa-layer-group mr-1.5"></i> Gabung BAST</button>
-                        <button id="btn-create-combined-sph" onclick="openSphBuilderModal()" class="hidden tms-btn tms-btn--outline"><i class="fa-solid fa-file-invoice mr-1.5"></i> Combined SPH</button>
-                        <button id="btn-bulk-delete-service" onclick="bulkDeleteServiceTickets()" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
+                        <button id="btn-register-service" onclick="openServiceModal()" class="hidden tms-btn tms-btn--primary cust-touch-btn tms-toolbar--span2"><i class="fa-solid fa-plus mr-1.5"></i> Daftar Unit</button>
+                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Unit Excel</button>
+                        <button onclick="downloadBatchTemplate('customer-unit')" data-batch-type="customer-unit" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-download mr-1.5"></i> Template Unit</button>
+                        <button onclick="exportServiceTicketsCSV()" class="tms-btn tms-btn--outline cust-touch-btn"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
+                        <button id="btn-bulk-bast" onclick="openBulkBastModal()" class="hidden tms-btn tms-btn--outline cust-touch-btn"><i class="fa-solid fa-layer-group mr-1.5"></i> Gabung BAST</button>
+                        <button id="btn-create-combined-sph" onclick="openSphBuilderModal()" class="hidden tms-btn tms-btn--outline cust-touch-btn tms-toolbar--span2"><i class="fa-solid fa-file-invoice mr-1.5"></i> Combined SPH</button>
+                        <button id="btn-bulk-delete-service" onclick="bulkDeleteServiceTickets()" class="hidden tms-btn tms-btn--danger cust-touch-btn"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
                     </div>
                     <p id="combined-sph-hint" class="hidden mt-3 text-[10px] text-violet-600 dark:text-violet-400 font-bold leading-relaxed"></p>
                 </div>
@@ -1173,19 +1206,19 @@
                         <p class="text-2xl font-light text-gray-900 dark:text-white" id="svc-stat-reg">0</p>
                     </div>
                     <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-4 rounded-xl shadow-sm text-center">
-                        <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase tracking-widest mb-1">Analisa & Penawaran</p>
+                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-widest mb-1">Analisa & Penawaran</p>
                         <p class="text-2xl font-light text-gray-900 dark:text-white" id="svc-stat-analysing">0</p>
                     </div>
                     <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-4 rounded-xl shadow-sm text-center">
-                        <p class="text-[10px] text-amber-600 dark:text-amber-500 font-black uppercase tracking-widest mb-1">Menunggu PO</p>
+                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-widest mb-1">Menunggu PO</p>
                         <p class="text-2xl font-light text-gray-900 dark:text-white" id="svc-stat-po">0</p>
                     </div>
                     <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-4 rounded-xl shadow-sm text-center">
-                        <p class="text-[10px] text-purple-600 dark:text-purple-500 font-black uppercase tracking-widest mb-1">In Repair</p>
+                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-widest mb-1">In Repair</p>
                         <p class="text-2xl font-light text-gray-900 dark:text-white" id="svc-stat-repair">0</p>
                     </div>
                     <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 p-4 rounded-xl shadow-sm text-center col-span-2 md:col-span-1">
-                        <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1">Selesai / BAST</p>
+                        <p class="text-[10px] text-gray-500 dark:text-lux-400 font-black uppercase tracking-widest mb-1">Selesai / BAST</p>
                         <p class="text-2xl font-light text-gray-900 dark:text-white" id="svc-stat-done">0</p>
                     </div>
                 </div>
@@ -1193,7 +1226,7 @@
                 <!-- Filters & Search -->
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-xl p-5 flex flex-col md:flex-row gap-4 shadow-sm">
                     <div class="flex-1 min-w-0">
-                        <input type="text" id="search-service" onkeyup="renderServiceTickets()" class="input-field w-full" placeholder="Search: Service No., Customer, Unit, SN, Technician...">
+                        <input type="text" id="search-service" onkeyup="renderServiceTickets()" class="input-field w-full" placeholder="Cari no. service, customer, unit, SN, teknisi...">
                     </div>
                     <div class="w-full md:w-auto">
                         <select id="filter-service-status" onchange="renderServiceTickets()" class="input-field w-full md:max-w-[200px]">
@@ -1211,13 +1244,14 @@
                     </div>
                 </div>
 
-                <!-- Main Table -->
-                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
-                    <div class="overflow-x-auto custom-scrollbar pb-4">
+                <!-- Service tickets list -->
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl flex flex-col">
+                    <div id="service-tickets-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 overflow-y-auto custom-scrollbar"></div>
+                    <div class="hidden md:block overflow-x-auto custom-scrollbar pb-4">
                         <table class="w-full text-left text-sm border-collapse min-w-[1100px]">
                             <thead>
                                 <tr class="text-[10px] text-gray-500 dark:text-lux-300 font-black uppercase tracking-widest border-b border-gray-200 dark:border-lux-700 bg-gray-50 dark:bg-lux-950 whitespace-nowrap">
-                                    <th class="p-5 text-center w-12"><input type="checkbox" id="select-all-service-tickets" onclick="toggleSelectAllServiceTickets(this)" class="w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer"></th>
+                                    <th class="p-5 text-center w-12"><input type="checkbox" id="select-all-service-tickets" onclick="toggleSelectAllServiceTickets(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer"></th>
                                     <th class="p-5">Service No.</th>
                                     <th class="p-5">Customer & Complaint</th>
                                     <th class="p-5">Unit Detail</th>
@@ -6683,6 +6717,12 @@
                 }
                 return b.id - a.id;
             });
+            if (!filtered.length) {
+                const msg = q ? 'Tidak ada special tools yang cocok dengan pencarian.' : 'Belum ada special tools. Tambah atau import dari Excel.';
+                sc.innerHTML = `<tr><td colspan="7" class="tms-empty-state">${msg}</td></tr>`;
+                syncSpvAssetSelectAllState();
+                return;
+            }
             filtered.forEach(t => {
                 const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
                 let ownerHtml = ownerUser ? `${ownerUser.name}` : 'Gudang (Pool)';
@@ -6740,6 +6780,12 @@
                 }
                 return b.id - a.id;
             });
+            if (!filtered.length) {
+                const msg = q ? 'Tidak ada unit backup yang cocok dengan pencarian.' : 'Belum ada unit backup. Tambah atau import dari Excel.';
+                sc.innerHTML = `<tr><td colspan="7" class="tms-empty-state">${msg}</td></tr>`;
+                syncDemoAssetSelectAllState();
+                return;
+            }
             filtered.forEach(t => {
                 const owner = t.ownerId === 0 ? 'Gudang' : (db.users[t.ownerId] ? db.users[t.ownerId].name : 'Tidak Diketahui');
                 const reasonStr = t.reason || "Standby";
@@ -9701,9 +9747,81 @@
             select.innerHTML = options;
         }
 
+        function buildServiceTicketRow(s) {
+            const userMap = db.users || {};
+            const ts = userMap[s.assignedTsId] ? userMap[s.assignedTsId].name : 'Belum Ditunjuk';
+            const date = new Date(s.id).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+            const pri = 'tms-svc-btn tms-svc-btn--primary';
+            const sec = 'tms-svc-btn';
+            let statusBadge = '';
+            let actionBtn = '';
+            let ownerDeleteBtn = '';
+            if (currentUser.role === 'owner') {
+                ownerDeleteBtn = `<button onclick="deleteServiceTicket(${s.id})" class="tms-icon-btn tms-icon-btn--danger" title="Hapus Tiket"><i class="fa-solid fa-trash text-[10px]"></i></button>`;
+            }
+            if (s.status === 'registered') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
+                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
+                    actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'pickup')" class="${pri}"><i class="fa-solid fa-truck-pickup mr-1"></i> Pickup Unit</button>`;
+                }
+            } else if (s.status === 'picked_up') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
+                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
+                    if (s.repairLoc === 'onsite') {
+                        const sphBtn = canIssueSphForTicket(s) ? `<button onclick="openQuotationModal(${s.id})" class="${sec}"><i class="fa-solid fa-file-invoice mr-1"></i> On-Site SPH</button>` : '';
+                        const quickBtn = `<button onclick="openOnsiteRepair(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
+                        actionBtn = `<div class="flex flex-wrap gap-1.5">${sphBtn}${quickBtn}</div>`;
+                    } else {
+                        actionBtn = `<button onclick="openAnalysisModal(${s.id})" class="${pri}"><i class="fa-solid fa-file-waveform mr-1"></i> Analisa Awal</button>`;
+                    }
+                }
+            } else if (s.status === 'initial_analyzed') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 whitespace-nowrap">Kirim ke TSF</span>`;
+                if (currentUser.role === 'tsf') {
+                    actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'receive_tsf')" class="${pri}"><i class="fa-solid fa-warehouse mr-1"></i> Terima di TSF</button>`;
+                }
+            } else if (s.status === 'received_tsf') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20 whitespace-nowrap">Diterima TSF</span>`;
+                if (currentUser.role === 'tsf') {
+                    const quotBtn = `<button onclick="openQuotationModal(${s.id})" class="${sec}"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Damage Quotation</button>`;
+                    const quickBtn = `<button onclick="openTsfQuickRepair(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
+                    actionBtn = `<div class="flex flex-wrap gap-1.5">${quotBtn}${quickBtn}</div>`;
+                }
+            } else if (s.status === 'quoted') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-indigo-50 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">Penawaran Dikirim</span>`;
+                if (currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
+                    actionBtn = `<button onclick="openPoModal(${s.id})" class="${pri}"><i class="fa-solid fa-file-circle-check mr-1"></i> Input PO</button>`;
+                }
+            } else if (s.status === 'po_issued') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20 whitespace-nowrap">Perbaikan (PO)</span>`;
+                if (s.repairLoc === 'onsite' && currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
+                    actionBtn = `<button onclick="openOnsiteRepair(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Repair & BAST</button>`;
+                } else if (currentUser.role === 'tsf' && s.repairLoc !== 'onsite') {
+                    actionBtn = `<button onclick="openServiceRepairModal(${s.id})" class="${pri}"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Selesai Perbaikan</button>`;
+                }
+            } else if (s.status === 'repaired') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-pink-50 text-pink-600 dark:bg-pink-950/20 dark:text-pink-400 border border-pink-200 dark:border-pink-500/20 whitespace-nowrap">Kembali ke Lapangan</span>`;
+                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
+                    actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'receive_field')" class="${pri}"><i class="fa-solid fa-handshake-angle mr-1"></i> Terima di Lapangan</button>`;
+                }
+            } else if (s.status === 'received_field') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-teal-50 text-teal-600 dark:bg-teal-950/20 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20 whitespace-nowrap">Siap Penyerahan</span>`;
+                if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
+                    actionBtn = `<button onclick="openServiceDeliveryModal(${s.id})" class="${pri}"><i class="fa-solid fa-check mr-1"></i> Serahkan & BAST</button>`;
+                }
+            } else if (s.status === 'completed') {
+                statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 whitespace-nowrap">Selesai & BAST</span>`;
+                actionBtn = `<span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wider"><i class="fa-solid fa-check-double mr-1"></i> Alur Selesai</span>`;
+            }
+            const descStr = s.unitName || 'Unit Customer';
+            const prodBadge = s.unitProduct ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${tmsEscHtml(s.unitProduct)}</span>` : '';
+            return { ts, date, statusBadge, actionBtn, ownerDeleteBtn, descStr, prodBadge };
+        }
+
         function renderServiceTickets() {
             loadDB();
             const container = document.getElementById('service-tickets-container');
+            const cardsMobile = document.getElementById('service-tickets-cards-mobile');
             if (!container) return;
             if (typeof syncBatchImportButtons === 'function') syncBatchImportButtons();
 
@@ -9773,6 +9891,7 @@
             document.getElementById('svc-stat-done').innerText = countDone;
 
             container.innerHTML = '';
+            if (cardsMobile) cardsMobile.innerHTML = '';
             
             const filtered = tickets.filter(s => {
                 if (!s) return false;
@@ -9793,119 +9912,88 @@
 
             filtered.sort((a, b) => b.id - a.id);
 
+            const emptyMsg = query || statusFilter !== 'all'
+                ? 'Tidak ada tiket yang cocok dengan filter.'
+                : 'Belum ada tiket perbaikan. Tap Daftar Unit untuk memulai.';
             if (filtered.length === 0) {
-                container.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest bg-white dark:bg-[#18181b]">Tidak ada tiket perbaikan ditemukan</td></tr>`;
+                container.innerHTML = `<tr><td colspan="7" class="tms-empty-state">${emptyMsg}</td></tr>`;
+                if (cardsMobile) cardsMobile.innerHTML = `<p class="tms-empty-state">${emptyMsg}</p>`;
                 return;
             }
 
-            const userMap = db.users || {};
-            container.innerHTML = filtered.map(s => {
-                const ts = userMap[s.assignedTsId] ? userMap[s.assignedTsId].name : 'Belum Ditunjuk';
-                const date = new Date(s.id).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
-                
-                let statusBadge = '';
-                let actionBtn = '';
-                let ownerDeleteBtn = '';
-                if (currentUser.role === 'owner') {
-                    ownerDeleteBtn = `<button onclick="deleteServiceTicket(${s.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Hapus Tiket"><i class="fa-solid fa-trash text-[10px]"></i></button>`;
-                }
-
-                if (s.status === 'registered') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
-                    if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                        actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'pickup')" class="px-3 py-1.5 bg-gold-500 text-white dark:text-black font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-gold-600 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-truck-pickup mr-1"></i> Pickup Unit</button>`;
-                    }
-                } else if (s.status === 'picked_up') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
-                    if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                        if (s.repairLoc === 'onsite') {
-                            const sphBtn = canIssueSphForTicket(s) ? `<button onclick="openQuotationModal(${s.id})" class="px-3 py-1.5 bg-violet-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-violet-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-invoice mr-1"></i> On-Site SPH</button>` : '';
-                            const quickBtn = `<button onclick="openOnsiteRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
-                            actionBtn = `<div class="flex flex-wrap gap-1.5">${sphBtn}${quickBtn}</div>`;
-                        } else {
-                            actionBtn = `<button onclick="openAnalysisModal(${s.id})" class="px-3 py-1.5 bg-blue-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-blue-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-waveform mr-1"></i> Analisa Awal</button>`;
-                        }
-                    }
-                } else if (s.status === 'initial_analyzed') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20 whitespace-nowrap">Kirim ke TSF</span>`;
-                    if (currentUser.role === 'tsf') {
-                        actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'receive_tsf')" class="px-3 py-1.5 bg-amber-500 text-white dark:text-black font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-amber-600 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-warehouse mr-1"></i> Terima di TSF</button>`;
-                    }
-                } else if (s.status === 'received_tsf') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-200 dark:border-purple-500/20 whitespace-nowrap">Diterima TSF</span>`;
-                    if (currentUser.role === 'tsf') {
-                        const quotBtn = `<button onclick="openQuotationModal(${s.id})" class="px-3 py-1.5 bg-purple-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-purple-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Damage Quotation</button>`;
-                        const quickBtn = `<button onclick="openTsfQuickRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Quick Repair</button>`;
-                        actionBtn = `<div class="flex flex-wrap gap-1.5">${quotBtn}${quickBtn}</div>`;
-                    }
-                } else if (s.status === 'quoted') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-indigo-50 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">Penawaran Dikirim</span>`;
-                    if (currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
-                        actionBtn = `<button onclick="openPoModal(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-file-circle-check mr-1"></i> Input PO</button>`;
-                    }
-                } else if (s.status === 'po_issued') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-orange-50 text-orange-600 dark:bg-orange-950/20 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20 whitespace-nowrap">Perbaikan (PO)</span>`;
-                    if (s.repairLoc === 'onsite' && currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                        actionBtn = `<button onclick="openOnsiteRepair(${s.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-emerald-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Repair & BAST</button>`;
-                    } else if (currentUser.role === 'tsf' && s.repairLoc !== 'onsite') {
-                        actionBtn = `<button onclick="openServiceRepairModal(${s.id})" class="px-3 py-1.5 bg-orange-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-orange-550 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Selesai Perbaikan</button>`;
-                    }
-                } else if (s.status === 'repaired') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-pink-50 text-pink-600 dark:bg-pink-950/20 dark:text-pink-400 border border-pink-200 dark:border-pink-500/20 whitespace-nowrap">Kembali ke Lapangan</span>`;
-                    if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                        actionBtn = `<button onclick="actionServiceTicket(${s.id}, 'receive_field')" class="px-3 py-1.5 bg-pink-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-pink-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-handshake-angle mr-1"></i> Terima di Lapangan</button>`;
-                    }
-                } else if (s.status === 'received_field') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-teal-50 text-teal-600 dark:bg-teal-950/20 dark:text-teal-400 border border-teal-200 dark:border-teal-500/20 whitespace-nowrap">Siap Penyerahan</span>`;
-                    if (currentUser.role === 'ts' && currentUser.id === s.assignedTsId) {
-                        actionBtn = `<button onclick="openServiceDeliveryModal(${s.id})" class="px-3 py-1.5 bg-teal-600 text-white font-black rounded-lg text-[9.5px] uppercase tracking-widest hover:bg-teal-500 transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-check mr-1"></i> Serahkan & BAST</button>`;
-                    }
-                } else if (s.status === 'completed') {
-                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 whitespace-nowrap">Selesai & BAST</span>`;
-                    actionBtn = `<span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-extrabold uppercase tracking-wider"><i class="fa-solid fa-check-double mr-1"></i> Alur Selesai</span>`;
-                }
-
-                const descStr = s.unitName || "Unit Customer";
-                
-                const prodBadge = s.unitProduct ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${s.unitProduct}</span>` : '';
-
-                return `
-                    <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
-                        <td class="p-5 text-center"><input type="checkbox" value="${s.id}" class="service-ticket-checkbox w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer"></td>
-                        <td class="p-5 font-mono text-[12px] font-bold text-gold-600 dark:text-gold-500 whitespace-nowrap">
+            const showMobileCards = window.matchMedia('(max-width: 767px)').matches;
+            const tableRows = [];
+            const cardRows = [];
+            filtered.forEach(s => {
+                const row = buildServiceTicketRow(s);
+                const noSvc = tmsEscHtml(s.noService || '-');
+                const custName = tmsEscHtml(s.customerName || '-');
+                const custContact = tmsEscHtml(s.customerContact || '-');
+                const descStr = tmsEscHtml(row.descStr);
+                const unitMeta = tmsEscHtml(`${s.unitMerk || '-'} / ${s.unitTipe || '-'} (${s.unitSn || 'SN-'})`);
+                const tsName = tmsEscHtml(row.ts);
+                const waitLbl = `<span class="text-[10px] text-gray-500 dark:text-lux-500 italic font-bold">Menunggu Giliran</span>`;
+                const actionCell = row.actionBtn || waitLbl;
+                tableRows.push(`<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
+                        <td class="p-5 text-center"><input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
+                        <td class="p-5 font-mono text-[12px] font-bold text-gray-900 dark:text-white whitespace-nowrap">
                             <div class="flex flex-col gap-1.5 items-start">
-                                <span onclick="showServiceDetail(${s.id})" class="cursor-pointer hover:underline font-bold">${s.noService}</span>
-                                <span class="text-[9px] text-gray-400 dark:text-lux-500 font-mono font-bold">${date}</span>
+                                <span onclick="showServiceDetail(${s.id})" class="cursor-pointer hover:underline font-bold">${noSvc}</span>
+                                <span class="text-[9px] text-gray-400 dark:text-lux-500 font-mono font-bold">${row.date}</span>
                             </div>
                         </td>
                         <td class="p-5">
-                            <p class="font-bold text-[13px] text-gray-900 dark:text-white">${s.customerName}</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${s.customerContact}</p>
+                            <p class="font-bold text-[13px] text-gray-900 dark:text-white">${custName}</p>
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${custContact}</p>
                         </td>
                         <td class="p-5">
                             <p class="font-bold text-[12px] text-gray-900 dark:text-white">${descStr}</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-widest font-bold font-mono">${s.unitMerk || '-'} / ${s.unitTipe || '-'} (${s.unitSn || 'SN-'})</p>
-                            ${prodBadge}
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-widest font-bold font-mono">${unitMeta}</p>
+                            ${row.prodBadge}
                         </td>
                         <td class="p-5">
-                            <p class="font-bold text-[12px] text-gray-900 dark:text-white">${ts}</p>
+                            <p class="font-bold text-[12px] text-gray-900 dark:text-white">${tsName}</p>
                         </td>
                         <td class="p-5 whitespace-nowrap">
                             <div class="flex flex-col gap-1.5 items-start">
-                                ${statusBadge}
-                                <span onclick="showServiceDetail(${s.id})" class="text-[9.5px] text-gold-500 hover:text-gold-600 hover:underline cursor-pointer font-bold uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Track Status</span>
-                                ${s.status !== 'registered' ? `<span onclick="openServiceReceiptModal(${s.id})" class="text-[9.5px] text-blue-500 hover:text-blue-600 hover:underline cursor-pointer font-bold uppercase tracking-wider mt-1 block"><i class="fa-solid fa-print mr-1"></i> Tanda Terima</span>` : ''}
+                                ${row.statusBadge}
+                                <span onclick="showServiceDetail(${s.id})" class="text-[9.5px] text-gray-500 hover:text-gray-900 dark:hover:text-white hover:underline cursor-pointer font-bold uppercase tracking-wider"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Track Status</span>
+                                ${s.status !== 'registered' ? `<span onclick="openServiceReceiptModal(${s.id})" class="text-[9.5px] text-gray-500 hover:text-gray-900 dark:hover:text-white hover:underline cursor-pointer font-bold uppercase tracking-wider mt-1 block"><i class="fa-solid fa-print mr-1"></i> Tanda Terima</span>` : ''}
                             </div>
                         </td>
                         <td class="p-5 text-center whitespace-nowrap">
-                            <div class="flex justify-center items-center gap-2">
-                                ${actionBtn ? actionBtn : `<span class="text-[10px] text-gray-500 dark:text-lux-500 italic font-bold">Menunggu Giliran</span>`}
-                                ${ownerDeleteBtn}
+                            <div class="flex justify-center items-center gap-2 flex-wrap">
+                                ${actionCell}
+                                ${row.ownerDeleteBtn}
                             </div>
                         </td>
-                    </tr>
-                `;
-            }).join('');
+                    </tr>`);
+                if (showMobileCards && cardsMobile) {
+                    cardRows.push(`<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
+                        <div class="flex justify-between items-start gap-3">
+                            <input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1">
+                            <div class="min-w-0 flex-1">
+                                <p class="font-mono text-[11px] font-bold text-gray-900 dark:text-white">${noSvc}</p>
+                                <p class="text-[9px] text-gray-400 dark:text-lux-500 mt-0.5">${row.date}</p>
+                                <p class="font-bold text-[14px] text-gray-900 dark:text-white mt-2 leading-snug">${custName}</p>
+                                <p class="text-[11px] text-gray-600 dark:text-lux-400 mt-1">${descStr}</p>
+                                <p class="text-[10px] font-mono text-gray-500 dark:text-lux-500 mt-1">${unitMeta}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1"><i class="fa-solid fa-user-gear mr-1 opacity-60"></i>${tsName}</p>
+                            </div>
+                            <div class="shrink-0">${row.statusBadge}</div>
+                        </div>
+                        <div class="tms-card-actions flex-wrap">
+                            <button onclick="showServiceDetail(${s.id})" class="tms-card-btn"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Track</button>
+                            ${s.status !== 'registered' ? `<button onclick="openServiceReceiptModal(${s.id})" class="tms-card-btn"><i class="fa-solid fa-print mr-1"></i>Tanda Terima</button>` : ''}
+                            ${currentUser.role === 'owner' ? `<button onclick="deleteServiceTicket(${s.id})" class="tms-card-btn tms-card-btn--danger"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>` : ''}
+                        </div>
+                        ${row.actionBtn ? `<div class="flex flex-wrap gap-2 mt-2">${row.actionBtn}</div>` : `<p class="text-[10px] text-gray-400 dark:text-lux-500 italic mt-2 text-center">Menunggu giliran</p>`}
+                    </div>`);
+                }
+            });
+            if (!showMobileCards) container.innerHTML = tableRows.join('');
+            else container.innerHTML = '';
+            if (showMobileCards && cardsMobile) cardsMobile.innerHTML = cardRows.join('');
         }
 
         function generateCustomerCode() {
@@ -10490,6 +10578,14 @@
             if (_batchImportType === 'sparepart') renderSparepartMaster(true);
             if (btn) btn.innerText = 'Import Data';
         }
+
+        let _custMasterResizeTimer = null;
+        window.addEventListener('resize', () => {
+            clearTimeout(_custMasterResizeTimer);
+            _custMasterResizeTimer = setTimeout(() => {
+                if (activeTab === 'customer-master') setCustMasterMobileTab(custMasterMobileTab);
+            }, 150);
+        });
 
         function setCustMasterMobileTab(tab) {
             custMasterMobileTab = tab;
@@ -11565,11 +11661,12 @@
                 return hay.includes(q);
             });
 
-            const emptyMsg = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No customers yet. Tap Add Customer or Import Excel.</p>`;
+            const emptyMsg = `<p class="tms-empty-state">Belum ada customer. Tap Add atau Import Excel.</p>`;
             if (!filtered.length) {
                 if (delCustBtn) delCustBtn.classList.add('hidden');
                 if (selectAllCustWrap) selectAllCustWrap.classList.add('hidden');
-                container.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">No customers yet. Click Add Customer or Import Excel.</td></tr>`;
+                const noCustMsg = q ? 'Tidak ada customer yang cocok dengan pencarian.' : 'Belum ada customer. Klik Add atau Import Excel.';
+                container.innerHTML = `<tr><td colspan="6" class="tms-empty-state">${noCustMsg}</td></tr>`;
                 if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
             } else {
                 if (delCustBtn) delCustBtn.classList.remove('hidden');
@@ -11602,7 +11699,7 @@
                         <td class="p-4 text-[12px] font-bold text-gray-700 dark:text-lux-300">${pic}</td>
                         <td class="p-4 text-[11px] font-mono text-gray-500 dark:text-lux-400">${contact}</td>
                         <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black">${unitCount}</span></td>
-                        <td class="p-4 text-right" onclick="event.stopPropagation()"><button onclick="openCustomerModal(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 hover:bg-blue-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button></td>
+                        <td class="p-4 text-right" onclick="event.stopPropagation()"><button onclick="openCustomerModal(${c.id})" class="tms-icon-btn" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button></td>
                     </tr>`);
                 }
                 if (showMobileCards && cardsMobile) {
@@ -11656,7 +11753,7 @@
             resetCustMasterSelectAll('units');
 
             if (!selectedCustomerId) {
-                if (subtitle) subtitle.innerText = 'Select a customer to view units';
+                if (subtitle) subtitle.innerText = 'Pilih customer untuk melihat unit';
                 if (addBtn) addBtn.disabled = true;
                 if (searchEl) { searchEl.disabled = true; searchEl.value = ''; }
                 if (delUnitsBtn) delUnitsBtn.classList.add('hidden');
@@ -11682,7 +11779,7 @@
             const units = unitQ ? allUnits.filter(u => matchesCustomerUnitSearch(u, unitQ)) : allUnits;
 
             if (subtitle) {
-                let sub = `Units for: ${cust.name}`;
+                let sub = `Unit untuk: ${cust.name}`;
                 if (unitQ) sub += ` — ${units.length} dari ${allUnits.length} cocok`;
                 else if (allUnits.length) sub += ` — ${allUnits.length} unit`;
                 subtitle.innerText = sub;
@@ -11736,8 +11833,8 @@
                         <td class="p-4 text-[11px] text-gray-600 dark:text-lux-400">${location}</td>
                         <td class="p-4">${statusBadge}</td>
                         <td class="p-4 text-right"><div class="flex justify-end gap-2">
-                            <button onclick="openServiceModalForUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 hover:bg-gold-500 hover:text-white transition flex items-center justify-center" title="Register Service"><i class="fa-solid fa-screwdriver-wrench text-[10px]"></i></button>
-                            <button onclick="openCustomerUnitModal(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                            <button onclick="openServiceModalForUnit(${u.id})" class="tms-icon-btn" title="Register Service"><i class="fa-solid fa-screwdriver-wrench text-[10px]"></i></button>
+                            <button onclick="openCustomerUnitModal(${u.id})" class="tms-icon-btn" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
                         </div></td></tr>`);
                 }
                 if (cardsMobile) {

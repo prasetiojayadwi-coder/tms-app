@@ -272,6 +272,15 @@ def check_html_integrity():
         ok('HP ringan + sync realtime: profile mobile, poll & update lite')
     else:
         bad('HP ringan + sync realtime tidak lengkap')
+    if ('buildServiceTicketRow' in js and 'service-tickets-cards-mobile' in html
+            and 'tms-svc-btn' in html and 'tms-empty-state' in html):
+        ok('Service & Repair: kartu mobile HP + tombol alur seragam')
+    else:
+        bad('Service & Repair: UX mobile tidak lengkap')
+    if ('_custMasterResizeTimer' in js and 'tms-icon-btn' in html):
+        ok('UI profesional: resize tab customer + icon-btn konsisten')
+    else:
+        bad('UI profesional: perbaikan konsistensi tidak lengkap')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:
