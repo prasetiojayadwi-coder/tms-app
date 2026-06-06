@@ -246,6 +246,11 @@ def check_html_integrity():
         ok('Performa HP: Sparepart Master render batch + pagination (anti-freeze)')
     else:
         bad('Performa HP: optimasi render Sparepart Master tidak lengkap')
+    if ('search-cust-units' in html and 'debouncedRenderCustomerUnits' in js
+            and 'matchesCustomerUnitSearch' in js):
+        ok('Customer Units: smart search description, SN, art no, product, lokasi')
+    else:
+        bad('Customer Units: smart search tidak lengkap')
     if ('deleteSelectedSpareparts' in js and 'toggleSelectAllSpareparts' in js
             and 'sparepart-checkbox' in js and 'btn-delete-spareparts' in html
             and 'select-all-spareparts-bar' in html):

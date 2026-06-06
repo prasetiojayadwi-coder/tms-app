@@ -1043,16 +1043,19 @@
                     <div id="cust-panel-units" class="max-md:hidden bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[320px] md:min-h-[420px]">
                         <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col gap-3">
                             <div>
-                                <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Customer Units</h3>
+                                <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-gray-500 dark:text-lux-400 mr-2"></i> Customer Units</h3>
                                 <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer to view units</p>
                             </div>
-                            <div class="tms-toolbar tms-toolbar--3 w-full md:w-auto">
+                            <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap">
+                                <input type="text" id="search-cust-units" onkeyup="debouncedRenderCustomerUnits()" disabled class="input-field flex-1 min-w-[180px] text-[12px]" placeholder="Smart Search: description, SN, art no, product, lokasi...">
+                            <div class="tms-toolbar tms-toolbar--3 w-full sm:w-auto">
                                 <label id="cust-units-select-all-wrap" class="hidden cust-touch-btn tms-select-all cursor-pointer select-none">
                                     <input type="checkbox" id="select-all-cust-units-bar" onchange="toggleSelectAllCustomerUnits(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
                                 </label>
                                 <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="tms-btn tms-btn--primary cust-touch-btn disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-plus mr-1"></i> Add</button>
                                 <button id="btn-delete-cust-units" onclick="deleteSelectedCustomerUnits()" class="hidden tms-btn tms-btn--danger cust-touch-btn"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
+                            </div>
                             </div>
                         </div>
                         <div id="customer-units-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
@@ -4778,7 +4781,7 @@
             } 
         });
 
-        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sparepartRenderLimit = 0; let _sparepartRenderGen = 0; const SPAREPART_PAGE_SIZE = { mobile: 60, desktop: 200 }; let _sphDetailActiveId = null; let _sphArtSuggestTimer = null; let _sphArtSuggestActive = null; let _sphCustPickData = null;
+        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _custUnitSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sparepartRenderLimit = 0; let _sparepartRenderGen = 0; const SPAREPART_PAGE_SIZE = { mobile: 60, desktop: 200 }; let _sphDetailActiveId = null; let _sphArtSuggestTimer = null; let _sphArtSuggestActive = null; let _sphCustPickData = null;
         const TMS_SPAREPART_GROUPS = ['Avitum', 'Hospital Care', 'Aesculap', 'General'];
         const TMS_SPAREPART_STATUSES = ['active', 'discontinued', 'obsolete'];
         let knownRequestIds = null;
@@ -11486,6 +11489,17 @@
             _custMasterSearchTimer = setTimeout(renderCustomerMaster, 200);
         }
 
+        function debouncedRenderCustomerUnits() {
+            clearTimeout(_custUnitSearchTimer);
+            _custUnitSearchTimer = setTimeout(renderCustomerUnitsPanel, 200);
+        }
+
+        function matchesCustomerUnitSearch(unit, query) {
+            if (!query) return true;
+            const hay = `${unit.unitName || ''} ${unit.unitSn || ''} ${unit.artNo || ''} ${unit.product || ''} ${unit.location || ''} ${unit.status || ''} ${unit.notes || ''}`.toLowerCase();
+            return hay.includes(query);
+        }
+
         function invalidateServiceHistoryIndex() {
             _svcHistoryIndex = null;
         }
@@ -11628,11 +11642,14 @@
 
             const delUnitsBtn = document.getElementById('btn-delete-cust-units');
             const selectAllUnitsWrap = document.getElementById('cust-units-select-all-wrap');
+            const searchEl = document.getElementById('search-cust-units');
+            const unitQ = (searchEl?.value || '').toLowerCase().trim();
             resetCustMasterSelectAll('units');
 
             if (!selectedCustomerId) {
                 if (subtitle) subtitle.innerText = 'Select a customer to view units';
                 if (addBtn) addBtn.disabled = true;
+                if (searchEl) { searchEl.disabled = true; searchEl.value = ''; }
                 if (delUnitsBtn) delUnitsBtn.classList.add('hidden');
                 if (selectAllUnitsWrap) selectAllUnitsWrap.classList.add('hidden');
                 const empty = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Please select a customer first.</td></tr>`;
@@ -11648,20 +11665,36 @@
                 return;
             }
 
-            if (subtitle) subtitle.innerText = `Units for: ${cust.name}`;
+            if (searchEl) searchEl.disabled = false;
             if (addBtn) addBtn.disabled = false;
 
-            const units = (db.customerUnits || []).filter(u => u.customerId === selectedCustomerId)
+            const allUnits = (db.customerUnits || []).filter(u => u.customerId === selectedCustomerId)
                 .sort((a, b) => (a.unitName || '').localeCompare(b.unitName || ''));
+            const units = unitQ ? allUnits.filter(u => matchesCustomerUnitSearch(u, unitQ)) : allUnits;
+
+            if (subtitle) {
+                let sub = `Units for: ${cust.name}`;
+                if (unitQ) sub += ` — ${units.length} dari ${allUnits.length} cocok`;
+                else if (allUnits.length) sub += ` — ${allUnits.length} unit`;
+                subtitle.innerText = sub;
+            }
 
             container.innerHTML = '';
             if (cardsMobile) cardsMobile.innerHTML = '';
-            if (!units.length) {
+            if (!allUnits.length) {
                 if (delUnitsBtn) delUnitsBtn.classList.add('hidden');
                 if (selectAllUnitsWrap) selectAllUnitsWrap.classList.add('hidden');
                 const empty = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">No units for this customer yet.</td></tr>`;
                 container.innerHTML = empty;
                 if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No units yet. Tap Add Unit or Import Units.</p>`;
+                return;
+            }
+            if (!units.length) {
+                if (delUnitsBtn) delUnitsBtn.classList.add('hidden');
+                if (selectAllUnitsWrap) selectAllUnitsWrap.classList.add('hidden');
+                const noMatch = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Tidak ada unit yang cocok dengan pencarian.</td></tr>`;
+                container.innerHTML = noMatch;
+                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">Tidak ada unit yang cocok. Coba kata kunci lain.</p>`;
                 return;
             }
 
