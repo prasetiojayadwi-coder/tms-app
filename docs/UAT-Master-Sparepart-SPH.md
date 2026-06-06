@@ -4,8 +4,8 @@
 |-------|-------|
 | **Aplikasi** | TMS — Tool Management System |
 | **Modul** | Master Sparepart, SPH Builder, SPH Log, Service & Repair |
-| **Versi UAT** | v6.7.1 |
-| **PRD Ref** | [PRD-Master-Sparepart-SPH.md](./PRD-Master-Sparepart-SPH.md) v1.4.0 |
+| **Versi UAT** | v6.7.2 |
+| **PRD Ref** | [PRD-Master-Sparepart-SPH.md](./PRD-Master-Sparepart-SPH.md) v1.4.1 |
 | **Environment** | ☐ Staging · ☐ Production (GitHub Pages) |
 | **URL** | https://prasetiojayadwi-coder.github.io/tms-app/ |
 | **Tanggal UAT** | _______________ |
@@ -848,8 +848,8 @@
 |---------|------|
 | PRD | `docs/PRD-Master-Sparepart-SPH.md` |
 | TODO per fase | `docs/TODO-Master-Sparepart-SPH-Phased.md` |
-| Release | `release.js` (v6.7.1) |
+| Release | `release.js` (v6.7.2) |
 
 ---
 
-*UAT Pack v1.2 — 2026-06-06 — 58 skenario, 100% AC-01–42 covered, T-01–32 covered*
+*UAT Pack v1.2.1 — 2026-06-06 — 58 skenario, 100% AC-01–42 covered, release ref v6.7.2*

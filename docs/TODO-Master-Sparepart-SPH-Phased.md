@@ -2,7 +2,7 @@
 
 
 
-> Berdasarkan [PRD-Master-Sparepart-SPH.md](./PRD-Master-Sparepart-SPH.md) v1.4.0  
+> Berdasarkan [PRD-Master-Sparepart-SPH.md](./PRD-Master-Sparepart-SPH.md) v1.4.1  
 
 > Legenda: `[x]` selesai · `[ ]` belum · `[~]` sebagian
 
@@ -563,7 +563,7 @@
 
 - [x] Bump `release.js` — `version` + `build` + changelog
 
-- [x] Bump `sw.js` — `CACHE_NAME` match `build` (v66)
+- [x] Bump `sw.js` — `CACHE_NAME` match `build` (v67)
 
 - [x] Update banner / `TMS_RELEASE` di `index.html`
 
@@ -891,6 +891,18 @@
 
 
 
+### Post-deploy Verification (v6.7.2)
+
+- [x] Live `release.js` → version `6.7.2`, build `67`
+
+- [x] Live `sw.js` → `tms-cache-v67`
+
+- [x] `syncLoginFooterVersion()` ada di kode + `login-footer-version` di HTML
+
+- [ ] UAT manual UAT-072–080 di browser live (menunggu tester)
+
+
+
 ---
 
 
@@ -1063,5 +1075,5 @@ Jalankan sebelum bump versi / deploy — **semua T-01 s/d T-32**:
 
 
 
-*Updated: 2026-06-06 — v1.5 TODO: Phase 7.1 complete — footer sync v6.7.2 build 67*
+*Updated: 2026-06-06 — v1.5.1 TODO: doc sync PRD v1.4.1, UAT v6.7.2, cek_sistem footer check*
 

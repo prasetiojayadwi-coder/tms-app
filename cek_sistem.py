@@ -150,7 +150,7 @@ def check_html_integrity():
         'renderSphLog', 'showSphDetail', 'exportSphPdf', 'cancelSphDocument', 'openSphBuilderModal',
         'confirmSphCustomerPick', 'getCombinedSphCustomerGroups', 'openTsfQuickRepair',
         'configureQuotationModalForTicket', 'syncSphPoFromServiceTicket', 'canIssueSphForTicket',
-        'canCancelSphDocument', 'buildCompressedDocPreviewHtml',
+        'canCancelSphDocument', 'buildCompressedDocPreviewHtml', 'syncLoginFooterVersion',
     ):
         if f'function {fn}' in js:
             ok(f'Modul SPH: {fn} ada')
@@ -161,6 +161,11 @@ def check_html_integrity():
         ok('Modul SPH: filter + stat Cancelled ada')
     else:
         bad('Modul SPH: filter/stat Cancelled hilang')
+
+    if 'id="login-footer-version"' in html and 'syncLoginFooterVersion()' in js:
+        ok('Footer login: versi dinamis dari TMS_RELEASE')
+    else:
+        bad('Footer login: syncLoginFooterVersion atau login-footer-version hilang')
 
     if 'function showSphDetail' in js and 'alert(`SPH' not in js:
         ok('Modul SPH: showSphDetail pakai modal (bukan alert)')
