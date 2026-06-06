@@ -213,8 +213,8 @@ async def run_a(page):
         const beforeCust = (db.customers || []).length;
         const rows = [{
             'Customer Code': '', 'Customer Name': 'RS UAT Import Auto',
-            'Art Number': '710200C', 'Product': 'AVITUM', 'Unit Name': 'Dialog UAT',
-            'Serial Number': 'SN-UAT-CU-001', 'Merk': '', 'Type': '', 'Location': 'HD', 'Status': '', 'Notes': ''
+            'Art Number': '710200C', 'Product': 'AVITUM', 'Description': 'Dialog UAT',
+            'Serial Number': 'SN-UAT-CU-001', 'Location': 'HD', 'Status': '', 'Notes': ''
         }];
         const r1 = importCustomerUnitsBatch(rows);
         const r2 = importCustomerUnitsBatch(rows);
@@ -228,6 +228,35 @@ async def run_a(page):
         };
     }''')
     record('UAT-082', 'pass' if cu_imp.get('added1') and cu_imp.get('customersCreated') and cu_imp.get('product') and cu_imp.get('updated2') and cu_imp.get('noDupCust') else 'fail', str(cu_imp))
+
+    # UAT-083 — customer unit bulk delete + legacy Unit Name import
+    cu_del = await js(page, '''() => {
+        loadDB();
+        const cust = { id: 990083, code: 'CU-DEL', name: 'RS UAT Bulk Del', picName: 'PIC', contact: '0', status: 'active', updatedAt: new Date().toISOString() };
+        db.customers = (db.customers || []).filter(c => c.id !== cust.id);
+        db.customers.push(cust);
+        selectedCustomerId = cust.id;
+        db.customerUnits = (db.customerUnits || []).filter(u => u.customerId !== cust.id);
+        db.customerUnits.push(
+            { id: 9900831, customerId: cust.id, artNo: 'A1', product: 'Avitum', unitName: 'Unit A', unitSn: 'SN-A', location: 'HD', status: 'active', updatedAt: new Date().toISOString() },
+            { id: 9900832, customerId: cust.id, artNo: 'A2', product: 'Avitum', unitName: 'Unit B', unitSn: 'SN-B', location: 'HD', status: 'active', updatedAt: new Date().toISOString() }
+        );
+        const legacy = importCustomerUnitsBatch([{
+            'Customer Code': '', 'Customer Name': 'RS UAT Bulk Del',
+            'Art Number': 'A3', 'Product': 'AVITUM', 'Unit Name': 'Legacy Name',
+            'Serial Number': 'SN-C', 'Location': 'ICU', 'Status': '', 'Notes': ''
+        }]);
+        const r1 = removeCustomerUnitsByIds([9900831], { skipConfirm: true });
+        const left = (db.customerUnits || []).filter(u => u.customerId === cust.id);
+        const legacyUnit = left.find(u => u.unitSn === 'SN-C');
+        return {
+            legacyAdded: legacy.added === 1,
+            deleted1: r1.deleted === 1,
+            left2: left.length === 2,
+            legacyDesc: legacyUnit && legacyUnit.unitName === 'Legacy Name'
+        };
+    }''')
+    record('UAT-083', 'pass' if cu_del.get('legacyAdded') and cu_del.get('deleted1') and cu_del.get('left2') and cu_del.get('legacyDesc') else 'fail', str(cu_del))
 
 
 # --- Section B: SPH Builder ---

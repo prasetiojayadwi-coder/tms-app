@@ -46,8 +46,8 @@ BATCH_TEMPLATE_COLUMNS = {
         'Customer Name', 'PIC', 'Phone', 'Email', 'City', 'Address', 'Notes',
     ],
     'TMS_Template_Customer_Units.xlsx': [
-        'Customer Code', 'Customer Name', 'Art Number', 'Product', 'Unit Name',
-        'Serial Number', 'Merk', 'Type', 'Location', 'Status', 'Notes',
+        'Customer Code', 'Customer Name', 'Art Number', 'Product', 'Description',
+        'Serial Number', 'Location', 'Status', 'Notes',
     ],
     'TMS_Template_Special_Tools.xlsx': [
         'Inventory No', 'Art Number', 'Description', 'Category', 'Serial Number',
@@ -224,6 +224,10 @@ def check_html_integrity():
         ok('Service & Repair: importCustomerUnitsBatch + auto customer + upsert unit')
     else:
         bad('Service & Repair: importCustomerUnitsBatch tidak lengkap')
+    if "'Description'" in js and 'bulkDeleteCustomerUnits' in js and 'deleteAllCustomerUnits' in js:
+        ok('Customer Master: Description + hapus terpilih/semua unit')
+    else:
+        bad('Customer Master: bulk delete unit tidak lengkap')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:

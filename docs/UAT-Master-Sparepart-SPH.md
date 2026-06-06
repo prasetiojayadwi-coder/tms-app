@@ -231,7 +231,7 @@
 | UAT-024 | AC-22 | P2 | SPV | ☑ Pass ☐ Fail |
 | UAT-025 | AC-33, T-25 | P3 | SPV | ☑ Pass ☐ Fail |
 | UAT-026 | — | P2 | SPV | ☑ Pass ☐ Fail |
-| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ N/A |
+| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ N/A |
 
 ### UAT-020 — SPH muncul di SPH Log (Pending PO)
 
@@ -740,7 +740,7 @@
 
 | ID | AC | P | Hasil |
 |----|----|---|-------|
-| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ **PARTIAL** (local sync OK) |
+| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ **PARTIAL** (local sync OK) |
 | UAT-071 | BR-18 | P3 | TS | ☑ Pass ☐ Fail |
 
 ### UAT-070 — SPH & sparepart sync antar perangkat
@@ -852,7 +852,7 @@
 | G. Permission | 5 | 5 | 0 | 0 |
 | H. Phase 5 & 6 | 9 | 9 | 0 | 0 |
 | I. Cloud Sync & Media | 2 | 1 | 0 | 0 (UAT-070 Partial) |
-| **TOTAL** | **58** | 58 | 0 | 2 |
+| **TOTAL** | **58** | 59 | 0 | 2 |
 
 ### Kriteria Kelulusan UAT
 
@@ -897,4 +897,4 @@
 
 ---
 
-*UAT Pack v1.3 — 2026-06-06 — automated run: 58 Pass, 0 Fail, 2 N/A*
+*UAT Pack v1.3 — 2026-06-06 — automated run: 59 Pass, 0 Fail, 2 N/A*

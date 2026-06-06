@@ -903,13 +903,17 @@
                                 <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Customer Units</h3>
                                 <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer to view units</p>
                             </div>
-                            <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="cust-touch-btn w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add Unit</button>
+                            <div class="flex flex-wrap gap-2">
+                                <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="cust-touch-btn flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add Unit</button>
+                                <button id="btn-bulk-delete-cust-units" onclick="bulkDeleteCustomerUnits()" class="hidden cust-touch-btn flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash mr-1"></i> Hapus Terpilih</button>
+                                <button id="btn-delete-all-cust-units" onclick="deleteAllCustomerUnits()" class="hidden cust-touch-btn flex-1 sm:flex-none bg-red-700 hover:bg-red-800 text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash-can mr-1"></i> Hapus Semua</button>
+                            </div>
                         </div>
                         <div id="customer-units-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
                         <div class="hidden md:block overflow-x-auto flex-1">
                             <table class="w-full text-left text-[12px]">
                                 <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400 sticky top-0">
-                                    <tr><th class="p-4">Unit / SN</th><th class="p-4">Product</th><th class="p-4">Brand / Type</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th></tr>
+                                    <tr><th class="p-4 text-center w-10"><input type="checkbox" id="select-all-cust-units" onclick="toggleSelectAllCustomerUnits(this)" class="w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer" title="Pilih semua"></th><th class="p-4">Description / SN</th><th class="p-4">Product</th><th class="p-4">Location</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th></tr>
                                 </thead>
                                 <tbody id="customer-units-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
                             </table>
@@ -1813,10 +1817,8 @@
                             <option value="Avitum">Avitum</option><option value="Hospital Care">Hospital Care</option><option value="Aesculap">Aesculap</option>
                         </select>
                     </div>
-                    <div class="md:col-span-2"><label class="input-label">Unit Name / Description <span class="text-gold-500">*</span></label><input type="text" id="cust-unit-name" required class="input-field"></div>
+                    <div class="md:col-span-2"><label class="input-label">Description <span class="text-gold-500">*</span></label><input type="text" id="cust-unit-name" required class="input-field" placeholder="Nama / deskripsi unit"></div>
                     <div><label class="input-label">Serial Number</label><input type="text" id="cust-unit-sn" class="input-field font-mono uppercase" oninput="validateCustomerUnitForm()"></div>
-                    <div><label class="input-label">Merk</label><input type="text" id="cust-unit-merk" class="input-field"></div>
-                    <div><label class="input-label">Type / Model</label><input type="text" id="cust-unit-tipe" class="input-field"></div>
                     <div><label class="input-label">Unit Location</label><input type="text" id="cust-unit-location" class="input-field" placeholder="ICU, Ruang Operasi, dll"></div>
                     <div><label class="input-label">Status</label>
                         <select id="cust-unit-status" class="input-field">
@@ -9731,9 +9733,9 @@
             },
             'customer-unit': {
                 title: 'Import Customer Units',
-                desc: 'Upload unit customer (.xlsx). Customer Code boleh kosong — customer dibuat/ di-update otomatis dari Customer Name (tanpa duplikat). Unit duplikat (Art No/SN sama) di-update, bukan ditambah lagi. Wajib: Customer Name + Unit Name.',
-                columns: ['Customer Code', 'Customer Name', 'Art Number', 'Product', 'Unit Name', 'Serial Number', 'Merk', 'Type', 'Location', 'Status', 'Notes'],
-                required: ['Customer Name', 'Unit Name'],
+                desc: 'Upload unit customer (.xlsx). Customer Code boleh kosong — customer dibuat/di-update otomatis dari Customer Name (tanpa duplikat). Unit duplikat (Art No/SN sama) di-update, bukan ditambah lagi. Wajib: Customer Name + Description.',
+                columns: ['Customer Code', 'Customer Name', 'Art Number', 'Product', 'Description', 'Serial Number', 'Location', 'Status', 'Notes'],
+                required: ['Customer Name', 'Description'],
                 filename: 'TMS_Template_Customer_Units.xlsx'
             },
             tool: {
@@ -9767,7 +9769,7 @@
             'customer code': 'Customer Code', 'kode customer': 'Customer Code', 'kode': 'Customer Code',
             'art number': 'Art Number', 'art no': 'Art Number', 'no art': 'Art Number',
             'product': 'Product', 'kategori produk': 'Product', 'produk': 'Product',
-            'unit name': 'Unit Name', 'nama unit': 'Unit Name', 'deskripsi unit': 'Unit Name',
+            'unit name': 'Description', 'nama unit': 'Description', 'deskripsi unit': 'Description',
             'serial number': 'Serial Number', 'sn': 'Serial Number', 'no seri': 'Serial Number',
             'merk': 'Merk', 'brand': 'Merk', 'type': 'Type', 'tipe': 'Type', 'model': 'Type',
             'location': 'Location', 'lokasi': 'Location', 'status': 'Status',
@@ -10007,6 +10009,10 @@
             return { added, skipped, errors };
         }
 
+        function getImportCustomerUnitDescription(row) {
+            return (row['Description'] || row['Unit Name'] || '').trim();
+        }
+
         function importCustomerUnitsBatch(rows) {
             let added = 0, updated = 0, skipped = 0, customersCreated = 0;
             const errors = [];
@@ -10015,8 +10021,8 @@
             const custCache = new Map();
 
             rows.forEach((row, idx) => {
-                const unitName = (row['Unit Name'] || '').trim();
-                if (!unitName) { skipped++; errors.push(`Row ${idx + 1}: Unit Name wajib`); return; }
+                const unitName = getImportCustomerUnitDescription(row);
+                if (!unitName) { skipped++; errors.push(`Row ${idx + 1}: Description wajib`); return; }
 
                 let custRes = upsertCustomerForUnitImport(row, custCache);
                 if (!custRes.customer && selectedCustomerId) {
@@ -10044,13 +10050,15 @@
                 const now = new Date().toISOString();
                 const payload = {
                     artNo, product, unitName,
-                    unitSn, unitMerk: (row['Merk'] || '').trim(), unitTipe: (row['Type'] || '').trim(),
+                    unitSn,
                     location: (row['Location'] || '').trim(), status: mapImportUnitStatus(row['Status']),
                     notes: (row['Notes'] || '').trim(), updatedAt: now
                 };
 
                 if (existing) {
                     Object.assign(existing, payload, { customerId: custRes.customer.id });
+                    delete existing.unitMerk;
+                    delete existing.unitTipe;
                     updated++;
                 } else {
                     const conflicts = findCustomerUnitConflicts({ artNo, unitSn }, null, custRes.customer.id);
@@ -11124,10 +11132,17 @@
             const addBtn = document.getElementById('btn-add-cust-unit');
             if (!container) return;
 
+            const bulkDelBtn = document.getElementById('btn-bulk-delete-cust-units');
+            const delAllBtn = document.getElementById('btn-delete-all-cust-units');
+            const selectAllCb = document.getElementById('select-all-cust-units');
+            if (selectAllCb) selectAllCb.checked = false;
+
             if (!selectedCustomerId) {
                 if (subtitle) subtitle.innerText = 'Select a customer to view units';
                 if (addBtn) addBtn.disabled = true;
-                const empty = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Please select a customer first.</td></tr>`;
+                if (bulkDelBtn) bulkDelBtn.classList.add('hidden');
+                if (delAllBtn) delAllBtn.classList.add('hidden');
+                const empty = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Please select a customer first.</td></tr>`;
                 container.innerHTML = empty;
                 if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">Select a customer from the Customers tab to view units.</p>`;
                 return;
@@ -11149,11 +11164,16 @@
             container.innerHTML = '';
             if (cardsMobile) cardsMobile.innerHTML = '';
             if (!units.length) {
-                const empty = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">No units for this customer yet.</td></tr>`;
+                if (bulkDelBtn) bulkDelBtn.classList.add('hidden');
+                if (delAllBtn) delAllBtn.classList.add('hidden');
+                const empty = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">No units for this customer yet.</td></tr>`;
                 container.innerHTML = empty;
                 if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No units yet. Tap Add Unit or Import Units.</p>`;
                 return;
             }
+
+            if (bulkDelBtn) bulkDelBtn.classList.remove('hidden');
+            if (delAllBtn) delAllBtn.classList.remove('hidden');
 
             if (!_svcHistoryIndex) buildServiceHistoryIndex();
             units.forEach(u => {
@@ -11161,13 +11181,14 @@
                 const svcBadge = svcCount ? `<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/30 text-[8px] font-black text-amber-700 dark:text-amber-400" title="Service history">${svcCount}x svc</span>` : '';
                 container.innerHTML += `
                     <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
+                        <td class="p-4 text-center"><input type="checkbox" value="${u.id}" class="cust-unit-checkbox w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer"></td>
                         <td class="p-4">
                             <p class="font-bold text-[13px] text-gray-900 dark:text-white">${u.unitName || '-'}${svcBadge}</p>
                             <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">${u.unitSn || '-'}</p>
                             ${u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500 mt-0.5">${u.artNo}</p>` : ''}
                         </td>
                         <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${u.product || '-'}</span></td>
-                        <td class="p-4 text-[11px] text-gray-600 dark:text-lux-400">${u.unitMerk || '-'} / ${u.unitTipe || '-'}</td>
+                        <td class="p-4 text-[11px] text-gray-600 dark:text-lux-400">${u.location || '-'}</td>
                         <td class="p-4">${custUnitStatusBadge(u.status || 'active')}</td>
                         <td class="p-4 text-right">
                             <div class="flex justify-end gap-2">
@@ -11181,11 +11202,12 @@
                     cardsMobile.innerHTML += `
                         <div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
                             <div class="flex justify-between items-start gap-2">
+                                <input type="checkbox" value="${u.id}" class="cust-unit-checkbox w-5 h-5 rounded border-gray-300 accent-gold-500 cursor-pointer shrink-0 mt-1">
                                 <div class="min-w-0 flex-1">
                                     <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug">${u.unitName || '-'}${svcBadge}</p>
                                     <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">SN: ${u.unitSn || '-'}</p>
                                     ${u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500">Art: ${u.artNo}</p>` : ''}
-                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">${u.unitMerk || '-'} / ${u.unitTipe || '-'}</p>
+                                    ${u.location ? `<p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1"><i class="fa-solid fa-location-dot mr-1 opacity-60"></i>${u.location}</p>` : ''}
                                 </div>
                                 <div class="shrink-0 text-right">
                                     <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${u.product || '-'}</span>
@@ -11339,8 +11361,6 @@
                 document.getElementById('cust-unit-product').value = u.product || 'Avitum';
                 document.getElementById('cust-unit-name').value = u.unitName || '';
                 document.getElementById('cust-unit-sn').value = u.unitSn || '';
-                document.getElementById('cust-unit-merk').value = u.unitMerk || '';
-                document.getElementById('cust-unit-tipe').value = u.unitTipe || '';
                 document.getElementById('cust-unit-location').value = u.location || '';
                 document.getElementById('cust-unit-status').value = u.status || 'active';
                 document.getElementById('cust-unit-notes').value = u.notes || '';
@@ -11350,8 +11370,6 @@
                 document.getElementById('cust-unit-product').value = 'Avitum';
                 document.getElementById('cust-unit-name').value = '';
                 document.getElementById('cust-unit-sn').value = '';
-                document.getElementById('cust-unit-merk').value = '';
-                document.getElementById('cust-unit-tipe').value = '';
                 document.getElementById('cust-unit-location').value = '';
                 document.getElementById('cust-unit-status').value = 'active';
                 document.getElementById('cust-unit-notes').value = '';
@@ -11400,8 +11418,6 @@
                 product: document.getElementById('cust-unit-product').value,
                 unitName: document.getElementById('cust-unit-name').value.trim(),
                 unitSn: document.getElementById('cust-unit-sn').value.trim(),
-                unitMerk: document.getElementById('cust-unit-merk').value.trim(),
-                unitTipe: document.getElementById('cust-unit-tipe').value.trim(),
                 location: document.getElementById('cust-unit-location').value.trim(),
                 status: document.getElementById('cust-unit-status').value || 'active',
                 notes: document.getElementById('cust-unit-notes').value.trim(),
@@ -11411,7 +11427,11 @@
             db.customerUnits = db.customerUnits || [];
             if (editId) {
                 const idx = db.customerUnits.findIndex(u => u.id === editId);
-                if (idx >= 0) db.customerUnits[idx] = record;
+                if (idx >= 0) {
+                    db.customerUnits[idx] = record;
+                    delete db.customerUnits[idx].unitMerk;
+                    delete db.customerUnits[idx].unitTipe;
+                }
             } else {
                 db.customerUnits.push(record);
             }
@@ -11424,25 +11444,107 @@
             showToast('Unit Saved', `${record.unitName} saved successfully.`, 'success');
         }
 
+        function getActiveServiceForCustomerUnit(unitId) {
+            return (db.serviceTickets || []).filter(s =>
+                s.customerUnitId === unitId && !['completed', 'cancelled', 'returned_cust'].includes(s.status)
+            );
+        }
+
+        function removeCustomerUnitsByIds(ids, options) {
+            loadDB();
+            const opts = options || {};
+            const idSet = new Set((ids || []).map(id => parseInt(id)).filter(Boolean));
+            if (!idSet.size) return { deleted: 0, blocked: [] };
+
+            const blocked = [];
+            const toDelete = [];
+            idSet.forEach(id => {
+                const u = (db.customerUnits || []).find(x => x.id === id);
+                if (!u) return;
+                if (getActiveServiceForCustomerUnit(id).length) {
+                    blocked.push(u.unitName || `Unit #${id}`);
+                    return;
+                }
+                toDelete.push(u);
+            });
+
+            if (!toDelete.length) return { deleted: 0, blocked };
+
+            if (!opts.skipConfirm) {
+                const msg = opts.confirmMessage || `Hapus ${toDelete.length} unit terpilih?`;
+                if (!confirm(msg)) return { deleted: 0, blocked, cancelled: true };
+            }
+
+            const delIds = new Set(toDelete.map(u => u.id));
+            db.customerUnits = (db.customerUnits || []).filter(x => !delIds.has(x.id));
+            toDelete.forEach(u => addToHistory(`Master Customer: Menghapus unit ${u.unitName || u.id}.`));
+            saveDB();
+            updateData();
+            return { deleted: toDelete.length, blocked };
+        }
+
+        function toggleSelectAllCustomerUnits(master) {
+            document.querySelectorAll('.cust-unit-checkbox').forEach(cb => { cb.checked = master.checked; });
+        }
+
+        function bulkDeleteCustomerUnits() {
+            const checked = document.querySelectorAll('.cust-unit-checkbox:checked');
+            if (!checked.length) {
+                showToast('Pilih Unit', 'Centang minimal satu unit untuk dihapus.', 'warning');
+                return;
+            }
+            const ids = Array.from(checked).map(cb => parseInt(cb.value));
+            const res = removeCustomerUnitsByIds(ids);
+            if (res.cancelled) return;
+            const masterCb = document.getElementById('select-all-cust-units');
+            if (masterCb) masterCb.checked = false;
+            if (res.deleted) {
+                let msg = `${res.deleted} unit berhasil dihapus.`;
+                if (res.blocked.length) msg += ` ${res.blocked.length} unit dilewati (masih dalam proses service).`;
+                showToast('Unit Dihapus', msg, res.blocked.length ? 'warning' : 'success');
+            } else if (res.blocked.length) {
+                showToast('Tidak Dapat Hapus', 'Semua unit terpilih masih dalam proses service aktif.', 'error');
+            }
+        }
+
+        function deleteAllCustomerUnits() {
+            loadDB();
+            if (!selectedCustomerId) {
+                showToast('Pilih Customer', 'Pilih customer terlebih dahulu.', 'warning');
+                return;
+            }
+            const cust = (db.customers || []).find(c => c.id === selectedCustomerId);
+            const units = (db.customerUnits || []).filter(u => u.customerId === selectedCustomerId);
+            if (!units.length) {
+                showToast('Kosong', 'Tidak ada unit untuk dihapus.', 'warning');
+                return;
+            }
+            const res = removeCustomerUnitsByIds(units.map(u => u.id), {
+                confirmMessage: `Hapus SEMUA ${units.length} unit milik "${cust ? cust.name : 'customer'}"? Tindakan ini tidak dapat dibatalkan.`
+            });
+            if (res.cancelled) return;
+            const masterCb = document.getElementById('select-all-cust-units');
+            if (masterCb) masterCb.checked = false;
+            if (res.deleted) {
+                let msg = `${res.deleted} unit dihapus.`;
+                if (res.blocked.length) msg += ` ${res.blocked.length} unit dilewati (masih dalam proses service).`;
+                showToast('Semua Unit Dihapus', msg, res.blocked.length ? 'warning' : 'success');
+            } else if (res.blocked.length) {
+                showToast('Tidak Dapat Hapus', 'Semua unit masih dalam proses service aktif.', 'error');
+            }
+        }
+
         function deleteCustomerUnit(id) {
             loadDB();
             const u = (db.customerUnits || []).find(x => x.id === id);
             if (!u) return;
-
-            const activeSvc = (db.serviceTickets || []).filter(s =>
-                s.customerUnitId === id && !['completed', 'cancelled', 'returned_cust'].includes(s.status)
-            );
-            if (activeSvc.length) {
+            if (getActiveServiceForCustomerUnit(id).length) {
                 showToast('Cannot Delete', 'This unit is currently in an active service process.', 'error');
                 return;
             }
             if (!confirm(`Hapus unit "${u.unitName}"?`)) return;
-
-            db.customerUnits = (db.customerUnits || []).filter(x => x.id !== id);
-            addToHistory(`Master Customer: Menghapus unit ${u.unitName}.`);
-            saveDB();
-            updateData();
-            showToast('Unit Deleted', `${u.unitName} has been deleted.`, 'success');
+            const res = removeCustomerUnitsByIds([id], { skipConfirm: true });
+            if (res.deleted) showToast('Unit Deleted', `${u.unitName} has been deleted.`, 'success');
         }
 
         function syncCustomerUnitStatus(unitId, status) {
