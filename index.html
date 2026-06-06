@@ -848,6 +848,55 @@
                 </div>
             </section>
 
+            <!-- MASTER DATA CUSTOMER & UNIT -->
+            <section id="view-customer-master" class="app-view hidden flex-col gap-6 animate-fade-in max-w-7xl mx-auto w-full">
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 shadow-sm dark:shadow-xl">
+                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-blue-600 dark:text-blue-400"><i class="fa-solid fa-hospital mr-2"></i> Master Data Customer</h2>
+                    <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Kelola data RS/Customer dan unit alat medisnya. Data ini terhubung langsung ke form Service Customer.</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-5">
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-4 rounded-xl"><p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total Customer</p><p class="text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-total">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-4 rounded-xl"><p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total Unit</p><p class="text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-units">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-4 rounded-xl col-span-2 sm:col-span-1"><p class="text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Customer Aktif</p><p class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="cust-stat-active">0</p></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 min-h-0">
+                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[420px]">
+                        <div class="p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                            <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-building text-blue-500 mr-2"></i> Data Customer</h3>
+                            <div class="flex gap-2 w-full sm:w-auto">
+                                <input type="text" id="search-customers" onkeyup="renderCustomerMaster()" class="input-field flex-1 sm:w-48 text-[12px]" placeholder="Cari customer...">
+                                <button onclick="openCustomerModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Tambah</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left text-[12px]">
+                                <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400 sticky top-0">
+                                    <tr><th class="p-4">Kode / Nama RS</th><th class="p-4">PIC</th><th class="p-4">Kontak</th><th class="p-4 text-center">Unit</th><th class="p-4 text-right">Aksi</th></tr>
+                                </thead>
+                                <tbody id="customers-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[420px]">
+                        <div class="p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Unit Customer</h3>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Pilih customer di kiri untuk melihat unit</p>
+                            </div>
+                            <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Tambah Unit</button>
+                        </div>
+                        <div class="overflow-x-auto flex-1">
+                            <table class="w-full text-left text-[12px]">
+                                <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400 sticky top-0">
+                                    <tr><th class="p-4">Unit / SN</th><th class="p-4">Product</th><th class="p-4">Merk / Tipe</th><th class="p-4">Status</th><th class="p-4 text-right">Aksi</th></tr>
+                                </thead>
+                                <tbody id="customer-units-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- PUSAT LAYANAN PELANGGAN (CUSTOMER SERVICE CENTER) -->
             <section id="view-customer-service" class="app-view hidden flex-col gap-6 animate-fade-in max-w-7xl mx-auto w-full">
                 <!-- Section Header -->
@@ -1180,10 +1229,10 @@
                         </select>
                     </div>
                     <div><label class="input-label">Nama Lengkap <span class="text-gold-500">*</span></label><input type="text" id="add-tech-name" required class="input-field"></div>
-                    <div><label class="input-label">NIK / Employee ID</label><input type="text" id="add-tech-nik" class="input-field"></div>
+                    <div><label class="input-label">NIK / Employee ID</label><input type="text" id="add-tech-nik" class="input-field" oninput="validatePersonnelForm()" autocomplete="off"></div>
                     <div><label class="input-label">Posisi / Jabatan</label><input type="text" id="add-tech-jabatan" class="input-field"></div>
-                    <div><label class="input-label">Alamat Email</label><input type="email" id="add-tech-email" class="input-field"></div>
-                    <div><label class="input-label">Nomor HP</label><input type="text" id="add-tech-hp" class="input-field"></div>
+                    <div><label class="input-label">Alamat Email</label><input type="email" id="add-tech-email" class="input-field" oninput="validatePersonnelForm()" autocomplete="off"></div>
+                    <div><label class="input-label">Nomor HP</label><input type="text" id="add-tech-hp" class="input-field" oninput="validatePersonnelForm()" autocomplete="off"></div>
                     <div class="md:col-span-2">
                         <label class="input-label">Tanggung Jawab Produk (Akses Aset/Repair) <span class="text-gold-500">*</span></label>
                         <div class="flex flex-wrap gap-5 mt-2 p-3 bg-gray-50 dark:bg-[#131316] rounded-xl border border-gray-200 dark:border-lux-800">
@@ -1220,14 +1269,15 @@
                 <input type="hidden" id="tool-id">
                 <input type="hidden" id="tool-type" value="tool">
                 
-                <p class="text-[12px] text-gray-600 dark:text-lux-400 font-medium leading-relaxed mb-6 border-b border-gray-200 dark:border-lux-800 pb-5" id="add-tool-desc">
+                <p class="text-[12px] text-gray-600 dark:text-lux-400 font-medium leading-relaxed mb-3 border-b border-gray-200 dark:border-lux-800 pb-5" id="add-tool-desc">
                     Silakan isi data alat. Nomor Inventaris dihasilkan otomatis untuk mencegah duplikasi.
                 </p>
+                <div id="backup-unit-error" class="text-[10px] text-red-500 font-bold hidden mb-4 leading-tight"></div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
                     <div><label class="input-label">No Inventaris <span class="text-gold-500">*</span></label><input type="text" id="add-inv" required readonly class="input-field font-mono uppercase bg-gray-50 dark:bg-lux-950 text-gold-600 dark:text-gold-500 border-gray-200 dark:border-[#3f3f46]"></div>
-                    <div><label class="input-label">Art Number</label><input type="text" id="add-art" class="input-field font-mono" oninput="smartFillByArtNo(this.value)" autocomplete="off"></div>
-                    <div><label class="input-label">No Seri (SN)</label><input type="text" id="add-sn" class="input-field font-mono uppercase"></div>
+                    <div><label class="input-label">Art Number</label><input type="text" id="add-art" class="input-field font-mono" oninput="smartFillByArtNo(this.value); validateBackupUnitForm()" autocomplete="off"></div>
+                    <div><label class="input-label">No Seri (SN)</label><input type="text" id="add-sn" class="input-field font-mono uppercase" oninput="validateBackupUnitForm()"></div>
                     
                     <div class="md:col-span-2"><label class="input-label">Deskripsi Alat <span class="text-gold-500">*</span></label><input type="text" id="add-desc" required class="input-field" placeholder="Masukkan deskripsi..."></div>
                     
@@ -1626,6 +1676,74 @@
     </div>
 
     <!-- Modal Form: Register Service Unit Customer -->
+    <!-- Modal: Customer Master -->
+    <div id="customerModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
+                <h3 class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white" id="customer-modal-title"><i class="fa-solid fa-hospital text-blue-500 mr-2"></i> Tambah Customer</h3>
+                <button type="button" onclick="closeModal('customerModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitCustomer(event)" class="p-6 sm:p-8">
+                <input type="hidden" id="cust-edit-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                    <div class="md:col-span-2"><label class="input-label">Kode Customer</label><input type="text" id="cust-code" readonly class="input-field font-mono bg-gray-50 dark:bg-lux-950 text-blue-600 dark:text-blue-400"></div>
+                    <div class="md:col-span-2"><label class="input-label">Nama RS / Customer <span class="text-gold-500">*</span></label><input type="text" id="cust-name" required class="input-field" oninput="validateCustomerForm()"></div>
+                    <div><label class="input-label">PIC Penanggung Jawab <span class="text-gold-500">*</span></label><input type="text" id="cust-pic" required class="input-field"></div>
+                    <div><label class="input-label">No HP / Kontak <span class="text-gold-500">*</span></label><input type="text" id="cust-contact" required class="input-field" oninput="validateCustomerForm()"></div>
+                    <div><label class="input-label">Email</label><input type="email" id="cust-email" class="input-field"></div>
+                    <div><label class="input-label">Kota</label><input type="text" id="cust-city" class="input-field"></div>
+                    <div class="md:col-span-2"><label class="input-label">Alamat</label><input type="text" id="cust-address" class="input-field"></div>
+                    <div class="md:col-span-2"><label class="input-label">Catatan</label><textarea id="cust-notes" rows="2" class="input-field"></textarea></div>
+                </div>
+                <div id="customer-form-error" class="text-[10px] text-red-500 font-bold hidden mb-4"></div>
+                <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
+                    <button type="submit" id="btn-save-customer" class="px-8 py-4 bg-blue-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-blue-700 transition">Simpan Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Unit Customer -->
+    <div id="customerUnitModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
+                <h3 class="font-black text-[13px] uppercase tracking-[0.1em] text-gray-900 dark:text-white" id="cust-unit-modal-title"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Tambah Unit Customer</h3>
+                <button type="button" onclick="closeModal('customerUnitModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitCustomerUnit(event)" class="p-6 sm:p-8">
+                <input type="hidden" id="cust-unit-edit-id">
+                <input type="hidden" id="cust-unit-customer-id">
+                <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 p-4 rounded-xl mb-5">
+                    <p class="text-[9px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-1">Customer Induk</p>
+                    <p class="text-sm font-black text-gray-900 dark:text-white" id="cust-unit-parent-name">-</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                    <div><label class="input-label">Art Number</label><input type="text" id="cust-unit-art" class="input-field font-mono" oninput="validateCustomerUnitForm()"></div>
+                    <div><label class="input-label">Product <span class="text-gold-500">*</span></label>
+                        <select id="cust-unit-product" required class="input-field">
+                            <option value="Avitum">Avitum</option><option value="AIS">AIS</option><option value="AES">AES</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2"><label class="input-label">Nama Unit / Deskripsi <span class="text-gold-500">*</span></label><input type="text" id="cust-unit-name" required class="input-field"></div>
+                    <div><label class="input-label">Serial Number</label><input type="text" id="cust-unit-sn" class="input-field font-mono uppercase" oninput="validateCustomerUnitForm()"></div>
+                    <div><label class="input-label">Merk</label><input type="text" id="cust-unit-merk" class="input-field"></div>
+                    <div><label class="input-label">Tipe / Model</label><input type="text" id="cust-unit-tipe" class="input-field"></div>
+                    <div><label class="input-label">Lokasi Unit</label><input type="text" id="cust-unit-location" class="input-field" placeholder="ICU, Ruang Operasi, dll"></div>
+                    <div><label class="input-label">Status</label>
+                        <select id="cust-unit-status" class="input-field">
+                            <option value="active">Aktif</option><option value="in_service">Dalam Service</option><option value="retired">Non-Aktif</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2"><label class="input-label">Catatan</label><textarea id="cust-unit-notes" rows="2" class="input-field"></textarea></div>
+                </div>
+                <div id="cust-unit-form-error" class="text-[10px] text-red-500 font-bold hidden mb-4"></div>
+                <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
+                    <button type="submit" id="btn-save-cust-unit" class="px-8 py-4 bg-emerald-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-emerald-700 transition">Simpan Unit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="serviceModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
         <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto mt-4 mb-4">
             <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
@@ -1634,6 +1752,15 @@
             </div>
             <form onsubmit="submitServiceTicket(event)" class="p-6 sm:p-8">
                 <input type="hidden" id="service-id">
+                <input type="hidden" id="svc-linked-customer-id">
+                <input type="hidden" id="svc-linked-unit-id">
+                <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 p-4 rounded-xl mb-5">
+                    <p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-3"><i class="fa-solid fa-link mr-1"></i> Ambil dari Master Data (disarankan)</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div><label class="input-label text-[10px]">Pilih Customer</label><select id="svc-pick-customer" class="input-field text-[12px]" onchange="onPickServiceCustomer()"><option value="">-- Manual / Ketik Baru --</option></select></div>
+                        <div><label class="input-label text-[10px]">Pilih Unit Customer</label><select id="svc-pick-unit" class="input-field text-[12px]" onchange="onPickServiceUnit()" disabled><option value="">-- Pilih customer dulu --</option></select></div>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                     <div class="md:col-span-2"><label class="input-label">Nama Rumah Sakit / Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-name" required class="input-field" placeholder="Masukkan nama RS / klinik / perusahaan..."></div>
                     <div><label class="input-label">PIC Customer/RS <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-pic" required class="input-field" placeholder="Nama PIC Penanggung Jawab..."></div>
@@ -2653,6 +2780,8 @@
             historyLog: [{ id: 1, time: new Date().toISOString(), action: "Sistem Eksekutif Diinisialisasi." }],
             messages: [],
             serviceTickets: [],
+            customers: [],
+            customerUnits: [],
             deletedIds: []
         };
         
@@ -3017,8 +3146,286 @@
             const cloudDeleted = new Set(cloud.deletedIds || []);
             const hasLocalDeleted = (local.deletedIds || []).some(id => id && !cloudDeleted.has(id));
             if (hasLocalDeleted) return true;
+
+            const cloudCustIds = new Set((cloud.customers || []).filter(x => x).map(x => x.id));
+            if ((local.customers || []).some(c => c && c.id && !cloudCustIds.has(c.id))) return true;
+            const cloudUnitIds = new Set((cloud.customerUnits || []).filter(x => x).map(x => x.id));
+            if ((local.customerUnits || []).some(u => u && u.id && !cloudUnitIds.has(u.id))) return true;
             
             return false;
+        }
+
+        function normInvKey(v) {
+            return (v || '').trim().toLowerCase();
+        }
+        function normArtKey(v) {
+            return (v || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+        function findBackupUnitConflicts(fields, excludeId) {
+            const conflicts = [];
+            const allAssets = [...(db.tools || []), ...(db.demoUnits || [])];
+            const demos = db.demoUnits || [];
+
+            if (fields.noInv) {
+                const key = normInvKey(fields.noInv);
+                const dup = allAssets.find(a => a && a.id !== excludeId && normInvKey(a.noInv) === key);
+                if (dup) conflicts.push({ label: 'No. Inventaris', value: fields.noInv, existing: dup.noInv, type: dup.category === 'demo' ? 'backup' : 'aset' });
+            }
+            if (fields.sn) {
+                const key = normSnKey(fields.sn);
+                if (key) {
+                    const dup = allAssets.find(a => a && a.id !== excludeId && normSnKey(a.sn) === key);
+                    if (dup) conflicts.push({ label: 'Serial Number', value: fields.sn, existing: dup.noInv, type: dup.category === 'demo' ? 'backup' : 'aset' });
+                }
+            }
+            if (fields.artNo) {
+                const key = normArtKey(fields.artNo);
+                if (key) {
+                    const dupDemo = demos.find(a => a && a.id !== excludeId && normArtKey(a.artNo) === key);
+                    if (dupDemo) conflicts.push({ label: 'Art Number', value: fields.artNo, existing: dupDemo.noInv, type: 'backup' });
+                }
+            }
+            return conflicts;
+        }
+        function normSnKey(v) {
+            const s = (v || '').trim().toLowerCase();
+            return s && s !== '-' ? s : '';
+        }
+        function normUserKey(v) {
+            return (v || '').trim().toLowerCase();
+        }
+        function normNikKey(v) {
+            const s = (v || '').trim().replace(/\s/g, '');
+            return s ? s.toLowerCase() : '';
+        }
+        function normEmailKey(v) {
+            return (v || '').trim().toLowerCase();
+        }
+        function normPhoneKey(v) {
+            const p = (v || '').replace(/\D/g, '');
+            return p.length >= 8 ? p : '';
+        }
+        function findPersonnelConflicts(fields, excludeId) {
+            const conflicts = [];
+            Object.values(db.users || {}).forEach(u => {
+                if (!u || u.id === excludeId) return;
+                if (fields.user && normUserKey(fields.user) && normUserKey(u.user) === normUserKey(fields.user)) {
+                    conflicts.push({ field: 'user', label: 'Username', value: fields.user, existing: u.name });
+                }
+                if (fields.nik && normNikKey(fields.nik) && normNikKey(u.nik) === normNikKey(fields.nik)) {
+                    conflicts.push({ field: 'nik', label: 'NIK', value: fields.nik, existing: u.name });
+                }
+                if (fields.email && normEmailKey(fields.email) && normEmailKey(u.email) === normEmailKey(fields.email)) {
+                    conflicts.push({ field: 'email', label: 'Email', value: fields.email, existing: u.name });
+                }
+                if (fields.phone && normPhoneKey(fields.phone) && normPhoneKey(u.phone) === normPhoneKey(fields.phone)) {
+                    conflicts.push({ field: 'phone', label: 'Nomor HP', value: fields.phone, existing: u.name });
+                }
+            });
+            return conflicts;
+        }
+        function preferNewerRecord(a, b) {
+            if (!a) return b;
+            if (!b) return a;
+            const ta = new Date(a.updatedAt || 0).getTime();
+            const tb = new Date(b.updatedAt || 0).getTime();
+            if (tb !== ta) return tb > ta ? b : a;
+            return (b.id || 0) >= (a.id || 0) ? b : a;
+        }
+        function allocateUniqueId() {
+            const ids = [];
+            Object.keys(db.users || {}).forEach(k => {
+                const n = parseInt(k);
+                if (!isNaN(n)) ids.push(n);
+            });
+            (db.tools || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.demoUnits || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.requests || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.serviceTickets || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.customers || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.customerUnits || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.messages || []).forEach(x => x && x.id && ids.push(x.id));
+            (db.historyLog || []).forEach(x => x && x.id && ids.push(x.id));
+            const max = ids.length ? Math.max(...ids) : 0;
+            return Math.max(max + 1, Date.now());
+        }
+        function dedupeById(arr) {
+            const map = new Map();
+            (arr || []).forEach(item => {
+                if (!item || item.id == null) return;
+                const ext = map.get(item.id);
+                map.set(item.id, ext ? preferNewerRecord(ext, item) : item);
+            });
+            return Array.from(map.values());
+        }
+        function sanitizeDatabase(target) {
+            if (!target || typeof target !== 'object') return false;
+            let changed = false;
+            if (!target.deletedIds || !Array.isArray(target.deletedIds)) target.deletedIds = [];
+
+            const markRemoved = (id) => {
+                if (!id || target.deletedIds.includes(id)) return;
+                target.deletedIds.push(id);
+                changed = true;
+            };
+
+            const dedupeKeyed = (list, getKey) => {
+                const map = new Map();
+                const noKey = [];
+                (list || []).forEach(item => {
+                    if (!item) return;
+                    const key = getKey(item);
+                    if (!key) { noKey.push(item); return; }
+                    const prev = map.get(key);
+                    if (!prev) {
+                        map.set(key, item);
+                    } else {
+                        const keep = preferNewerRecord(prev, item);
+                        const drop = keep === prev ? item : prev;
+                        map.set(key, keep);
+                        if (drop.id) markRemoved(drop.id);
+                        changed = true;
+                    }
+                });
+                return [...Array.from(map.values()), ...noKey];
+            };
+
+            const filterDupSn = (list) => {
+                const seen = new Map();
+                return (list || []).filter(item => {
+                    if (!item) return false;
+                    const sn = normSnKey(item.sn);
+                    if (!sn) return true;
+                    const prev = seen.get(sn);
+                    if (!prev) {
+                        seen.set(sn, item);
+                        return true;
+                    }
+                    const keep = preferNewerRecord(prev, item);
+                    if (keep !== item) {
+                        markRemoved(item.id);
+                        return false;
+                    }
+                    markRemoved(prev.id);
+                    seen.set(sn, item);
+                    return true;
+                });
+            };
+
+            const sanitizeUserList = (list, getKey) => {
+                const map = new Map();
+                const noKey = [];
+                (list || []).forEach(u => {
+                    if (!u || u.id == null || target.deletedIds.includes(u.id)) return;
+                    const key = getKey(u);
+                    if (!key) { noKey.push(u); return; }
+                    const prev = map.get(key);
+                    if (!prev) {
+                        map.set(key, u);
+                    } else {
+                        const keep = preferNewerRecord(prev, u);
+                        const drop = keep === prev ? u : prev;
+                        map.set(key, keep);
+                        markRemoved(drop.id);
+                    }
+                });
+                return [...map.values(), ...noKey];
+            };
+
+            const beforeUsers = Object.keys(target.users || {}).length;
+            let userList = Object.values(target.users || {}).filter(u => u && u.id != null && !target.deletedIds.includes(u.id));
+            userList = sanitizeUserList(userList, u => normUserKey(u.user));
+            userList = sanitizeUserList(userList, u => normNikKey(u.nik));
+            userList = sanitizeUserList(userList, u => normEmailKey(u.email));
+            userList = sanitizeUserList(userList, u => normPhoneKey(u.phone));
+            const userById = new Map();
+            userList.forEach(u => {
+                const prev = userById.get(u.id);
+                userById.set(u.id, prev ? preferNewerRecord(prev, u) : u);
+            });
+            const newUsers = {};
+            userById.forEach((u, id) => { newUsers[id] = u; });
+            target.users = newUsers;
+            if (Object.keys(newUsers).length !== beforeUsers) changed = true;
+
+            const beforeTools = (target.tools || []).length;
+            target.tools = filterDupSn(dedupeKeyed(dedupeById(target.tools), t => normInvKey(t.noInv)));
+            if ((target.tools || []).length !== beforeTools) changed = true;
+
+            const beforeDemo = (target.demoUnits || []).length;
+            target.demoUnits = filterDupSn(dedupeKeyed(dedupeById(target.demoUnits), d => normInvKey(d.noInv)));
+            target.demoUnits = dedupeKeyed(target.demoUnits, d => normArtKey(d.artNo));
+            if ((target.demoUnits || []).length !== beforeDemo) changed = true;
+
+            const beforeReq = (target.requests || []).length;
+            target.requests = dedupeById(target.requests);
+            if ((target.requests || []).length !== beforeReq) changed = true;
+
+            const beforeSvc = (target.serviceTickets || []).length;
+            target.serviceTickets = dedupeKeyed(dedupeById(target.serviceTickets), s => normInvKey(s.noService));
+            const activeSvcStatuses = new Set(['registered', 'pickup', 'received_tsf', 'quoted', 'po_issued', 'repaired', 'received_field']);
+            const seenActiveSn = new Map();
+            target.serviceTickets = (target.serviceTickets || []).filter(s => {
+                if (!s) return false;
+                if (!activeSvcStatuses.has(s.status)) return true;
+                const sn = normSnKey(s.unitSn);
+                if (!sn) return true;
+                const prev = seenActiveSn.get(sn);
+                if (!prev) { seenActiveSn.set(sn, s); return true; }
+                const keep = preferNewerRecord(prev, s);
+                if (keep !== s) { markRemoved(s.id); return false; }
+                markRemoved(prev.id);
+                seenActiveSn.set(sn, keep);
+                return true;
+            });
+            if ((target.serviceTickets || []).length !== beforeSvc) changed = true;
+
+            const beforeMsg = (target.messages || []).length;
+            target.messages = dedupeById(target.messages);
+            if ((target.messages || []).length !== beforeMsg) changed = true;
+
+            const beforeCust = (target.customers || []).length;
+            target.customers = dedupeKeyed(dedupeById(target.customers), c => normInvKey(c.code));
+            target.customers = dedupeKeyed(target.customers, c => normUserKey(c.name) + '|' + normPhoneKey(c.contact));
+            if ((target.customers || []).length !== beforeCust) changed = true;
+
+            const beforeCUnit = (target.customerUnits || []).length;
+            target.customerUnits = dedupeKeyed(dedupeById(target.customerUnits), u => normInvKey(String(u.customerId) + '|' + normArtKey(u.artNo)));
+            const seenCustSn = new Map();
+            target.customerUnits = (target.customerUnits || []).filter(u => {
+                if (!u) return false;
+                const sn = normSnKey(u.unitSn);
+                if (!sn) return true;
+                const prev = seenCustSn.get(sn);
+                if (!prev) { seenCustSn.set(sn, u); return true; }
+                const keep = preferNewerRecord(prev, u);
+                if (keep !== u) { markRemoved(u.id); return false; }
+                markRemoved(prev.id);
+                seenCustSn.set(sn, keep);
+                return true;
+            });
+            if ((target.customerUnits || []).length !== beforeCUnit) changed = true;
+
+            const histMap = new Map();
+            (target.historyLog || []).forEach(h => {
+                if (!h) return;
+                const key = h.id || `${h.time || h.t || ''}_${h.action || h.m || ''}`;
+                if (!histMap.has(key)) histMap.set(key, h);
+            });
+            const newHistLen = histMap.size;
+            if (newHistLen !== (target.historyLog || []).length) changed = true;
+            target.historyLog = Array.from(histMap.values()).sort((a, b) => {
+                return new Date(b.time || b.t || 0) - new Date(a.time || a.t || 0);
+            });
+
+            const uniqDeleted = Array.from(new Set((target.deletedIds || []).filter(x => x != null)));
+            if (uniqDeleted.length !== (target.deletedIds || []).length) changed = true;
+            target.deletedIds = uniqDeleted;
+
+            if (changed) {
+                console.warn('TMS: Duplikat data dibersihkan otomatis.');
+            }
+            return changed;
         }
 
         function mergeDatabases(local, cloud) {
@@ -3223,7 +3630,35 @@
             });
             merged.messages = Array.from(msgMap.values()).sort((a, b) => a.id - b.id);
 
+            // 8. Merge Customers
+            const custMap = new Map();
+            (cloud.customers || []).forEach(c => {
+                if (!c || !c.id || mergedDeleted.includes(c.id)) return;
+                custMap.set(c.id, c);
+            });
+            (local.customers || []).forEach(c => {
+                if (!c || !c.id || mergedDeleted.includes(c.id)) return;
+                const ext = custMap.get(c.id);
+                custMap.set(c.id, ext ? mergeRecord(c, ext, 'user') : c);
+            });
+            merged.customers = Array.from(custMap.values());
+
+            // 9. Merge Customer Units
+            const cUnitMap = new Map();
+            (cloud.customerUnits || []).forEach(u => {
+                if (!u || !u.id || mergedDeleted.includes(u.id)) return;
+                cUnitMap.set(u.id, u);
+            });
+            (local.customerUnits || []).forEach(u => {
+                if (!u || !u.id || mergedDeleted.includes(u.id)) return;
+                const ext = cUnitMap.get(u.id);
+                cUnitMap.set(u.id, ext ? mergeRecord(u, ext, 'tool') : u);
+            });
+            merged.customerUnits = Array.from(cUnitMap.values());
+
             // Simpan versi tertinggi atau bump jika ada kontribusi lokal baru yang belum di cloud
+            sanitizeDatabase(merged);
+
             if (hasLocalOnlyItems(local, cloud)) {
                 merged.version = Math.max(parseInt(local.version || 0), parseInt(cloud.version || 0), Date.now()) + 1;
             } else {
@@ -3361,6 +3796,12 @@
             
             if (!db.serviceTickets || !Array.isArray(db.serviceTickets)) db.serviceTickets = [];
             else db.serviceTickets = db.serviceTickets.filter(x => x && typeof x === 'object');
+
+            if (!db.customers || !Array.isArray(db.customers)) db.customers = [];
+            else db.customers = db.customers.filter(x => x && typeof x === 'object');
+
+            if (!db.customerUnits || !Array.isArray(db.customerUnits)) db.customerUnits = [];
+            else db.customerUnits = db.customerUnits.filter(x => x && typeof x === 'object');
             
             if (!db.deletedIds || !Array.isArray(db.deletedIds)) db.deletedIds = [];
             else db.deletedIds = db.deletedIds.filter(x => x !== null);
@@ -3402,6 +3843,10 @@
                 if (db.version > 1) {
                     db.version = Math.max(db.version || 0, Date.now()) + 1;
                 }
+                safeSaveLocalStorage();
+            }
+
+            if (sanitizeDatabase(db)) {
                 safeSaveLocalStorage();
             }
 
@@ -3660,7 +4105,7 @@
             } 
         });
 
-        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all';
+        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let selectedCustomerId = null;
         let knownRequestIds = null;
         let previousRequestStates = null;
         let previousServiceTicketStates = null;
@@ -3729,18 +4174,45 @@
             });
         }
 
-        function validateUsername(input) {
-            const val = input.value.trim().toLowerCase();
+        function validatePersonnelForm() {
+            loadDB();
             const errSpan = document.getElementById('user-error');
             const submitBtn = document.getElementById('btn-save-tech');
-            
-            if(val === "") { errSpan.classList.add('hidden'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); return; }
-            const exists = Object.values(db.users).find(u => u.user.toLowerCase() === val && u.id !== currentEditId);
-            if(exists) {
-                const sugg1 = val + Math.floor(Math.random()*100); const sugg2 = val + new Date().getFullYear().toString().slice(-2);
-                errSpan.innerHTML = `Username terpakai! Saran: <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${sugg1}'; validateUsername(document.getElementById('add-tech-user'))">${sugg1}</span> atau <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${sugg2}'; validateUsername(document.getElementById('add-tech-user'))">${sugg2}</span>`;
-                errSpan.classList.remove('hidden'); submitBtn.disabled = true; submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else { errSpan.classList.add('hidden'); submitBtn.disabled = false; submitBtn.classList.remove('opacity-50', 'cursor-not-allowed'); }
+            if (!errSpan || !submitBtn) return true;
+
+            const fields = {
+                user: (document.getElementById('add-tech-user')?.value || '').trim(),
+                nik: (document.getElementById('add-tech-nik')?.value || '').trim(),
+                email: (document.getElementById('add-tech-email')?.value || '').trim(),
+                phone: (document.getElementById('add-tech-hp')?.value || '').trim()
+            };
+            const excludeId = editMode ? currentEditId : null;
+            const conflicts = findPersonnelConflicts(fields, excludeId);
+
+            if (!conflicts.length) {
+                errSpan.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                return true;
+            }
+
+            const c = conflicts[0];
+            if (c.field === 'user' && fields.user) {
+                const val = fields.user.toLowerCase();
+                const sugg1 = val + Math.floor(Math.random() * 100);
+                const sugg2 = val + new Date().getFullYear().toString().slice(-2);
+                errSpan.innerHTML = `Username terpakai oleh <strong>${c.existing}</strong>. Saran: <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${sugg1}'; validatePersonnelForm()">${sugg1}</span> atau <span class="text-gold-500 cursor-pointer underline" onclick="document.getElementById('add-tech-user').value='${sugg2}'; validatePersonnelForm()">${sugg2}</span>`;
+            } else {
+                errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh <strong>${c.existing}</strong>.`;
+            }
+            errSpan.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+
+        function validateUsername(input) {
+            validatePersonnelForm();
         }
 
         function syncRoleAndGroupOptions() {
@@ -3759,14 +4231,50 @@
         }
 
         function generateInvNumber(isDemo) {
+            loadDB();
             const date = new Date(); const yy = date.getFullYear().toString().slice(-2); const mm = String(date.getMonth() + 1).padStart(2, '0');
             const prefix = isDemo ? `DM-${yy}${mm}-` : `TK-${yy}${mm}-`;
             let maxSeq = 0; const allAssets = [...db.tools, ...db.demoUnits];
             allAssets.forEach(a => { if(a.noInv && a.noInv.startsWith(prefix)) { const seq = parseInt(a.noInv.split('-')[2]); if(!isNaN(seq) && seq > maxSeq) maxSeq = seq; } });
+            const used = new Set(allAssets.map(a => normInvKey(a.noInv)).filter(Boolean));
+            for (let i = 1; i < 10000; i++) {
+                const candidate = `${prefix}${String(maxSeq + i).padStart(4, '0')}`;
+                if (!used.has(normInvKey(candidate))) return candidate;
+            }
             return `${prefix}${String(maxSeq + 1).padStart(4, '0')}`;
         }
 
         let lastFoundArt = "";
+        function validateBackupUnitForm() {
+            const typeEl = document.getElementById('tool-type');
+            const errSpan = document.getElementById('backup-unit-error');
+            const submitBtn = document.getElementById('btn-add-tool');
+            if (!typeEl || typeEl.value !== 'demo' || !errSpan || !submitBtn) return true;
+
+            loadDB();
+            const fields = {
+                noInv: (document.getElementById('add-inv')?.value || '').trim(),
+                artNo: (document.getElementById('add-art')?.value || '').trim(),
+                sn: (document.getElementById('add-sn')?.value || '').trim()
+            };
+            const conflicts = findBackupUnitConflicts(fields, editMode ? currentEditId : null);
+
+            if (!conflicts.length) {
+                errSpan.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                return true;
+            }
+
+            const c = conflicts[0];
+            const kind = c.type === 'backup' ? 'unit backup' : 'aset';
+            errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh ${kind} <strong>${c.existing}</strong>.`;
+            errSpan.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+
         function smartFillByArtNo(artVal) {
             if (!artVal || artVal.trim() === '') return;
             loadDB();
@@ -4052,6 +4560,7 @@
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Data Inventaris</div>
                     ${assetsMenu}
                     <a href="#" onclick="switchTab('demo-inventory')" id="nav-demo-inventory" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-box-archive w-4 text-center text-sm"></i> Backup/Demo</a>
+                    <a href="#" onclick="switchTab('customer-master')" id="nav-customer-master" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-hospital w-4 text-center text-sm"></i> Data Customer</a>
                     <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex justify-between items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service Customer</div><div class="flex items-center gap-1 shrink-0"><span id="badge-svc-update" class="relative inline-flex items-center justify-center bg-gold-500 text-white dark:text-black text-[9px] font-black min-w-[18px] h-[18px] px-1 rounded-full hidden shadow-[0_0_8px_rgba(234,179,8,0.6)] animate-pulse">0</span><span id="badge-svc-stagnant" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)]">!</span></div></a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Manajemen Sistem</div>
                     <a href="#" onclick="switchTab('spv-maintenance')" id="nav-spv-maintenance" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Modul Maintenance</a>
@@ -4073,6 +4582,7 @@
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Data Inventaris</div>
                     <a href="#" onclick="switchTab('ts-toolbox')" id="nav-ts-toolbox" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-toolbox w-4 text-center text-sm"></i> Inventaris Saya</a>
                     <a href="#" onclick="switchTab('ts-radar')" id="nav-ts-radar" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-globe w-4 text-center text-sm"></i> Direktori Aset</a>
+                    <a href="#" onclick="switchTab('customer-master')" id="nav-customer-master" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-hospital w-4 text-center text-sm"></i> Data Customer</a>
                     <a href="#" onclick="switchTab('customer-service')" id="nav-customer-service" class="nav-link flex justify-between items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-screwdriver-wrench w-4 text-center text-sm"></i> Service Customer</div><div class="flex items-center gap-1 shrink-0"><span id="badge-svc-update" class="relative inline-flex items-center justify-center bg-gold-500 text-white dark:text-black text-[9px] font-black min-w-[18px] h-[18px] px-1 rounded-full hidden shadow-[0_0_8px_rgba(234,179,8,0.6)] animate-pulse">0</span><span id="badge-svc-stagnant" class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(239,68,68,0.5)]">!</span></div></a>
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Buku Tiket</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Validasi</div>
@@ -4098,7 +4608,7 @@
             else { document.getElementById('prof-name').value = currentUser.name; document.getElementById('prof-user').value = currentUser.user; document.getElementById('prof-pass').value = currentUser.pass; document.getElementById('prof-nik').value = currentUser.nik || ''; document.getElementById('prof-jabatan').value = currentUser.jabatan || ''; document.getElementById('prof-email').value = currentUser.email || ''; document.getElementById('prof-phone').value = currentUser.phone || ''; }
             if(window.innerWidth < 1024) { document.getElementById('sidebar').classList.add('-translate-x-full'); document.getElementById('sidebarOverlay').classList.add('hidden'); }
             
-            const titles = {'profile': 'Profil Eksekutif', 'spv-dash':'Dashboard', 'spec-dash': 'Dashboard Technical Specialist', 'spv-assets':'Inventaris Spesial Tools', 'demo-inventory':'Unit Backup / Demo', 'spv-personnel':'Data Personel', 'spv-approvals':'Pintu Otorisasi', 'spv-maintenance':'Modul Maintenance', 'ts-dash':'Tinjauan Global', 'ts-toolbox':'Inventaris Aset Saya', 'ts-radar':'Direktori Aset Global', 'ts-handover':'Form Serah Terima', 'tickets-log': 'Buku Tiket', 'customer-service': 'Pusat Service & Layanan Customer'};
+            const titles = {'profile': 'Profil Eksekutif', 'spv-dash':'Dashboard', 'spec-dash': 'Dashboard Technical Specialist', 'spv-assets':'Inventaris Spesial Tools', 'demo-inventory':'Unit Backup / Demo', 'customer-master':'Master Data Customer', 'spv-personnel':'Data Personel', 'spv-approvals':'Pintu Otorisasi', 'spv-maintenance':'Modul Maintenance', 'ts-dash':'Tinjauan Global', 'ts-toolbox':'Inventaris Aset Saya', 'ts-radar':'Direktori Aset Global', 'ts-handover':'Form Serah Terima', 'tickets-log': 'Buku Tiket', 'customer-service': 'Pusat Service & Layanan Customer'};
             document.getElementById('topbar-title').innerText = titles[tabId];
             // Saat masuk tab Service Customer — otomatis tandai semua notif tiket sebagai sudah dibaca
             if (tabId === 'customer-service') { markAllSvcNotifsRead(); }
@@ -4797,14 +5307,14 @@
             if(activeTab === 'customer-service') renderServiceTickets();
             
             if(currentUser.role === 'ts') { 
-                if(activeTab === 'ts-dash') renderTsDash(); if(activeTab === 'ts-toolbox') renderTsToolbox(); if(activeTab === 'ts-radar') renderTsRadar(); if(activeTab === 'ts-handover') renderTsHandover();
+                if(activeTab === 'ts-dash') renderTsDash(); if(activeTab === 'ts-toolbox') renderTsToolbox(); if(activeTab === 'ts-radar') renderTsRadar(); if(activeTab === 'customer-master') renderCustomerMaster(); if(activeTab === 'ts-handover') renderTsHandover();
             } else if(currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
                 if(activeTab === 'spec-dash') renderSpecDash();
                 if(activeTab === 'spv-assets') renderSpvAssets();
                 if(activeTab === 'spv-maintenance') renderSpvMaintenance();
                 if(activeTab === 'ts-handover') renderTsHandover();
             } else if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { 
-            if(activeTab === 'spv-dash') renderSpvDash(); if(activeTab === 'spv-assets') renderSpvAssets(); if(activeTab === 'demo-inventory') renderDemoInventory(); if(activeTab === 'spv-personnel') renderSpvPersonnel(); if(activeTab === 'spv-approvals') renderSpvApprovals(); if(activeTab === 'spv-maintenance') renderSpvMaintenance();
+            if(activeTab === 'spv-dash') renderSpvDash(); if(activeTab === 'spv-assets') renderSpvAssets(); if(activeTab === 'demo-inventory') renderDemoInventory(); if(activeTab === 'customer-master') renderCustomerMaster(); if(activeTab === 'spv-personnel') renderSpvPersonnel(); if(activeTab === 'spv-approvals') renderSpvApprovals(); if(activeTab === 'spv-maintenance') renderSpvMaintenance();
                 if((currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') && activeTab === 'ts-handover') renderTsHandover();
             }
             
@@ -6481,6 +6991,9 @@
                     previewImg.src = '';
                     previewWrapper.classList.add('hidden');
                 }
+                const backupErr = document.getElementById('backup-unit-error');
+                if (backupErr) backupErr.classList.add('hidden');
+                if (type === 'demo') validateBackupUnitForm();
                 openModal('toolModal');
             }
         }
@@ -6489,8 +7002,18 @@
             e.preventDefault();
             loadDB(); // Sinkronisasi sebelum menyimpan
             const userVal = document.getElementById('add-tech-user').value.trim();
-            const exists = Object.values(db.users).find(u => u.user.toLowerCase() === userVal.toLowerCase() && u.id !== currentEditId);
-            if(exists) { showToast("Gagal", "Username sudah terdaftar!", "error"); return; }
+            const nikVal = document.getElementById('add-tech-nik').value.trim();
+            const emailVal = document.getElementById('add-tech-email').value.trim();
+            const phoneVal = document.getElementById('add-tech-hp').value.trim();
+            const personnelConflicts = findPersonnelConflicts({
+                user: userVal, nik: nikVal, email: emailVal, phone: phoneVal
+            }, editMode ? currentEditId : null);
+            if (personnelConflicts.length) {
+                const c = personnelConflicts[0];
+                showToast("Gagal", `${c.label} sudah terdaftar (${c.existing}).`, "error");
+                validatePersonnelForm();
+                return;
+            }
 
             const groupVal = document.getElementById('add-tech-group').value;
             const roleVal = document.getElementById('add-tech-role').value;
@@ -6524,15 +7047,15 @@
             if (document.getElementById('add-prod-aesculap').checked) productsVal.push('Aesculap');
 
             const data = { 
-                id: editMode ? currentEditId : Date.now(), 
+                id: editMode ? currentEditId : allocateUniqueId(), 
                 user: userVal, 
                 pass: document.getElementById('add-tech-pass').value, 
                 role: roleVal, 
                 name: document.getElementById('add-tech-name').value, 
-                nik: document.getElementById('add-tech-nik').value, 
+                nik: nikVal, 
                 jabatan: document.getElementById('add-tech-jabatan').value, 
-                email: document.getElementById('add-tech-email').value, 
-                phone: document.getElementById('add-tech-hp').value, 
+                email: emailVal, 
+                phone: phoneVal, 
                 group: groupVal, 
                 status: statusVal,
                 products: productsVal,
@@ -6548,7 +7071,7 @@
                 db.users[data.id] = data; 
                 if (statusVal === 'pending_approval') {
                     db.requests.push({
-                        id: Date.now() + 2,
+                        id: allocateUniqueId(),
                         toolId: data.id,
                         toolType: 'tech',
                         requesterId: currentUser.id,
@@ -6570,7 +7093,21 @@
         function submitTool(e) {
             e.preventDefault();
             loadDB(); // Sinkronisasi sebelum menyimpan
-            const type = document.getElementById('tool-type').value; const arr = type === 'tool' ? db.tools : db.demoUnits;
+            const type = document.getElementById('tool-type').value;
+            const noInvVal = (document.getElementById('add-inv').value || '').trim();
+            const artNoVal = (document.getElementById('add-art').value || '').trim();
+            const snCheck = (document.getElementById('add-sn').value || '').trim();
+            const excludeId = editMode ? currentEditId : null;
+            const assetConflicts = findBackupUnitConflicts({
+                noInv: noInvVal, artNo: artNoVal, sn: snCheck
+            }, excludeId);
+            if (assetConflicts.length) {
+                const c = assetConflicts[0];
+                showToast("Gagal", `${c.label} sudah terdaftar (${c.existing}).`, "error");
+                if (type === 'demo') validateBackupUnitForm();
+                return;
+            }
+            const arr = type === 'tool' ? db.tools : db.demoUnits;
             const ownerIdVal = (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') ? (type === 'demo' ? 0 : parseInt(document.getElementById('add-owner').value)) : currentUser.id;
             const statusVal = (currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') ? "good" : "pending_auth";
             const descVal = document.getElementById('add-desc').value || "Alat Tanpa Nama"; const snVal = document.getElementById('add-sn').value || "-"; const merkVal = document.getElementById('add-merk').value || "-";
@@ -6594,11 +7131,11 @@
                     arr[index] = data; 
                     addToHistory(`${currentUser.name.split(' ')[0]} memperbarui data: ${data.noInv}.`, data.id); showToast("Berhasil", "Data aset diperbarui.", "success"); 
                 } else { 
-                    const newId = Date.now(); 
+                    const newId = allocateUniqueId(); 
                     const data = { id: newId, noInv: document.getElementById('add-inv').value, artNo: document.getElementById('add-art').value, desc: descVal, merk: merkVal, tipe: document.getElementById('add-tipe').value, sn: snVal, ownerId: ownerIdVal, condition: document.getElementById('add-kondisi').value, buyDate: document.getElementById('add-buydate').value, price: priceVal, calDate: document.getElementById('add-caldate').value, status: statusVal, category: type==='tool' ? 'standard' : 'demo', subCategory: subCatVal, reason: type==='demo' ? 'Standby Gudang' : '', maintenanceStatus: "", history: [{t: new Date().toISOString(), m: "Alat didaftarkan ke sistem."}], photo: photoBase64, updatedAt: new Date().toISOString() };
                     arr.push(data); 
                     if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner' || currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') { addToHistory(`${currentUser.role.toUpperCase()} menambahkan Spesial Tools: ${data.noInv}.`, newId); showToast("Tersimpan", "Aset masuk ke database Spesial Tools.", "success"); } 
-                    else { db.requests.push({ id: Date.now() + 1, toolId: newId, toolType: type, requesterId: currentUser.id, reqType: 'verify_tool', status: 'pending_spv', note: 'Registrasi aset baru', updatedAt: new Date().toISOString() }); addToHistory(`TS ${currentUser.name.split(' ')[0]} mengajukan aset ${data.noInv} untuk diverifikasi.`, newId); showToast("Terkirim", "Menunggu Verifikasi SPV.", "success"); }
+                    else { db.requests.push({ id: allocateUniqueId(), toolId: newId, toolType: type, requesterId: currentUser.id, reqType: 'verify_tool', status: 'pending_spv', note: 'Registrasi aset baru', updatedAt: new Date().toISOString() }); addToHistory(`TS ${currentUser.name.split(' ')[0]} mengajukan aset ${data.noInv} untuk diverifikasi.`, newId); showToast("Terkirim", "Menunggu Verifikasi SPV.", "success"); }
                 }
                 saveDB(); updateData(); closeModal('toolModal');
             };
@@ -8293,17 +8830,24 @@
         }
 
         function generateServiceNumber() {
+            loadDB();
             const date = new Date();
             const yy = date.getFullYear().toString().slice(-2);
             const mm = String(date.getMonth() + 1).padStart(2, '0');
             const prefix = `SVC-${yy}${mm}-`;
             let maxSeq = 0;
+            const used = new Set();
             (db.serviceTickets || []).forEach(s => {
                 if (s.noService && s.noService.startsWith(prefix)) {
                     const seq = parseInt(s.noService.split('-')[2]);
                     if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
                 }
+                if (s.noService) used.add(normInvKey(s.noService));
             });
+            for (let i = 1; i < 10000; i++) {
+                const candidate = `${prefix}${String(maxSeq + i).padStart(4, '0')}`;
+                if (!used.has(normInvKey(candidate))) return candidate;
+            }
             return `${prefix}${String(maxSeq + 1).padStart(4, '0')}`;
         }
 
@@ -8501,6 +9045,552 @@
             });
         }
 
+        function generateCustomerCode() {
+            loadDB();
+            const date = new Date();
+            const yy = date.getFullYear().toString().slice(-2);
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const prefix = `CUS-${yy}${mm}-`;
+            let maxSeq = 0;
+            (db.customers || []).forEach(c => {
+                if (c.code && c.code.startsWith(prefix)) {
+                    const seq = parseInt(c.code.split('-')[2]);
+                    if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+                }
+            });
+            const used = new Set((db.customers || []).map(c => normInvKey(c.code)).filter(Boolean));
+            for (let i = 1; i < 10000; i++) {
+                const candidate = `${prefix}${String(maxSeq + i).padStart(4, '0')}`;
+                if (!used.has(normInvKey(candidate))) return candidate;
+            }
+            return `${prefix}${String(maxSeq + 1).padStart(4, '0')}`;
+        }
+
+        function findCustomerConflicts(fields, excludeId) {
+            const conflicts = [];
+            (db.customers || []).forEach(c => {
+                if (!c || c.id === excludeId) return;
+                if (fields.code && normInvKey(fields.code) && normInvKey(c.code) === normInvKey(fields.code)) {
+                    conflicts.push({ field: 'code', label: 'Kode Customer', value: fields.code, existing: c.name });
+                }
+                if (fields.name && fields.contact) {
+                    const key = normUserKey(fields.name) + '|' + normPhoneKey(fields.contact);
+                    const cKey = normUserKey(c.name) + '|' + normPhoneKey(c.contact);
+                    if (key && cKey === key) {
+                        conflicts.push({ field: 'name', label: 'Nama + Kontak', value: fields.name, existing: c.name });
+                    }
+                }
+                if (fields.email && normEmailKey(fields.email) && normEmailKey(c.email) === normEmailKey(fields.email)) {
+                    conflicts.push({ field: 'email', label: 'Email', value: fields.email, existing: c.name });
+                }
+            });
+            return conflicts;
+        }
+
+        function validateCustomerForm() {
+            loadDB();
+            const errSpan = document.getElementById('customer-form-error');
+            const submitBtn = document.getElementById('btn-save-customer');
+            if (!errSpan || !submitBtn) return true;
+            const fields = {
+                code: (document.getElementById('cust-code')?.value || '').trim(),
+                name: (document.getElementById('cust-name')?.value || '').trim(),
+                contact: (document.getElementById('cust-contact')?.value || '').trim(),
+                email: (document.getElementById('cust-email')?.value || '').trim()
+            };
+            const excludeId = parseInt(document.getElementById('cust-edit-id')?.value) || null;
+            const conflicts = findCustomerConflicts(fields, excludeId);
+            if (!conflicts.length) {
+                errSpan.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                return true;
+            }
+            const c = conflicts[0];
+            errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh <strong>${c.existing}</strong>.`;
+            errSpan.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+
+        function findCustomerUnitConflicts(fields, excludeId, customerId) {
+            const conflicts = [];
+            const units = db.customerUnits || [];
+            if (fields.artNo && customerId) {
+                const key = normArtKey(fields.artNo);
+                if (key) {
+                    const dup = units.find(u => u && u.id !== excludeId && u.customerId === customerId && normArtKey(u.artNo) === key);
+                    if (dup) conflicts.push({ field: 'artNo', label: 'Art Number', value: fields.artNo, existing: dup.unitName || dup.unitSn || 'unit lain' });
+                }
+            }
+            if (fields.unitSn) {
+                const key = normSnKey(fields.unitSn);
+                if (key) {
+                    const dup = units.find(u => u && u.id !== excludeId && normSnKey(u.unitSn) === key);
+                    if (dup) {
+                        const cust = (db.customers || []).find(c => c.id === dup.customerId);
+                        conflicts.push({ field: 'unitSn', label: 'Serial Number', value: fields.unitSn, existing: dup.unitName || (cust ? cust.name : 'customer lain') });
+                    }
+                }
+            }
+            return conflicts;
+        }
+
+        function validateCustomerUnitForm() {
+            loadDB();
+            const errSpan = document.getElementById('cust-unit-form-error');
+            const submitBtn = document.getElementById('btn-save-cust-unit');
+            if (!errSpan || !submitBtn) return true;
+            const customerId = parseInt(document.getElementById('cust-unit-customer-id')?.value) || selectedCustomerId;
+            const fields = {
+                artNo: (document.getElementById('cust-unit-art')?.value || '').trim(),
+                unitSn: (document.getElementById('cust-unit-sn')?.value || '').trim()
+            };
+            const excludeId = parseInt(document.getElementById('cust-unit-edit-id')?.value) || null;
+            const conflicts = findCustomerUnitConflicts(fields, excludeId, customerId);
+            if (!conflicts.length) {
+                errSpan.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                return true;
+            }
+            const c = conflicts[0];
+            errSpan.innerHTML = `${c.label} <strong>${c.value}</strong> sudah dipakai oleh <strong>${c.existing}</strong>.`;
+            errSpan.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+
+        function custUnitStatusLabel(st) {
+            const map = { active: 'Aktif', in_service: 'Dalam Service', retired: 'Non-Aktif' };
+            return map[st] || st || 'Aktif';
+        }
+        function custUnitStatusBadge(st) {
+            const colors = {
+                active: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-200',
+                in_service: 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border-amber-200',
+                retired: 'bg-gray-100 text-gray-500 dark:bg-lux-800 dark:text-lux-400 border-gray-200'
+            };
+            const cls = colors[st] || colors.active;
+            return `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border whitespace-nowrap ${cls}">${custUnitStatusLabel(st)}</span>`;
+        }
+
+        function renderCustomerMaster() {
+            loadDB();
+            const customers = (db.customers || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            const units = db.customerUnits || [];
+            const searchEl = document.getElementById('search-customers');
+            const q = (searchEl ? searchEl.value : '').toLowerCase();
+
+            const statTotal = document.getElementById('cust-stat-total');
+            const statUnits = document.getElementById('cust-stat-units');
+            const statActive = document.getElementById('cust-stat-active');
+            if (statTotal) statTotal.innerText = customers.length;
+            if (statUnits) statUnits.innerText = units.length;
+            if (statActive) statActive.innerText = customers.filter(c => (c.status || 'active') === 'active').length;
+
+            const container = document.getElementById('customers-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const filtered = customers.filter(c => {
+                const hay = `${c.code || ''} ${c.name || ''} ${c.picName || ''} ${c.contact || ''} ${c.city || ''}`.toLowerCase();
+                return hay.includes(q);
+            });
+
+            if (!filtered.length) {
+                container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Belum ada data customer. Klik Tambah untuk mulai.</td></tr>`;
+            }
+
+            filtered.forEach(c => {
+                const unitCount = units.filter(u => u.customerId === c.id).length;
+                const isSelected = selectedCustomerId === c.id;
+                const rowCls = isSelected ? 'bg-blue-50/80 dark:bg-blue-950/20' : '';
+                container.innerHTML += `
+                    <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition cursor-pointer ${rowCls}" onclick="selectCustomer(${c.id})">
+                        <td class="p-4">
+                            <p class="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">${c.code || '-'}</p>
+                            <p class="font-bold text-[13px] text-gray-900 dark:text-white mt-0.5">${c.name || '-'}</p>
+                            ${c.city ? `<p class="text-[10px] text-gray-500 dark:text-lux-400 mt-0.5">${c.city}</p>` : ''}
+                        </td>
+                        <td class="p-4 text-[12px] font-bold text-gray-700 dark:text-lux-300">${c.picName || '-'}</td>
+                        <td class="p-4 text-[11px] font-mono text-gray-500 dark:text-lux-400">${c.contact || '-'}</td>
+                        <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black">${unitCount}</span></td>
+                        <td class="p-4 text-right" onclick="event.stopPropagation()">
+                            <div class="flex justify-end gap-2">
+                                <button onclick="openCustomerModal(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 hover:bg-blue-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                                <button onclick="deleteCustomer(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+
+            renderCustomerUnitsPanel();
+        }
+
+        function renderCustomerUnitsPanel() {
+            loadDB();
+            const container = document.getElementById('customer-units-container');
+            const subtitle = document.getElementById('cust-units-subtitle');
+            const addBtn = document.getElementById('btn-add-cust-unit');
+            if (!container) return;
+
+            if (!selectedCustomerId) {
+                if (subtitle) subtitle.innerText = 'Pilih customer di kiri untuk melihat unit';
+                if (addBtn) addBtn.disabled = true;
+                container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Pilih customer terlebih dahulu.</td></tr>`;
+                return;
+            }
+
+            const cust = (db.customers || []).find(c => c.id === selectedCustomerId);
+            if (!cust) {
+                selectedCustomerId = null;
+                renderCustomerUnitsPanel();
+                return;
+            }
+
+            if (subtitle) subtitle.innerText = `Unit milik: ${cust.name}`;
+            if (addBtn) addBtn.disabled = false;
+
+            const units = (db.customerUnits || []).filter(u => u.customerId === selectedCustomerId)
+                .sort((a, b) => (a.unitName || '').localeCompare(b.unitName || ''));
+
+            container.innerHTML = '';
+            if (!units.length) {
+                container.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Belum ada unit untuk customer ini.</td></tr>`;
+                return;
+            }
+
+            units.forEach(u => {
+                container.innerHTML += `
+                    <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
+                        <td class="p-4">
+                            <p class="font-bold text-[13px] text-gray-900 dark:text-white">${u.unitName || '-'}</p>
+                            <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">${u.unitSn || '-'}</p>
+                            ${u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500 mt-0.5">${u.artNo}</p>` : ''}
+                        </td>
+                        <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${u.product || '-'}</span></td>
+                        <td class="p-4 text-[11px] text-gray-600 dark:text-lux-400">${u.unitMerk || '-'} / ${u.unitTipe || '-'}</td>
+                        <td class="p-4">${custUnitStatusBadge(u.status || 'active')}</td>
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button onclick="openCustomerUnitModal(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                                <button onclick="deleteCustomerUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        function selectCustomer(id) {
+            selectedCustomerId = id;
+            renderCustomerMaster();
+        }
+
+        function openCustomerModal(editId) {
+            loadDB();
+            document.getElementById('cust-edit-id').value = editId || '';
+            const errSpan = document.getElementById('customer-form-error');
+            if (errSpan) errSpan.classList.add('hidden');
+
+            if (editId) {
+                const c = (db.customers || []).find(x => x.id === editId);
+                if (!c) return;
+                document.getElementById('customer-modal-title').innerHTML = '<i class="fa-solid fa-hospital text-blue-500 mr-2"></i> Edit Customer';
+                document.getElementById('cust-code').value = c.code || '';
+                document.getElementById('cust-name').value = c.name || '';
+                document.getElementById('cust-pic').value = c.picName || '';
+                document.getElementById('cust-contact').value = c.contact || '';
+                document.getElementById('cust-email').value = c.email || '';
+                document.getElementById('cust-city').value = c.city || '';
+                document.getElementById('cust-address').value = c.address || '';
+                document.getElementById('cust-notes').value = c.notes || '';
+            } else {
+                document.getElementById('customer-modal-title').innerHTML = '<i class="fa-solid fa-hospital text-blue-500 mr-2"></i> Tambah Customer';
+                document.getElementById('cust-code').value = generateCustomerCode();
+                document.getElementById('cust-name').value = '';
+                document.getElementById('cust-pic').value = '';
+                document.getElementById('cust-contact').value = '';
+                document.getElementById('cust-email').value = '';
+                document.getElementById('cust-city').value = '';
+                document.getElementById('cust-address').value = '';
+                document.getElementById('cust-notes').value = '';
+            }
+            validateCustomerForm();
+            openModal('customerModal');
+        }
+
+        function submitCustomer(e) {
+            e.preventDefault();
+            loadDB();
+            if (!validateCustomerForm()) return;
+
+            const editId = parseInt(document.getElementById('cust-edit-id').value) || null;
+            const now = new Date().toISOString();
+            const record = {
+                id: editId || allocateUniqueId(),
+                code: document.getElementById('cust-code').value.trim(),
+                name: document.getElementById('cust-name').value.trim(),
+                picName: document.getElementById('cust-pic').value.trim(),
+                contact: document.getElementById('cust-contact').value.trim(),
+                email: document.getElementById('cust-email').value.trim(),
+                city: document.getElementById('cust-city').value.trim(),
+                address: document.getElementById('cust-address').value.trim(),
+                notes: document.getElementById('cust-notes').value.trim(),
+                status: 'active',
+                updatedAt: now
+            };
+
+            db.customers = db.customers || [];
+            if (editId) {
+                const idx = db.customers.findIndex(c => c.id === editId);
+                if (idx >= 0) {
+                    record.status = db.customers[idx].status || 'active';
+                    db.customers[idx] = record;
+                }
+            } else {
+                db.customers.push(record);
+                selectedCustomerId = record.id;
+            }
+
+            addToHistory(`Master Customer: ${editId ? 'Memperbarui' : 'Menambah'} data customer ${record.name} (${record.code}).`);
+            saveDB();
+            updateData();
+            closeModal('customerModal');
+            showToast('Customer Tersimpan', `${record.name} berhasil disimpan.`, 'success');
+        }
+
+        function deleteCustomer(id) {
+            loadDB();
+            const c = (db.customers || []).find(x => x.id === id);
+            if (!c) return;
+
+            const units = (db.customerUnits || []).filter(u => u.customerId === id);
+            const activeSvc = (db.serviceTickets || []).filter(s =>
+                s.customerId === id && !['completed', 'cancelled', 'returned_cust'].includes(s.status)
+            );
+            if (activeSvc.length) {
+                showToast('Tidak Bisa Hapus', `Customer ini masih punya ${activeSvc.length} tiket service aktif.`, 'error');
+                return;
+            }
+            const msg = units.length
+                ? `Hapus customer "${c.name}" beserta ${units.length} unit-nya?`
+                : `Hapus customer "${c.name}"?`;
+            if (!confirm(msg)) return;
+
+            db.customers = (db.customers || []).filter(x => x.id !== id);
+            db.customerUnits = (db.customerUnits || []).filter(u => u.customerId !== id);
+            if (selectedCustomerId === id) selectedCustomerId = null;
+
+            addToHistory(`Master Customer: Menghapus customer ${c.name} (${c.code}).`);
+            saveDB();
+            updateData();
+            showToast('Customer Dihapus', `${c.name} telah dihapus.`, 'success');
+        }
+
+        function openCustomerUnitModal(editId) {
+            loadDB();
+            const customerId = selectedCustomerId;
+            if (!customerId && !editId) {
+                showToast('Pilih Customer', 'Pilih customer terlebih dahulu di panel kiri.', 'warning');
+                return;
+            }
+
+            let custId = customerId;
+            if (editId) {
+                const u = (db.customerUnits || []).find(x => x.id === editId);
+                if (!u) return;
+                custId = u.customerId;
+            }
+
+            const cust = (db.customers || []).find(c => c.id === custId);
+            if (!cust) return;
+
+            document.getElementById('cust-unit-edit-id').value = editId || '';
+            document.getElementById('cust-unit-customer-id').value = custId;
+            document.getElementById('cust-unit-parent-name').innerText = cust.name;
+            const errSpan = document.getElementById('cust-unit-form-error');
+            if (errSpan) errSpan.classList.add('hidden');
+
+            if (editId) {
+                const u = (db.customerUnits || []).find(x => x.id === editId);
+                document.getElementById('cust-unit-modal-title').innerHTML = '<i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Edit Unit Customer';
+                document.getElementById('cust-unit-art').value = u.artNo || '';
+                document.getElementById('cust-unit-product').value = u.product || 'Avitum';
+                document.getElementById('cust-unit-name').value = u.unitName || '';
+                document.getElementById('cust-unit-sn').value = u.unitSn || '';
+                document.getElementById('cust-unit-merk').value = u.unitMerk || '';
+                document.getElementById('cust-unit-tipe').value = u.unitTipe || '';
+                document.getElementById('cust-unit-location').value = u.location || '';
+                document.getElementById('cust-unit-status').value = u.status || 'active';
+                document.getElementById('cust-unit-notes').value = u.notes || '';
+            } else {
+                document.getElementById('cust-unit-modal-title').innerHTML = '<i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Tambah Unit Customer';
+                document.getElementById('cust-unit-art').value = '';
+                document.getElementById('cust-unit-product').value = 'Avitum';
+                document.getElementById('cust-unit-name').value = '';
+                document.getElementById('cust-unit-sn').value = '';
+                document.getElementById('cust-unit-merk').value = '';
+                document.getElementById('cust-unit-tipe').value = '';
+                document.getElementById('cust-unit-location').value = '';
+                document.getElementById('cust-unit-status').value = 'active';
+                document.getElementById('cust-unit-notes').value = '';
+            }
+            validateCustomerUnitForm();
+            openModal('customerUnitModal');
+        }
+
+        function submitCustomerUnit(e) {
+            e.preventDefault();
+            loadDB();
+            if (!validateCustomerUnitForm()) return;
+
+            const editId = parseInt(document.getElementById('cust-unit-edit-id').value) || null;
+            const customerId = parseInt(document.getElementById('cust-unit-customer-id').value);
+            const now = new Date().toISOString();
+            const record = {
+                id: editId || allocateUniqueId(),
+                customerId: customerId,
+                artNo: document.getElementById('cust-unit-art').value.trim(),
+                product: document.getElementById('cust-unit-product').value,
+                unitName: document.getElementById('cust-unit-name').value.trim(),
+                unitSn: document.getElementById('cust-unit-sn').value.trim(),
+                unitMerk: document.getElementById('cust-unit-merk').value.trim(),
+                unitTipe: document.getElementById('cust-unit-tipe').value.trim(),
+                location: document.getElementById('cust-unit-location').value.trim(),
+                status: document.getElementById('cust-unit-status').value || 'active',
+                notes: document.getElementById('cust-unit-notes').value.trim(),
+                updatedAt: now
+            };
+
+            db.customerUnits = db.customerUnits || [];
+            if (editId) {
+                const idx = db.customerUnits.findIndex(u => u.id === editId);
+                if (idx >= 0) db.customerUnits[idx] = record;
+            } else {
+                db.customerUnits.push(record);
+            }
+
+            const cust = (db.customers || []).find(c => c.id === customerId);
+            addToHistory(`Master Customer: ${editId ? 'Memperbarui' : 'Menambah'} unit ${record.unitName} untuk ${cust ? cust.name : 'customer'}.`);
+            saveDB();
+            updateData();
+            closeModal('customerUnitModal');
+            showToast('Unit Tersimpan', `${record.unitName} berhasil disimpan.`, 'success');
+        }
+
+        function deleteCustomerUnit(id) {
+            loadDB();
+            const u = (db.customerUnits || []).find(x => x.id === id);
+            if (!u) return;
+
+            const activeSvc = (db.serviceTickets || []).filter(s =>
+                s.customerUnitId === id && !['completed', 'cancelled', 'returned_cust'].includes(s.status)
+            );
+            if (activeSvc.length) {
+                showToast('Tidak Bisa Hapus', 'Unit ini sedang dalam proses service aktif.', 'error');
+                return;
+            }
+            if (!confirm(`Hapus unit "${u.unitName}"?`)) return;
+
+            db.customerUnits = (db.customerUnits || []).filter(x => x.id !== id);
+            addToHistory(`Master Customer: Menghapus unit ${u.unitName}.`);
+            saveDB();
+            updateData();
+            showToast('Unit Dihapus', `${u.unitName} telah dihapus.`, 'success');
+        }
+
+        function syncCustomerUnitStatus(unitId, status) {
+            if (!unitId) return;
+            loadDB();
+            const u = (db.customerUnits || []).find(x => x.id === unitId);
+            if (u) {
+                u.status = status;
+                u.updatedAt = new Date().toISOString();
+            }
+        }
+
+        function populateServiceCustomerSelects() {
+            loadDB();
+            const custSel = document.getElementById('svc-pick-customer');
+            const unitSel = document.getElementById('svc-pick-unit');
+            if (!custSel) return;
+
+            const customers = (db.customers || [])
+                .filter(c => (c.status || 'active') === 'active')
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+            custSel.innerHTML = '<option value="">-- Manual / Ketik Baru --</option>';
+            customers.forEach(c => {
+                custSel.innerHTML += `<option value="${c.id}">${c.code} — ${c.name}</option>`;
+            });
+
+            if (unitSel) {
+                unitSel.innerHTML = '<option value="">-- Pilih customer dulu --</option>';
+                unitSel.disabled = true;
+            }
+            document.getElementById('svc-linked-customer-id').value = '';
+            document.getElementById('svc-linked-unit-id').value = '';
+        }
+
+        function onPickServiceCustomer() {
+            loadDB();
+            const custId = parseInt(document.getElementById('svc-pick-customer').value) || null;
+            const unitSel = document.getElementById('svc-pick-unit');
+            document.getElementById('svc-linked-customer-id').value = custId || '';
+            document.getElementById('svc-linked-unit-id').value = '';
+
+            if (!custId) {
+                if (unitSel) {
+                    unitSel.innerHTML = '<option value="">-- Pilih customer dulu --</option>';
+                    unitSel.disabled = true;
+                }
+                return;
+            }
+
+            const c = (db.customers || []).find(x => x.id === custId);
+            if (c) {
+                document.getElementById('svc-cust-name').value = c.name || '';
+                document.getElementById('svc-cust-pic').value = c.picName || '';
+                document.getElementById('svc-cust-contact').value = c.contact || '';
+            }
+
+            const units = (db.customerUnits || [])
+                .filter(u => u.customerId === custId && (u.status || 'active') !== 'retired')
+                .sort((a, b) => (a.unitName || '').localeCompare(b.unitName || ''));
+
+            if (unitSel) {
+                unitSel.innerHTML = '<option value="">-- Pilih unit (opsional) --</option>';
+                units.forEach(u => {
+                    const sn = u.unitSn ? ` (${u.unitSn})` : '';
+                    const st = u.status === 'in_service' ? ' [SERVICE]' : '';
+                    unitSel.innerHTML += `<option value="${u.id}">${u.unitName}${sn}${st}</option>`;
+                });
+                unitSel.disabled = false;
+            }
+            checkServiceDuplicate();
+        }
+
+        function onPickServiceUnit() {
+            loadDB();
+            const unitId = parseInt(document.getElementById('svc-pick-unit').value) || null;
+            document.getElementById('svc-linked-unit-id').value = unitId || '';
+            if (!unitId) return;
+
+            const u = (db.customerUnits || []).find(x => x.id === unitId);
+            if (!u) return;
+
+            if (u.artNo) document.getElementById('svc-unit-art-no').value = u.artNo;
+            if (u.product) document.getElementById('svc-unit-product').value = u.product;
+            if (u.unitName) document.getElementById('svc-unit-name').value = u.unitName;
+            if (u.unitSn) document.getElementById('svc-unit-sn').value = u.unitSn;
+            if (u.unitMerk) document.getElementById('svc-unit-merk').value = u.unitMerk;
+            if (u.unitTipe) document.getElementById('svc-unit-tipe').value = u.unitTipe;
+            checkServiceDuplicate();
+        }
+
         function checkDuplicateService(artNo, sn) {
             loadDB();
             const tickets = db.serviceTickets || [];
@@ -8592,7 +9682,16 @@
                 found = (db.demoUnits || []).find(d => (d.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
             }
             
-            // 3. Search in previous serviceTickets if not found
+            // 3. Search in customerUnits if not found
+            if (!found) {
+                const cu = (db.customerUnits || []).find(u => (u.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
+                if (cu) {
+                    const cust = (db.customers || []).find(c => c.id === cu.customerId);
+                    found = { ...cu, unitArtNo: cu.artNo, unitProduct: cu.product, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
+                }
+            }
+
+            // 4. Search in previous serviceTickets if not found
             if (!found) {
                 found = (db.serviceTickets || []).find(s => (s.unitArtNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
             }
@@ -8616,7 +9715,16 @@
                 found = (db.demoUnits || []).find(d => (d.sn || '').toLowerCase() === snVal);
             }
             
-            // 3. Search in previous serviceTickets if not found
+            // 3. Search in customerUnits if not found
+            if (!found) {
+                const cu = (db.customerUnits || []).find(u => (u.unitSn || '').toLowerCase() === snVal);
+                if (cu) {
+                    const cust = (db.customers || []).find(c => c.id === cu.customerId);
+                    found = { ...cu, unitArtNo: cu.artNo, unitProduct: cu.product, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
+                }
+            }
+
+            // 4. Search in previous serviceTickets if not found
             if (!found) {
                 found = (db.serviceTickets || []).find(s => (s.unitSn || '').toLowerCase() === snVal);
             }
@@ -8630,6 +9738,7 @@
         function openServiceModal() {
             loadDB();
             populateServiceTsSelect();
+            populateServiceCustomerSelects();
             document.getElementById('service-id').value = '';
             document.getElementById('svc-cust-name').value = '';
             document.getElementById('svc-cust-pic').value = '';
@@ -8691,9 +9800,14 @@
                 }
             }
 
+            const linkedCustomerId = parseInt(document.getElementById('svc-linked-customer-id').value) || null;
+            const linkedUnitId = parseInt(document.getElementById('svc-linked-unit-id').value) || null;
+
             const newTicket = {
-                id: Date.now(),
+                id: allocateUniqueId(),
                 noService: noSvc,
+                customerId: linkedCustomerId,
+                customerUnitId: linkedUnitId,
                 customerName: document.getElementById('svc-cust-name').value,
                 picName: document.getElementById('svc-cust-pic').value,
                 customerContact: document.getElementById('svc-cust-contact').value,
@@ -8717,6 +9831,7 @@
 
             db.serviceTickets = db.serviceTickets || [];
             db.serviceTickets.push(newTicket);
+            if (linkedUnitId) syncCustomerUnitStatus(linkedUnitId, 'in_service');
 
             addToHistory(`Service Customer Dibuat: Unit ${newTicket.unitName} untuk RS/Customer ${newTicket.customerName} berhasil didaftarkan dengan No. Layanan ${newTicket.noService}.`);
             notifyServiceUpdate(newTicket, 'registered');
@@ -8726,7 +9841,9 @@
 
             const registerAnother = document.getElementById('svc-register-another').checked;
             if (registerAnother) {
-                // Clear only unit-specific fields
+                // Clear only unit-specific fields (customer tetap terpilih)
+                document.getElementById('svc-pick-unit').value = '';
+                document.getElementById('svc-linked-unit-id').value = '';
                 document.getElementById('svc-unit-art-no').value = '';
                 document.getElementById('svc-unit-product').value = '';
                 document.getElementById('svc-unit-name').value = '';
@@ -8734,6 +9851,7 @@
                 document.getElementById('svc-unit-merk').value = '';
                 document.getElementById('svc-unit-tipe').value = '';
                 document.getElementById('svc-complaint').value = '';
+                onPickServiceCustomer();
                 
                 const photoInput = document.getElementById('svc-unit-photo-before');
                 if (photoInput) photoInput.value = '';
@@ -9754,6 +10872,7 @@
             s.signatureDeliveryReceiver = sigReceiver;
             s.signature = sigReceiver; // Fallback for compatibility
             s.status = 'completed';
+            if (s.customerUnitId) syncCustomerUnitStatus(s.customerUnitId, 'active');
             
             const condText = s.toolStatus === 'unrepaired' ? 'Gagal Diperbaiki (Unrepaired)' : 'Selesai Diperbaiki (Repaired)';
 

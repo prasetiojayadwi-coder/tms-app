@@ -110,6 +110,24 @@ def check_html_integrity():
     else:
         ok('Kode legacy handover canvas sudah dibersihkan')
 
+    for fn in ('sanitizeDatabase', 'allocateUniqueId', 'normInvKey', 'findPersonnelConflicts', 'validatePersonnelForm', 'findBackupUnitConflicts', 'validateBackupUnitForm', 'findCustomerConflicts', 'validateCustomerForm', 'findCustomerUnitConflicts', 'validateCustomerUnitForm'):
+        if f'function {fn}' in js:
+            ok(f'Proteksi duplikat: {fn} ada')
+        else:
+            bad(f'Proteksi duplikat hilang: {fn}')
+
+    for cid in ('view-customer-master', 'customerModal', 'customerUnitModal'):
+        if cid in html:
+            ok(f'Master Data Customer: {cid} ada')
+        else:
+            bad(f'Master Data Customer: {cid} hilang')
+
+    for fn in ('renderCustomerMaster', 'populateServiceCustomerSelects', 'onPickServiceCustomer', 'onPickServiceUnit'):
+        if f'function {fn}' in js:
+            ok(f'Master Data Customer: {fn} ada')
+        else:
+            bad(f'Master Data Customer: {fn} hilang')
+
     for cid in ['sig-canvas', 'handover-sig-canvas-giver', 'handover-sig-canvas-receiver']:
         if cid in html:
             ok(f'Canvas {cid} ada')
@@ -131,6 +149,105 @@ def check_html_integrity():
         warn('config.js tidak direferensikan di index.html')
 
 
+def _dup_keys(items, field):
+    seen = {}
+    dups = []
+    for item in items or []:
+        if not isinstance(item, dict):
+            continue
+        val = (item.get(field) or '').strip().lower()
+        if not val or val == '-':
+            continue
+        if val in seen:
+            dups.append(val)
+        else:
+            seen[val] = item.get('id')
+    return dups
+
+
+def audit_cloud_duplicates():
+    import re
+    import json as jsonlib
+    cfg = ROOT / 'config.js'
+    if not cfg.exists():
+        cfg = ROOT / 'config.deploy.js'
+    if not cfg.exists():
+        warn('Tidak bisa audit duplikat cloud — config tidak ada')
+        return
+    text = cfg.read_text(encoding='utf-8')
+    url_m = re.search(r"url:\s*['\"]([^'\"]+)['\"]", text)
+    key_m = re.search(r"anonKey:\s*['\"]([^'\"]+)['\"]", text)
+    if not url_m or not key_m:
+        warn('Format config tidak dikenali — lewati audit duplikat cloud')
+        return
+    base, key = url_m.group(1).strip(), key_m.group(1).strip()
+    req = urllib.request.Request(
+        f'{base.rstrip("/")}/rest/v1/tms_sync?select=db_data&id=eq.1',
+        headers={'apikey': key, 'Authorization': f'Bearer {key}'},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            rows = jsonlib.loads(r.read().decode('utf-8', 'replace'))
+    except Exception as e:
+        warn(f'Audit duplikat cloud gagal: {e}')
+        return
+    if not rows:
+        ok('Cloud kosong — tidak ada duplikat')
+        return
+    data = rows[0].get('db_data') or {}
+    tools = data.get('tools') or []
+    demos = data.get('demoUnits') or []
+    inv_dups = _dup_keys(tools + demos, 'noInv')
+    sn_dups = _dup_keys(tools + demos, 'sn')
+    demo_art_dups = _dup_keys(demos, 'artNo')
+    svc_active = [s for s in (data.get('serviceTickets') or []) if s.get('status') not in ('completed', 'cancelled', 'returned_cust')]
+    svc_sn_dups = _dup_keys(svc_active, 'unitSn')
+    if inv_dups:
+        warn(f'Duplikat No. Inventaris di cloud: {len(inv_dups)} ({", ".join(inv_dups[:3])}...)')
+    else:
+        ok('Cloud: tidak ada duplikat No. Inventaris')
+    if sn_dups:
+        warn(f'Duplikat Serial Number di cloud: {len(sn_dups)} ({", ".join(sn_dups[:3])}...)')
+    else:
+        ok('Cloud: tidak ada duplikat Serial Number aset')
+    if demo_art_dups:
+        warn(f'Duplikat Art Number unit backup di cloud: {len(demo_art_dups)}')
+    else:
+        ok('Cloud: tidak ada duplikat Art Number unit backup')
+    if svc_sn_dups:
+        warn(f'Duplikat SN service aktif di cloud: {len(svc_sn_dups)}')
+    else:
+        ok('Cloud: tidak ada duplikat SN service aktif')
+
+    users = list((data.get('users') or {}).values())
+    user_dups = _dup_keys([{'id': u.get('id'), 'noInv': u.get('user', '')} for u in users if isinstance(u, dict)], 'noInv')
+    nik_dups = _dup_keys([{'id': u.get('id'), 'noInv': u.get('nik', '')} for u in users if isinstance(u, dict)], 'noInv')
+    email_dups = _dup_keys([{'id': u.get('id'), 'noInv': u.get('email', '')} for u in users if isinstance(u, dict)], 'noInv')
+    if user_dups:
+        warn(f'Duplikat username personel di cloud: {len(user_dups)}')
+    else:
+        ok('Cloud: tidak ada duplikat username personel')
+    if nik_dups:
+        warn(f'Duplikat NIK personel di cloud: {len(nik_dups)}')
+    else:
+        ok('Cloud: tidak ada duplikat NIK personel')
+    if email_dups:
+        warn(f'Duplikat email personel di cloud: {len(email_dups)}')
+    else:
+        ok('Cloud: tidak ada duplikat email personel')
+
+    cust_code_dups = _dup_keys(data.get('customers') or [], 'code')
+    cust_sn_dups = _dup_keys(data.get('customerUnits') or [], 'unitSn')
+    if cust_code_dups:
+        warn(f'Duplikat kode customer di cloud: {len(cust_code_dups)}')
+    else:
+        ok('Cloud: tidak ada duplikat kode customer')
+    if cust_sn_dups:
+        warn(f'Duplikat SN unit customer di cloud: {len(cust_sn_dups)}')
+    else:
+        ok('Cloud: tidak ada duplikat SN unit customer')
+
+
 def check_cloud():
     print('\n== Cloud / Online ==')
     deploy = ROOT / 'config.deploy.js'
@@ -150,6 +267,8 @@ def check_cloud():
                 warn(f'Aplikasi online tidak normal (HTTP {r.status})')
     except Exception as e:
         warn(f'Tidak bisa cek deploy online: {e}')
+
+    audit_cloud_duplicates()
 
 
 def check_server():
