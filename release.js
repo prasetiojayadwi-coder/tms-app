@@ -3,15 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '6.8.6',
-    build: 81,
+    version: '6.8.7',
+    build: 82,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'Tampilan HP — toolbar & kartu tombol seragam, palet elegan monokrom.',
+    summary: 'Perbaikan freeze Sparepart Master di HP + render cepat & UI toolbar mobile.',
     changes: [
-        { icon: 'fa-mobile-screen', text: 'Customer & Sparepart Master: grid toolbar rapi di HP' },
-        { icon: 'fa-palette', text: 'Tombol seragam — primary gelap/terang, outline & ghost netral' },
-        { icon: 'fa-layer-group', text: 'Aksi kartu mobile: Edit/Units/Delete tanpa warna-warni' },
-        { icon: 'fa-chart-simple', text: 'Statistik & judul section: tone netral di mobile' }
+        { icon: 'fa-bolt', text: 'Sparepart Master: render sekali (bukan loop innerHTML) — tidak freeze di HP' },
+        { icon: 'fa-mobile-screen', text: 'HP hanya render kartu; desktop hanya tabel — hemat memori' },
+        { icon: 'fa-list', text: 'Pagination 60 item + tombol Tampilkan Lagi untuk katalog besar' },
+        { icon: 'fa-table-columns', text: 'Toolbar mobile Customer/Sparepart: class grid benar-benar aktif' }
     ]
 };

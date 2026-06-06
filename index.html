@@ -148,6 +148,18 @@
                 background-image: none !important;
                 box-shadow: none !important;
             }
+
+            .tms-list-loading {
+                padding: 2.5rem 1rem;
+                text-align: center;
+                font-size: 11px;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #71717a;
+            }
+            .dark .tms-list-loading { color: #a1a1aa; }
+            #spareparts-cards-mobile { max-height: min(70vh, 640px); -webkit-overflow-scrolling: touch; }
         }
         .cust-master-cb {
             accent-color: #eab308;
@@ -940,10 +952,10 @@
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Units</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-units">0</p></div>
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1 max-md:text-gray-900 max-md:dark:text-white" id="cust-stat-active">0</p></div>
                     </div>
-                    <div class="flex flex-wrap gap-2 mt-4 max-md:tms-mob-toolbar max-md:tms-mob-toolbar--2">
+                    <div class="flex flex-wrap gap-2 mt-4 tms-mob-toolbar tms-mob-toolbar--2">
                         <button onclick="openBatchImportModal('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline flex-1 sm:flex-none md:bg-indigo-600 md:hover:bg-indigo-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
                         <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline flex-1 sm:flex-none md:bg-indigo-500 md:hover:bg-indigo-600 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
-                        <button onclick="downloadBatchTemplate('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline max-md:tms-mob-toolbar--span2 flex-1 sm:flex-none md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-gray-700 md:dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                        <button onclick="downloadBatchTemplate('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline tms-mob-toolbar--span2 flex-1 sm:flex-none md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-gray-700 md:dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
                     </div>
                 </div>
 
@@ -958,7 +970,7 @@
                             <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-building text-blue-500 mr-2"></i> Customer / Hospital Data</h3>
                             <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap max-md:gap-2">
                                 <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 min-w-[180px] max-md:w-full text-[12px]" placeholder="Search customer, PIC, city...">
-                                <div class="flex flex-wrap gap-2 sm:items-center max-md:tms-mob-toolbar max-md:tms-mob-toolbar--3 max-md:w-full">
+                                <div class="flex flex-wrap gap-2 sm:items-center tms-mob-toolbar tms-mob-toolbar--3 w-full md:w-auto">
                                     <label id="cust-select-all-wrap" class="hidden cust-touch-btn tms-mob-select-all md:inline-flex md:items-center md:gap-2 md:px-4 md:py-3 md:rounded-xl md:border md:border-gray-200 md:dark:border-lux-600 md:bg-gray-50 md:dark:bg-lux-800 cursor-pointer select-none">
                                         <input type="checkbox" id="select-all-customers-bar" onchange="toggleSelectAllCustomers(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
                                         <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
@@ -984,7 +996,7 @@
                                 <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Customer Units</h3>
                                 <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer to view units</p>
                             </div>
-                            <div class="flex flex-wrap gap-2 items-center max-md:tms-mob-toolbar max-md:tms-mob-toolbar--3 max-md:w-full">
+                            <div class="flex flex-wrap gap-2 items-center tms-mob-toolbar tms-mob-toolbar--3 w-full md:w-auto">
                                 <label id="cust-units-select-all-wrap" class="hidden cust-touch-btn tms-mob-select-all md:inline-flex md:items-center md:gap-2 md:px-4 md:py-3 md:rounded-xl md:border md:border-gray-200 md:dark:border-lux-600 md:bg-gray-50 md:dark:bg-lux-800 cursor-pointer select-none">
                                     <input type="checkbox" id="select-all-cust-units-bar" onchange="toggleSelectAllCustomerUnits(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
@@ -1018,7 +1030,7 @@
                     </div>
                     <div class="max-md:space-y-2 mt-4">
                         <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field w-full md:flex-1 md:min-w-[200px] text-[12px]" placeholder="Search Art Number, Description, Group...">
-                        <div class="flex flex-wrap gap-2 max-md:tms-mob-toolbar max-md:tms-mob-toolbar--2">
+                        <div class="flex flex-wrap gap-2 tms-mob-toolbar tms-mob-toolbar--2">
                             <button onclick="openSparepartModal()" class="cust-touch-btn tms-mob-btn tms-mob-btn--primary md:bg-violet-600 md:hover:bg-violet-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
                             <button onclick="openBatchImportModal('sparepart')" data-batch-type="sparepart" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-indigo-600 md:hover:bg-indigo-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
                             <button onclick="downloadBatchTemplate('sparepart')" data-batch-type="sparepart" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-gray-700 md:dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
@@ -4674,7 +4686,7 @@
             } 
         });
 
-        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sphDetailActiveId = null; let _sphArtSuggestTimer = null; let _sphArtSuggestActive = null; let _sphCustPickData = null;
+        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sparepartRenderLimit = 0; let _sparepartRenderGen = 0; const SPAREPART_PAGE_SIZE = { mobile: 60, desktop: 200 }; let _sphDetailActiveId = null; let _sphArtSuggestTimer = null; let _sphArtSuggestActive = null; let _sphCustPickData = null;
         const TMS_SPAREPART_GROUPS = ['Avitum', 'Hospital Care', 'Aesculap', 'General'];
         const TMS_SPAREPART_STATUSES = ['active', 'discontinued', 'obsolete'];
         let knownRequestIds = null;
@@ -10269,7 +10281,7 @@
                 renderCustomerMaster();
                 if (activeTab === 'customer-service') renderServiceTickets();
             }
-            if (_batchImportType === 'sparepart') renderSparepartMaster();
+            if (_batchImportType === 'sparepart') renderSparepartMaster(true);
             if (btn) btn.innerText = 'Import Data';
         }
 
@@ -10842,9 +10854,20 @@
             showToast('SPH Cancelled', `${sph.sphNo} telah dibatalkan.`, 'success');
         }
 
+        const SP_FILTER_BTN_IDS = { all: 'flt-sp-all', Avitum: 'flt-sp-Avitum', 'Hospital Care': 'flt-sp-HospitalCare', Aesculap: 'flt-sp-Aesculap', General: 'flt-sp-General' };
+
+        function isTmsMobileView() {
+            return window.matchMedia('(max-width: 767px)').matches;
+        }
+
+        function tmsEscHtml(s) {
+            if (s == null || s === '') return '';
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
         function debouncedRenderSparepartMaster() {
             clearTimeout(_sparepartSearchTimer);
-            _sparepartSearchTimer = setTimeout(renderSparepartMaster, 200);
+            _sparepartSearchTimer = setTimeout(() => renderSparepartMaster(true), 200);
         }
 
         function setSparepartFilter(filter) {
@@ -10852,10 +10875,58 @@
             document.querySelectorAll('.sp-filter-btn').forEach(btn => {
                 btn.className = 'sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap hover:bg-gray-200 dark:hover:bg-lux-700 transition';
             });
-            const id = filter === 'all' ? 'flt-sp-all' : 'flt-sp-' + filter.replace(/\s/g, '');
-            const active = document.getElementById(id);
+            const active = document.getElementById(SP_FILTER_BTN_IDS[filter] || ('flt-sp-' + filter.replace(/\s/g, '')));
             if (active) active.className = 'sp-filter-btn px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap shadow-md transition';
-            renderSparepartMaster();
+            renderSparepartMaster(true);
+        }
+
+        function loadMoreSpareparts() {
+            const step = isTmsMobileView() ? SPAREPART_PAGE_SIZE.mobile : SPAREPART_PAGE_SIZE.desktop;
+            _sparepartRenderLimit += step;
+            renderSparepartMaster(false);
+        }
+
+        function buildSparepartRowHtml(sp, stColors) {
+            const art = tmsEscHtml(sp.artNo);
+            const desc = tmsEscHtml(sp.description);
+            const grp = tmsEscHtml(sp.group || 'General');
+            const st = sp.status || 'active';
+            const price = (sp.price || 0).toLocaleString('id-ID');
+            return `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
+                <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${art}</td>
+                <td class="p-4 text-[12px] font-bold text-gray-900 dark:text-white">${desc}</td>
+                <td class="p-4 font-mono text-[11px] text-gray-900 dark:text-white">Rp ${price}</td>
+                <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${grp}</span></td>
+                <td class="p-4"><span class="text-[10px] font-black uppercase ${stColors[st] || ''}">${st}</span></td>
+                <td class="p-4 text-right"><div class="flex justify-end gap-2">
+                    <button onclick="openSparepartModal(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-violet-500 hover:bg-violet-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                    <button onclick="deleteSparepart(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                </div></td></tr>`;
+        }
+
+        function buildSparepartCardHtml(sp, stColors) {
+            const art = tmsEscHtml(sp.artNo);
+            const desc = tmsEscHtml(sp.description || '-');
+            const grp = tmsEscHtml(sp.group || 'General');
+            const st = sp.status || 'active';
+            const price = (sp.price || 0).toLocaleString('id-ID');
+            return `<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
+                <div class="flex justify-between items-start gap-2">
+                    <div class="min-w-0 flex-1">
+                        <p class="font-mono text-[11px] font-bold text-gray-600 dark:text-lux-300">${art}</p>
+                        <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug mt-0.5">${desc}</p>
+                        <p class="text-[11px] font-mono text-gray-600 dark:text-lux-300 mt-1">Rp ${price}</p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                        <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${grp}</span>
+                        <p class="text-[9px] font-black uppercase mt-2 ${stColors[st] || ''}">${st}</p>
+                    </div>
+                </div>
+                <div class="tms-mob-card-actions">
+                    <button onclick="openSparepartModal(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                    <button onclick="deleteSparepart(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                </div>
+            </div>`;
         }
 
         function getLinkedCustomerUnits(units, customers) {
@@ -10865,66 +10936,88 @@
             return unitList.filter(u => u && custIds.has(u.customerId));
         }
 
-        function renderSparepartMaster() {
+        function renderSparepartMaster(resetLimit) {
+            const gen = ++_sparepartRenderGen;
+            if (resetLimit) _sparepartRenderLimit = 0;
+            const cardsMobile = document.getElementById('spareparts-cards-mobile');
+            if (isTmsMobileView() && cardsMobile && activeTab === 'sparepart-master') {
+                cardsMobile.innerHTML = '<div class="tms-list-loading"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat sparepart...</div>';
+            }
+            requestAnimationFrame(() => {
+                if (gen !== _sparepartRenderGen || activeTab !== 'sparepart-master') return;
+                _renderSparepartMasterImpl(gen, resetLimit);
+            });
+        }
+
+        function _renderSparepartMasterImpl(gen, resetLimit) {
+            if (gen !== _sparepartRenderGen || activeTab !== 'sparepart-master') return;
             loadDB();
-            const items = (db.spareparts || []).slice();
+            if (gen !== _sparepartRenderGen) return;
+
+            const items = db.spareparts || [];
             const q = (document.getElementById('search-spareparts')?.value || '').toLowerCase();
+            let activeCount = 0, discCount = 0;
+            for (let i = 0; i < items.length; i++) {
+                const st = items[i].status;
+                if (st === 'active') activeCount++;
+                else if (st === 'discontinued') discCount++;
+            }
             const statTotal = document.getElementById('sp-stat-total');
             const statActive = document.getElementById('sp-stat-active');
             const statDisc = document.getElementById('sp-stat-disc');
             if (statTotal) statTotal.innerText = items.length;
-            if (statActive) statActive.innerText = items.filter(s => s.status === 'active').length;
-            if (statDisc) statDisc.innerText = items.filter(s => s.status === 'discontinued').length;
+            if (statActive) statActive.innerText = activeCount;
+            if (statDisc) statDisc.innerText = discCount;
+
             const container = document.getElementById('spareparts-container');
             const cardsMobile = document.getElementById('spareparts-cards-mobile');
             if (!container) return;
-            container.innerHTML = '';
-            if (cardsMobile) cardsMobile.innerHTML = '';
-            const filtered = items.filter(sp => {
+
+            const filtered = [];
+            for (let i = 0; i < items.length; i++) {
+                const sp = items[i];
+                if (!sp) continue;
                 const hay = `${sp.artNo || ''} ${sp.description || ''} ${sp.group || ''}`.toLowerCase();
-                const matchQ = hay.includes(q);
-                const matchF = currentSparepartFilter === 'all' || sp.group === currentSparepartFilter;
-                return matchQ && matchF;
-            }).sort((a, b) => (a.artNo || '').localeCompare(b.artNo || ''));
+                if (!hay.includes(q)) continue;
+                if (currentSparepartFilter !== 'all' && sp.group !== currentSparepartFilter) continue;
+                filtered.push(sp);
+            }
+            filtered.sort((a, b) => (a.artNo || '').localeCompare(b.artNo || ''));
+
+            const isMobile = isTmsMobileView();
+            const pageSize = isMobile ? SPAREPART_PAGE_SIZE.mobile : SPAREPART_PAGE_SIZE.desktop;
+            if (!_sparepartRenderLimit) _sparepartRenderLimit = pageSize;
+            const slice = filtered.slice(0, _sparepartRenderLimit);
+            const remaining = filtered.length - slice.length;
+
             const emptyMsg = '<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No spareparts yet. Add or import from Excel.</p>';
             if (!filtered.length) {
                 container.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No spareparts yet. Add or import from Excel.</td></tr>';
                 if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
                 return;
             }
+
             const stColors = { active: 'text-emerald-600 dark:text-emerald-400', discontinued: 'text-amber-600 dark:text-amber-400', obsolete: 'text-red-500' };
-            filtered.forEach(sp => {
-                const row = `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
-                    <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</td>
-                    <td class="p-4 text-[12px] font-bold text-gray-900 dark:text-white">${sp.description}</td>
-                    <td class="p-4 font-mono text-[11px] text-gray-900 dark:text-white">Rp ${(sp.price || 0).toLocaleString('id-ID')}</td>
-                    <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${sp.group || 'General'}</span></td>
-                    <td class="p-4"><span class="text-[10px] font-black uppercase ${stColors[sp.status] || ''}">${sp.status || 'active'}</span></td>
-                    <td class="p-4 text-right"><div class="flex justify-end gap-2">
-                        <button onclick="openSparepartModal(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-violet-500 hover:bg-violet-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                        <button onclick="deleteSparepart(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
-                    </div></td></tr>`;
-                container.innerHTML += row;
+            const moreStep = Math.min(remaining, pageSize);
+            const moreLabel = `Tampilkan ${moreStep} lagi (${remaining} tersisa)`;
+
+            if (isMobile) {
+                container.innerHTML = '';
                 if (cardsMobile) {
-                    cardsMobile.innerHTML += `<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
-                        <div class="flex justify-between items-start gap-2">
-                            <div class="min-w-0 flex-1">
-                                <p class="font-mono text-[11px] font-bold text-gray-600 dark:text-lux-300">${sp.artNo}</p>
-                                <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug mt-0.5">${sp.description || '-'}</p>
-                                <p class="text-[11px] font-mono text-gray-600 dark:text-lux-300 mt-1">Rp ${(sp.price || 0).toLocaleString('id-ID')}</p>
-                            </div>
-                            <div class="shrink-0 text-right">
-                                <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${sp.group || 'General'}</span>
-                                <p class="text-[9px] font-black uppercase mt-2 ${stColors[sp.status] || ''}">${sp.status || 'active'}</p>
-                            </div>
-                        </div>
-                        <div class="tms-mob-card-actions">
-                            <button onclick="openSparepartModal(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                            <button onclick="deleteSparepart(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
-                        </div>
-                    </div>`;
+                    const cardsHtml = slice.map(sp => buildSparepartCardHtml(sp, stColors)).join('');
+                    const moreBtn = remaining > 0
+                        ? `<div class="p-4 text-center border-t border-gray-100 dark:border-lux-800/60 sticky bottom-0 bg-white dark:bg-lux-900"><button type="button" onclick="loadMoreSpareparts()" class="tms-mob-btn tms-mob-btn--outline w-full">${moreLabel}</button></div>`
+                        : (filtered.length > pageSize ? `<p class="p-3 text-center text-[10px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest">${filtered.length} sparepart ditampilkan</p>` : '');
+                    cardsMobile.innerHTML = cardsHtml + moreBtn;
                 }
-            });
+            } else {
+                if (cardsMobile) cardsMobile.innerHTML = '';
+                const rowsHtml = slice.map(sp => buildSparepartRowHtml(sp, stColors)).join('');
+                const moreRow = remaining > 0
+                    ? `<tr><td colspan="6" class="p-4 text-center"><button type="button" onclick="loadMoreSpareparts()" class="px-4 py-2 rounded-xl bg-gray-100 dark:bg-lux-800 text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-lux-700 transition">${moreLabel}</button></td></tr>`
+                    : '';
+                container.innerHTML = rowsHtml + moreRow;
+            }
         }
 
         function openSparepartModal(editId) {
@@ -11241,47 +11334,57 @@
                 if (selectAllCustWrap) selectAllCustWrap.classList.remove('hidden');
             }
 
+            const unitCountByCust = new Map();
+            units.forEach(u => {
+                if (u && u.customerId) unitCountByCust.set(u.customerId, (unitCountByCust.get(u.customerId) || 0) + 1);
+            });
+            const isMobile = isTmsMobileView();
+            const custRows = [];
+            const custCards = [];
             filtered.forEach(c => {
-                const unitCount = units.filter(u => u.customerId === c.id).length;
+                const unitCount = unitCountByCust.get(c.id) || 0;
                 const isSelected = selectedCustomerId === c.id;
                 const rowCls = isSelected ? 'bg-blue-50/80 dark:bg-blue-950/20' : '';
                 const cardCls = isSelected ? 'bg-blue-50/80 dark:bg-blue-950/20 border-l-4 border-l-blue-500' : '';
-                container.innerHTML += `
-                    <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition cursor-pointer ${rowCls}" onclick="selectCustomer(${c.id})">
+                const code = tmsEscHtml(c.code || '-');
+                const name = tmsEscHtml(c.name || '-');
+                const pic = tmsEscHtml(c.picName || '-');
+                const contact = tmsEscHtml(c.contact || '-');
+                const city = c.city ? `<p class="text-[10px] text-gray-500 dark:text-lux-400 mt-0.5">${tmsEscHtml(c.city)}</p>` : '';
+                const cityCard = c.city ? `<p class="text-[10px] text-gray-400 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>${tmsEscHtml(c.city)}</p>` : '';
+                if (!isMobile) {
+                    custRows.push(`<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition cursor-pointer ${rowCls}" onclick="selectCustomer(${c.id})">
                         <td class="p-4 text-center" onclick="event.stopPropagation()"><input type="checkbox" value="${c.id}" onchange="syncCustMasterSelectAllState('customers')" class="cust-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
-                        <td class="p-4">
-                            <p class="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">${c.code || '-'}</p>
-                            <p class="font-bold text-[13px] text-gray-900 dark:text-white mt-0.5">${c.name || '-'}</p>
-                            ${c.city ? `<p class="text-[10px] text-gray-500 dark:text-lux-400 mt-0.5">${c.city}</p>` : ''}
-                        </td>
-                        <td class="p-4 text-[12px] font-bold text-gray-700 dark:text-lux-300">${c.picName || '-'}</td>
-                        <td class="p-4 text-[11px] font-mono text-gray-500 dark:text-lux-400">${c.contact || '-'}</td>
+                        <td class="p-4"><p class="font-mono text-[11px] font-bold text-blue-600 dark:text-blue-400">${code}</p><p class="font-bold text-[13px] text-gray-900 dark:text-white mt-0.5">${name}</p>${city}</td>
+                        <td class="p-4 text-[12px] font-bold text-gray-700 dark:text-lux-300">${pic}</td>
+                        <td class="p-4 text-[11px] font-mono text-gray-500 dark:text-lux-400">${contact}</td>
                         <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black">${unitCount}</span></td>
-                        <td class="p-4 text-right" onclick="event.stopPropagation()">
-                            <button onclick="openCustomerModal(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 hover:bg-blue-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                        </td>
-                    </tr>`;
+                        <td class="p-4 text-right" onclick="event.stopPropagation()"><button onclick="openCustomerModal(${c.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 hover:bg-blue-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button></td>
+                    </tr>`);
+                }
                 if (cardsMobile) {
-                    cardsMobile.innerHTML += `
-                        <div class="p-4 transition cursor-pointer ${cardCls}" onclick="selectCustomerAndShowUnits(${c.id})">
-                            <div class="flex justify-between items-start gap-3">
-                                <input type="checkbox" value="${c.id}" onchange="syncCustMasterSelectAllState('customers')" class="cust-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-mono text-[10px] font-bold text-gray-500 dark:text-lux-400">${c.code || '-'}</p>
-                                    <p class="font-bold text-[15px] text-gray-900 dark:text-white leading-snug">${c.name || '-'}</p>
-                                    <p class="text-[11px] text-gray-600 dark:text-lux-400 mt-1"><i class="fa-solid fa-user mr-1 opacity-60"></i>${c.picName || '-'}</p>
-                                    <p class="text-[11px] font-mono text-gray-500 dark:text-lux-500 mt-0.5">${c.contact || '-'}</p>
-                                    ${c.city ? `<p class="text-[10px] text-gray-400 mt-1"><i class="fa-solid fa-location-dot mr-1"></i>${c.city}</p>` : ''}
-                                </div>
-                                <span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black shrink-0">${unitCount} unit</span>
+                    custCards.push(`<div class="p-4 transition cursor-pointer ${cardCls}" onclick="selectCustomerAndShowUnits(${c.id})">
+                        <div class="flex justify-between items-start gap-3">
+                            <input type="checkbox" value="${c.id}" onchange="syncCustMasterSelectAllState('customers')" class="cust-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
+                            <div class="min-w-0 flex-1">
+                                <p class="font-mono text-[10px] font-bold text-gray-500 dark:text-lux-400">${code}</p>
+                                <p class="font-bold text-[15px] text-gray-900 dark:text-white leading-snug">${name}</p>
+                                <p class="text-[11px] text-gray-600 dark:text-lux-400 mt-1"><i class="fa-solid fa-user mr-1 opacity-60"></i>${pic}</p>
+                                <p class="text-[11px] font-mono text-gray-500 dark:text-lux-500 mt-0.5">${contact}</p>
+                                ${cityCard}
                             </div>
-                            <div class="tms-mob-card-actions" onclick="event.stopPropagation()">
-                                <button onclick="openCustomerModal(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                                <button onclick="selectCustomerAndShowUnits(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
-                            </div>
-                        </div>`;
+                            <span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black shrink-0">${unitCount} unit</span>
+                        </div>
+                        <div class="tms-mob-card-actions" onclick="event.stopPropagation()">
+                            <button onclick="openCustomerModal(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                            <button onclick="selectCustomerAndShowUnits(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
+                        </div>
+                    </div>`);
                 }
             });
+            if (!isMobile) container.innerHTML += custRows.join('');
+            else container.innerHTML = '';
+            if (cardsMobile && custCards.length) cardsMobile.innerHTML = custCards.join('');
 
             setCustMasterMobileTab(custMasterMobileTab);
             renderCustomerUnitsPanel();
@@ -11344,50 +11447,63 @@
             if (selectAllUnitsWrap) selectAllUnitsWrap.classList.remove('hidden');
 
             if (!_svcHistoryIndex) buildServiceHistoryIndex();
-            units.forEach(u => {
+            const isMobile = isTmsMobileView();
+            const unitCap = isMobile ? 80 : units.length;
+            const unitSlice = units.slice(0, unitCap);
+            const unitRemaining = units.length - unitSlice.length;
+            const unitRows = [];
+            const unitCards = [];
+            unitSlice.forEach(u => {
                 const svcCount = getUnitServiceHistory(u.id, u.customerId, u.artNo, u.unitSn).length;
                 const svcBadge = svcCount ? `<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/30 text-[8px] font-black text-amber-700 dark:text-amber-400" title="Service history">${svcCount}x svc</span>` : '';
-                container.innerHTML += `
-                    <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
+                const unitName = tmsEscHtml(u.unitName || '-');
+                const unitSn = tmsEscHtml(u.unitSn || '-');
+                const artNo = u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500 mt-0.5">${tmsEscHtml(u.artNo)}</p>` : '';
+                const artNoCard = u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500">Art: ${tmsEscHtml(u.artNo)}</p>` : '';
+                const location = tmsEscHtml(u.location || '-');
+                const locationCard = u.location ? `<p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1"><i class="fa-solid fa-location-dot mr-1 opacity-60"></i>${location}</p>` : '';
+                const product = tmsEscHtml(u.product || '-');
+                const statusBadge = custUnitStatusBadge(u.status || 'active');
+                if (!isMobile) {
+                    unitRows.push(`<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
                         <td class="p-4 text-center" onclick="event.stopPropagation()"><input type="checkbox" value="${u.id}" onchange="syncCustMasterSelectAllState('units')" class="cust-unit-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
-                        <td class="p-4">
-                            <p class="font-bold text-[13px] text-gray-900 dark:text-white">${u.unitName || '-'}${svcBadge}</p>
-                            <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">${u.unitSn || '-'}</p>
-                            ${u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500 mt-0.5">${u.artNo}</p>` : ''}
-                        </td>
-                        <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${u.product || '-'}</span></td>
-                        <td class="p-4 text-[11px] text-gray-600 dark:text-lux-400">${u.location || '-'}</td>
-                        <td class="p-4">${custUnitStatusBadge(u.status || 'active')}</td>
-                        <td class="p-4 text-right">
-                            <div class="flex justify-end gap-2">
-                                <button onclick="openServiceModalForUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 hover:bg-gold-500 hover:text-white transition flex items-center justify-center" title="Register Service"><i class="fa-solid fa-screwdriver-wrench text-[10px]"></i></button>
-                                <button onclick="openCustomerUnitModal(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                            </div>
-                        </td>
-                    </tr>`;
+                        <td class="p-4"><p class="font-bold text-[13px] text-gray-900 dark:text-white">${unitName}${svcBadge}</p><p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">${unitSn}</p>${artNo}</td>
+                        <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${product}</span></td>
+                        <td class="p-4 text-[11px] text-gray-600 dark:text-lux-400">${location}</td>
+                        <td class="p-4">${statusBadge}</td>
+                        <td class="p-4 text-right"><div class="flex justify-end gap-2">
+                            <button onclick="openServiceModalForUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 hover:bg-gold-500 hover:text-white transition flex items-center justify-center" title="Register Service"><i class="fa-solid fa-screwdriver-wrench text-[10px]"></i></button>
+                            <button onclick="openCustomerUnitModal(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                        </div></td></tr>`);
+                }
                 if (cardsMobile) {
-                    cardsMobile.innerHTML += `
-                        <div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
-                            <div class="flex justify-between items-start gap-2">
-                                <input type="checkbox" value="${u.id}" onchange="syncCustMasterSelectAllState('units')" class="cust-unit-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
-                                <div class="min-w-0 flex-1">
-                                    <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug">${u.unitName || '-'}${svcBadge}</p>
-                                    <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">SN: ${u.unitSn || '-'}</p>
-                                    ${u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500">Art: ${u.artNo}</p>` : ''}
-                                    ${u.location ? `<p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1"><i class="fa-solid fa-location-dot mr-1 opacity-60"></i>${u.location}</p>` : ''}
-                                </div>
-                                <div class="shrink-0 text-right">
-                                    <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${u.product || '-'}</span>
-                                    <div class="mt-2">${custUnitStatusBadge(u.status || 'active')}</div>
-                                </div>
+                    unitCards.push(`<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
+                        <div class="flex justify-between items-start gap-2">
+                            <input type="checkbox" value="${u.id}" onchange="syncCustMasterSelectAllState('units')" class="cust-unit-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
+                            <div class="min-w-0 flex-1">
+                                <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug">${unitName}${svcBadge}</p>
+                                <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">SN: ${unitSn}</p>
+                                ${artNoCard}${locationCard}
                             </div>
-                            <div class="tms-mob-card-actions">
-                                <button onclick="openServiceModalForUnit(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
-                                <button onclick="openCustomerUnitModal(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                            <div class="shrink-0 text-right">
+                                <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${product}</span>
+                                <div class="mt-2">${statusBadge}</div>
                             </div>
-                        </div>`;
+                        </div>
+                        <div class="tms-mob-card-actions">
+                            <button onclick="openServiceModalForUnit(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
+                            <button onclick="openCustomerUnitModal(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                        </div>
+                    </div>`);
                 }
             });
+            const moreUnitsHint = unitRemaining > 0
+                ? `<p class="p-4 text-center text-[10px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest border-t border-gray-100 dark:border-lux-800/60">${unitSlice.length} dari ${units.length} unit — gunakan pencarian atau buka di desktop untuk daftar lengkap</p>`
+                : '';
+            if (!isMobile) container.innerHTML = unitRows.join('');
+            else container.innerHTML = '';
+            if (cardsMobile) cardsMobile.innerHTML = unitCards.join('') + moreUnitsHint;
+            else if (!isMobile && unitRemaining > 0) container.innerHTML += `<tr><td colspan="6" class="p-4 text-center text-[10px] text-gray-400 italic">${unitSlice.length} dari ${units.length} unit ditampilkan</td></tr>`;
         }
 
         function selectCustomer(id) {

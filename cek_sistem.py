@@ -239,6 +239,12 @@ def check_html_integrity():
         ok('Mobile UI: toolbar & kartu tombol seragam (tms-mob)')
     else:
         bad('Mobile UI: tms-mob toolbar tidak lengkap')
+    if ('loadMoreSpareparts' in js and 'buildSparepartCardHtml' in js
+            and '_renderSparepartMasterImpl' in js and 'isTmsMobileView' in js
+            and 'max-md:tms-mob-toolbar' not in html):
+        ok('Performa HP: Sparepart Master render batch + pagination (anti-freeze)')
+    else:
+        bad('Performa HP: optimasi render Sparepart Master tidak lengkap')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:
