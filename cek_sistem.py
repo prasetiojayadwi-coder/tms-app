@@ -311,6 +311,10 @@ def check_html_integrity():
         ok('Service Pickup: findServiceTicket + actionServiceTicket global')
     else:
         bad('Service Pickup: findServiceTicket / actionServiceTicket tidak lengkap')
+    if 'function getDbUser' in js and 'function resolveTicketAssignedTsId' in js and 'function isAssignedServiceTs' in js:
+        ok('Service PJ: getDbUser + resolveTicketAssignedTsId + isAssignedServiceTs')
+    else:
+        bad('Service PJ: resolver teknisi penanggung jawab tidak lengkap')
     if (
         'actionServiceTicket(${sid}' in js
         or "onclick=\"actionServiceTicket(" in js

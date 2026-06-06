@@ -3882,6 +3882,58 @@
             const p = (v || '').replace(/\D/g, '');
             return p.length >= 8 ? p : '';
         }
+        function getDbUser(id) {
+            if (id == null || id === '' || id === 0) return null;
+            const users = db.users || {};
+            const n = Number(id);
+            if (!isNaN(n) && users[n]) return users[n];
+            const sk = String(id);
+            if (users[sk]) return users[sk];
+            return Object.values(users).find(u => u && Number(u.id) === n) || null;
+        }
+        function resolveTicketAssignedTsId(s, users) {
+            if (!s) return null;
+            const map = users || db.users || {};
+            const getU = (id) => {
+                if (id == null || id === '' || id === 0) return null;
+                const n = Number(id);
+                if (!isNaN(n) && map[n]) return map[n];
+                if (map[String(id)]) return map[String(id)];
+                return Object.values(map).find(u => u && Number(u.id) === n) || null;
+            };
+            let u = getU(s.assignedTsId);
+            if (u && u.role === 'ts' && u.status !== 'suspended' && u.status !== 'disabled') {
+                return Number(u.id);
+            }
+            const hints = [s.assignedTsName, s.assignedTsUser].filter(Boolean);
+            for (const hint of hints) {
+                const nk = normUserKey(hint);
+                if (!nk) continue;
+                u = Object.values(map).find(x =>
+                    x && x.role === 'ts' && x.status === 'active' &&
+                    (normUserKey(x.name) === nk || normUserKey(x.user) === nk)
+                );
+                if (u) return Number(u.id);
+            }
+            const n = Number(s.assignedTsId);
+            return !isNaN(n) && n > 0 ? n : null;
+        }
+        function syncCurrentUserFromDb() {
+            if (!currentUser) return;
+            loadDB();
+            let fresh = getDbUser(currentUser.id);
+            if (!fresh && currentUser.user) {
+                fresh = Object.values(db.users || {}).find(u =>
+                    u && u.user && normUserKey(u.user) === normUserKey(currentUser.user)
+                );
+            }
+            if (fresh) {
+                currentUser = { ...fresh, lastOnline: currentUser.lastOnline || fresh.lastOnline };
+            }
+            if (currentUser.id != null) currentUser.id = Number(currentUser.id);
+            sessionStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+            localStorage.setItem('tms_current_user', JSON.stringify(currentUser));
+        }
         function findPersonnelConflicts(fields, excludeId) {
             const conflicts = [];
             Object.values(db.users || {}).forEach(u => {
@@ -4153,6 +4205,31 @@
                 if (n !== s.unitProduct && TMS_PRODUCT_CATEGORIES.includes(n)) {
                     s.unitProduct = n;
                     changed = true;
+                }
+            });
+            (target.serviceTickets || []).forEach(s => {
+                if (!s) return;
+                const resolved = resolveTicketAssignedTsId(s, target.users);
+                if (resolved != null && Number(s.assignedTsId) !== resolved) {
+                    s.assignedTsId = resolved;
+                    changed = true;
+                } else if (s.assignedTsId != null && typeof s.assignedTsId === 'string') {
+                    const n = parseInt(s.assignedTsId, 10);
+                    if (!isNaN(n) && n !== s.assignedTsId) {
+                        s.assignedTsId = n;
+                        changed = true;
+                    }
+                }
+                if (resolved != null) {
+                    const u = (() => {
+                        const users = target.users || {};
+                        const n = Number(resolved);
+                        return users[n] || users[String(n)] || Object.values(users).find(x => x && Number(x.id) === n);
+                    })();
+                    if (u) {
+                        if (s.assignedTsName !== u.name) { s.assignedTsName = u.name; changed = true; }
+                        if (s.assignedTsUser !== u.user) { s.assignedTsUser = u.user; changed = true; }
+                    }
                 }
             });
 
@@ -4953,6 +5030,7 @@
         const sessionUser = localStorage.getItem('tms_current_user');
         if(sessionUser) {
             currentUser = JSON.parse(sessionUser);
+            if (currentUser && currentUser.id != null) currentUser.id = Number(currentUser.id);
             if (currentUser && currentUser.role === 'ts_spec') {
                 if (currentUser.products && currentUser.products.includes('Avitum') && !currentUser.products.includes('Hospital Care') && !currentUser.products.includes('Aesculap')) {
                     currentUser.role = 'ts_spec_avitum';
@@ -5246,6 +5324,8 @@
                     }
                     // Login berhasil
                     currentUser = f;
+                    if (currentUser && currentUser.id != null) currentUser.id = Number(currentUser.id);
+                    syncCurrentUserFromDb();
                     if (currentUser && currentUser.role === 'ts_spec') {
                         if (currentUser.products && currentUser.products.includes('Avitum') && !currentUser.products.includes('Hospital Care') && !currentUser.products.includes('Aesculap')) {
                             currentUser.role = 'ts_spec_avitum';
@@ -5330,6 +5410,7 @@
         }
 
         function initAppUI() {
+            syncCurrentUserFromDb();
             bindServiceTicketCardActions();
             const mobileLite = isTmsMobileView();
             const tabOpts = mobileLite ? { lite: true } : undefined;
@@ -5860,7 +5941,7 @@
                 const relevantTickets = db.serviceTickets.filter(t => {
                     if (!activeStatuses.includes(t.status)) return false;
                     if (currentUser.role === 'ts') {
-                        return t.assignedTsId === currentUser.id;
+                        return Number(t.assignedTsId) === Number(currentUser.id);
                     }
                     if (currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang') {
                         const tsUser = db.users[t.assignedTsId];
@@ -5947,7 +6028,7 @@
             tickets.forEach(t => {
                 if (!t || !activeStatuses.includes(t.status)) return;
                 // Hanya tiket yang relevan untuk role user ini
-                if (currentUser.role === 'ts' && t.assignedTsId !== currentUser.id) return;
+                if (currentUser.role === 'ts' && Number(t.assignedTsId) !== Number(currentUser.id)) return;
                 if (currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang') {
                     const tsUser = db.users[t.assignedTsId];
                     if (!tsUser || tsUser.group !== currentUser.group) return;
@@ -5984,7 +6065,7 @@
                 if (!t || !activeStatuses.includes(t.status)) return false;
                 // Filter relevan per role
                 if (currentUser.role === 'ts') {
-                    if (t.assignedTsId !== currentUser.id) return false;
+                    if (Number(t.assignedTsId) !== Number(currentUser.id)) return false;
                 } else if (currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang') {
                     const tsUser = db.users[t.assignedTsId];
                     if (!tsUser || tsUser.group !== currentUser.group) return false;
@@ -8066,7 +8147,7 @@
                 });
                 // Reset assigned technical service in service tickets if the personnel is deleted
                 (db.serviceTickets || []).forEach(s => {
-                    if (s.assignedTsId === id) {
+                    if (Number(s.assignedTsId) === Number(id)) {
                         s.assignedTsId = 0;
                         s.history.unshift({
                             t: new Date().toISOString(),
@@ -9878,12 +9959,22 @@
         }
 
         function isAssignedServiceTs(s) {
-            return currentUser.role === 'ts' && Number(currentUser.id) === Number(s.assignedTsId);
+            if (!currentUser || currentUser.role !== 'ts') return false;
+            const uid = Number(currentUser.id);
+            const resolved = resolveTicketAssignedTsId(s);
+            if (resolved != null && resolved > 0 && uid === resolved) return true;
+            const ts = getDbUser(s.assignedTsId);
+            if (ts && uid === Number(ts.id)) return true;
+            const cuName = normUserKey(currentUser.name);
+            const cuUser = normUserKey(currentUser.user);
+            if (normUserKey(s.assignedTsName) === cuName || normUserKey(s.assignedTsUser) === cuUser) return true;
+            if (ts && (normUserKey(ts.name) === cuName || normUserKey(ts.user) === cuUser)) return true;
+            return false;
         }
 
         function buildServiceTicketRow(s) {
-            const userMap = db.users || {};
-            const ts = userMap[s.assignedTsId] ? userMap[s.assignedTsId].name : 'Belum Ditunjuk';
+            const tsUser = getDbUser(resolveTicketAssignedTsId(s) || s.assignedTsId);
+            const ts = tsUser ? tsUser.name : (s.assignedTsName || 'Belum Ditunjuk');
             const date = new Date(s.id).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
             const pri = true;
             const sec = false;
@@ -10031,7 +10122,8 @@
             
             const filtered = tickets.filter(s => {
                 if (!s) return false;
-                const ts = (s.assignedTsId && db.users[s.assignedTsId]) ? db.users[s.assignedTsId].name : '';
+                const tsUser = getDbUser(resolveTicketAssignedTsId(s) || s.assignedTsId);
+                const ts = tsUser ? tsUser.name : (s.assignedTsName || '');
                 const noSvc = s.noService || '';
                 const custName = s.customerName || '';
                 const unitName = s.unitName || '';
@@ -12835,6 +12927,7 @@
             
             const tsSelect = document.getElementById('svc-assigned-ts');
             const assignedTsId = parseInt(tsSelect.value, 10) || null;
+            const assignedTs = getDbUser(assignedTsId);
 
             // Read photo before (multiple)
             let unitPhotosBefore = [];
@@ -12881,6 +12974,8 @@
                 unitSn: document.getElementById('svc-unit-sn').value || '-',
                 complaint: document.getElementById('svc-complaint').value,
                 assignedTsId: assignedTsId,
+                assignedTsName: assignedTs ? assignedTs.name : '',
+                assignedTsUser: assignedTs ? assignedTs.user : '',
                 repairLoc: (document.getElementById('svc-repair-loc').value || 'tsf').trim(),
                 unitPhotoBefore: unitPhotosBefore.length > 0 ? unitPhotosBefore : null,
                 status: 'registered',
@@ -13340,6 +13435,19 @@
             const s = findServiceTicket(id);
             if (!s) {
                 showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
+
+            if (action === 'pickup' && !isAssignedServiceTs(s)) {
+                showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat memproses pickup/konfirmasi on-site.', 'error');
+                return;
+            }
+            if (action === 'receive_field' && !isAssignedServiceTs(s)) {
+                showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat menerima unit di lapangan.', 'error');
+                return;
+            }
+            if (action === 'receive_tsf' && currentUser.role !== 'tsf') {
+                showToast('Akses ditolak', 'Hanya staff TSF yang dapat menerima unit di workshop.', 'error');
                 return;
             }
 
@@ -14812,7 +14920,7 @@
             const s = findServiceTicket(id);
             if (s) {
                 addToHistory(`${currentUser.role.toUpperCase()} menghapus permanen tiket service: ${s.noService}.`);
-                db.serviceTickets = db.serviceTickets.filter(x => x.id !== id);
+                db.serviceTickets = db.serviceTickets.filter(x => Number(x.id) !== Number(id));
                 recordDeletion(id);
                 playNotificationSound();
                 saveDB();
