@@ -122,7 +122,7 @@ def check_html_integrity():
         else:
             bad(f'Master Data Customer: {cid} hilang')
 
-    for fn in ('renderCustomerMaster', 'populateServiceCustomerSelects', 'onPickServiceCustomer', 'onPickServiceUnit'):
+    for fn in ('renderCustomerMaster', 'populateServiceCustomerSelects', 'onPickServiceCustomer', 'onPickServiceUnit', 'getUnitServiceHistory', 'openServiceModalForUnit', 'smartFillServiceByCustomerName', 'applyLastServiceComplaint'):
         if f'function {fn}' in js:
             ok(f'Master Data Customer: {fn} ada')
         else:

@@ -1736,6 +1736,10 @@
                     </div>
                     <div class="md:col-span-2"><label class="input-label">Catatan</label><textarea id="cust-unit-notes" rows="2" class="input-field"></textarea></div>
                 </div>
+                <div id="cust-unit-svc-history" class="hidden bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl mb-5">
+                    <p class="text-[9px] text-amber-700 dark:text-amber-400 font-black uppercase tracking-widest mb-2"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Riwayat Kerusakan / Service</p>
+                    <div id="cust-unit-svc-history-list" class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar text-[11px]"></div>
+                </div>
                 <div id="cust-unit-form-error" class="text-[10px] text-red-500 font-bold hidden mb-4"></div>
                 <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
                     <button type="submit" id="btn-save-cust-unit" class="px-8 py-4 bg-emerald-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-emerald-700 transition">Simpan Unit</button>
@@ -1761,8 +1765,18 @@
                         <div><label class="input-label text-[10px]">Pilih Unit Customer</label><select id="svc-pick-unit" class="input-field text-[12px]" onchange="onPickServiceUnit()" disabled><option value="">-- Pilih customer dulu --</option></select></div>
                     </div>
                 </div>
+                <div id="svc-smartfill-hint" class="hidden bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl mb-5">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] text-amber-700 dark:text-amber-400 font-black uppercase tracking-widest"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat Kerusakan Unit Terhubung</p>
+                            <p class="text-[11px] text-gray-600 dark:text-lux-300 mt-2 leading-relaxed" id="svc-last-complaint-hint">-</p>
+                            <p class="text-[9px] text-gray-500 dark:text-lux-500 mt-1 font-mono" id="svc-last-service-meta"></p>
+                        </div>
+                        <button type="button" onclick="applyLastServiceComplaint()" class="shrink-0 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-black text-[10px] uppercase tracking-widest rounded-lg transition whitespace-nowrap"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Gunakan Keluhan</button>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                    <div class="md:col-span-2"><label class="input-label">Nama Rumah Sakit / Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-name" required class="input-field" placeholder="Masukkan nama RS / klinik / perusahaan..."></div>
+                    <div class="md:col-span-2"><label class="input-label">Nama Rumah Sakit / Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-name" required class="input-field" placeholder="Masukkan nama RS / klinik / perusahaan..." oninput="smartFillServiceByCustomerName(this.value)"></div>
                     <div><label class="input-label">PIC Customer/RS <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-pic" required class="input-field" placeholder="Nama PIC Penanggung Jawab..."></div>
                     <div><label class="input-label">No HP PIC/Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-contact" required class="input-field" placeholder="Nomor telepon PIC..."></div>
                     <div><label class="input-label">Art Number (Nomor Art)</label><input type="text" id="svc-unit-art-no" class="input-field font-mono" placeholder="Masukkan Art Number..." oninput="smartFillServiceByArtNo(this.value); checkServiceDuplicate();"></div>
@@ -9264,10 +9278,12 @@
             }
 
             units.forEach(u => {
+                const svcCount = (db.serviceTickets || []).filter(s => s.customerUnitId === u.id || (s.customerId === u.customerId && normSnKey(s.unitSn) && normSnKey(s.unitSn) === normSnKey(u.unitSn))).length;
+                const svcBadge = svcCount ? `<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/30 text-[8px] font-black text-amber-700 dark:text-amber-400" title="Riwayat service">${svcCount}x svc</span>` : '';
                 container.innerHTML += `
                     <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
                         <td class="p-4">
-                            <p class="font-bold text-[13px] text-gray-900 dark:text-white">${u.unitName || '-'}</p>
+                            <p class="font-bold text-[13px] text-gray-900 dark:text-white">${u.unitName || '-'}${svcBadge}</p>
                             <p class="text-[10px] font-mono text-gray-500 dark:text-lux-400 mt-1">${u.unitSn || '-'}</p>
                             ${u.artNo ? `<p class="text-[9px] font-mono text-gold-600 dark:text-gold-500 mt-0.5">${u.artNo}</p>` : ''}
                         </td>
@@ -9276,6 +9292,7 @@
                         <td class="p-4">${custUnitStatusBadge(u.status || 'active')}</td>
                         <td class="p-4 text-right">
                             <div class="flex justify-end gap-2">
+                                <button onclick="openServiceModalForUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 hover:bg-gold-500 hover:text-white transition flex items-center justify-center" title="Daftar Service"><i class="fa-solid fa-screwdriver-wrench text-[10px]"></i></button>
                                 <button onclick="openCustomerUnitModal(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-500 hover:bg-emerald-600 hover:text-white transition flex items-center justify-center" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button>
                                 <button onclick="deleteCustomerUnit(${u.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>
                             </div>
@@ -9438,8 +9455,33 @@
                 document.getElementById('cust-unit-status').value = 'active';
                 document.getElementById('cust-unit-notes').value = '';
             }
+            renderCustomerUnitServiceHistory(editId || null, custId);
             validateCustomerUnitForm();
             openModal('customerUnitModal');
+        }
+
+        function renderCustomerUnitServiceHistory(unitId, customerId) {
+            const box = document.getElementById('cust-unit-svc-history');
+            const list = document.getElementById('cust-unit-svc-history-list');
+            if (!box || !list) return;
+            if (!unitId) {
+                box.classList.add('hidden');
+                list.innerHTML = '';
+                return;
+            }
+            loadDB();
+            const unit = (db.customerUnits || []).find(u => u.id === unitId);
+            const history = getUnitServiceHistory(unitId, customerId || (unit ? unit.customerId : null), unit ? unit.artNo : '', unit ? unit.unitSn : '');
+            if (!history.length) {
+                box.classList.add('hidden');
+                return;
+            }
+            list.innerHTML = history.slice(0, 5).map(s => {
+                const date = s.updatedAt ? new Date(s.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+                const complaint = (s.complaint || '-').substring(0, 80) + ((s.complaint || '').length > 80 ? '…' : '');
+                return `<div class="border-b border-amber-200/50 dark:border-amber-900/30 pb-2 last:border-0"><span class="font-mono font-bold text-amber-700 dark:text-amber-400">${s.noService || '-'}</span> <span class="text-[9px] text-gray-500">· ${date}</span><p class="text-gray-600 dark:text-lux-400 mt-0.5">${complaint}</p></div>`;
+            }).join('');
+            box.classList.remove('hidden');
         }
 
         function submitCustomerUnit(e) {
@@ -9566,10 +9608,13 @@
                 units.forEach(u => {
                     const sn = u.unitSn ? ` (${u.unitSn})` : '';
                     const st = u.status === 'in_service' ? ' [SERVICE]' : '';
-                    unitSel.innerHTML += `<option value="${u.id}">${u.unitName}${sn}${st}</option>`;
+                    const svcN = getUnitServiceHistory(u.id, custId, u.artNo, u.unitSn).length;
+                    const histTag = svcN ? ` · ${svcN}x svc` : '';
+                    unitSel.innerHTML += `<option value="${u.id}">${u.unitName}${sn}${st}${histTag}</option>`;
                 });
                 unitSel.disabled = false;
             }
+            renderServiceHistoryHint(null, custId);
             checkServiceDuplicate();
         }
 
@@ -9577,17 +9622,140 @@
             loadDB();
             const unitId = parseInt(document.getElementById('svc-pick-unit').value) || null;
             document.getElementById('svc-linked-unit-id').value = unitId || '';
-            if (!unitId) return;
+            if (!unitId) {
+                renderServiceHistoryHint(null, parseInt(document.getElementById('svc-linked-customer-id').value) || null);
+                return;
+            }
 
             const u = (db.customerUnits || []).find(x => x.id === unitId);
             if (!u) return;
 
-            if (u.artNo) document.getElementById('svc-unit-art-no').value = u.artNo;
-            if (u.product) document.getElementById('svc-unit-product').value = u.product;
-            if (u.unitName) document.getElementById('svc-unit-name').value = u.unitName;
-            if (u.unitSn) document.getElementById('svc-unit-sn').value = u.unitSn;
-            if (u.unitMerk) document.getElementById('svc-unit-merk').value = u.unitMerk;
-            if (u.unitTipe) document.getElementById('svc-unit-tipe').value = u.unitTipe;
+            fillServiceFormFromLinkedUnit(u);
+            checkServiceDuplicate();
+        }
+
+        function getUnitServiceHistory(unitId, customerId, artNo, sn) {
+            loadDB();
+            const tickets = db.serviceTickets || [];
+            const cleanArt = normArtKey(artNo);
+            const cleanSn = normSnKey(sn);
+            return tickets.filter(t => {
+                if (!t) return false;
+                if (unitId && t.customerUnitId === unitId) return true;
+                if (cleanSn && normSnKey(t.unitSn) === cleanSn) return true;
+                if (cleanArt && normArtKey(t.unitArtNo) === cleanArt) return true;
+                if (customerId && t.customerId === customerId && cleanSn && normSnKey(t.unitSn) === cleanSn) return true;
+                return false;
+            }).sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+        }
+
+        function resolveCustomerUnitMatch(artNo, sn, customerId) {
+            loadDB();
+            const units = db.customerUnits || [];
+            const cleanArt = normArtKey(artNo);
+            const cleanSn = normSnKey(sn);
+            if (!cleanArt && !cleanSn) return null;
+            return units.find(u => {
+                if (!u) return false;
+                if (customerId && u.customerId !== customerId) return false;
+                if (cleanSn && normSnKey(u.unitSn) === cleanSn) return true;
+                if (cleanArt && normArtKey(u.artNo) === cleanArt) return true;
+                return false;
+            }) || null;
+        }
+
+        function applyServiceLinkedIds(customerId, unitId) {
+            const custSel = document.getElementById('svc-pick-customer');
+            const unitSel = document.getElementById('svc-pick-unit');
+            if (customerId && custSel) {
+                custSel.value = String(customerId);
+                onPickServiceCustomer();
+            }
+            if (unitId && unitSel) {
+                unitSel.value = String(unitId);
+                document.getElementById('svc-linked-unit-id').value = unitId;
+            }
+            if (customerId) document.getElementById('svc-linked-customer-id').value = customerId;
+        }
+
+        function fillServiceFormFromLinkedUnit(unit, customer) {
+            if (!unit) return;
+            loadDB();
+            const cust = customer || (db.customers || []).find(c => c.id === unit.customerId);
+            const payload = {
+                customerId: unit.customerId,
+                customerUnitId: unit.id,
+                customerName: cust ? cust.name : '',
+                picName: cust ? cust.picName : '',
+                customerContact: cust ? cust.contact : '',
+                unitArtNo: unit.artNo,
+                unitProduct: unit.product,
+                unitName: unit.unitName,
+                unitSn: unit.unitSn,
+                unitMerk: unit.unitMerk,
+                unitTipe: unit.unitTipe
+            };
+            fillServiceFormFields(payload, { syncDropdowns: false });
+            renderServiceHistoryHint(unit.id, unit.customerId, unit.artNo, unit.unitSn);
+        }
+
+        function renderServiceHistoryHint(unitId, customerId, artNo, sn) {
+            const box = document.getElementById('svc-smartfill-hint');
+            const hintEl = document.getElementById('svc-last-complaint-hint');
+            const metaEl = document.getElementById('svc-last-service-meta');
+            if (!box || !hintEl) return;
+
+            const art = artNo || document.getElementById('svc-unit-art-no')?.value;
+            const serial = sn || document.getElementById('svc-unit-sn')?.value;
+            const history = getUnitServiceHistory(unitId, customerId, art, serial);
+            if (!history.length) {
+                box.classList.add('hidden');
+                window._svcLastTicketHint = null;
+                return;
+            }
+
+            const last = history[0];
+            window._svcLastTicketHint = last;
+            const date = last.updatedAt ? new Date(last.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+            const statusLabels = { completed: 'Selesai', registered: 'Baru', cancelled: 'Batal' };
+            hintEl.innerText = last.complaint || '(Tidak ada deskripsi keluhan tersimpan)';
+            if (metaEl) {
+                metaEl.innerHTML = `<strong>${last.noService || '-'}</strong> · ${statusLabels[last.status] || last.status || '-'} · ${date} · Total ${history.length} riwayat service`;
+            }
+            box.classList.remove('hidden');
+        }
+
+        function applyLastServiceComplaint() {
+            const last = window._svcLastTicketHint;
+            if (!last || !last.complaint) {
+                showToast('Tidak Ada Riwayat', 'Belum ada keluhan kerusakan sebelumnya untuk unit ini.', 'warning');
+                return;
+            }
+            document.getElementById('svc-complaint').value = last.complaint;
+            showToast('Keluhan Diisi', 'Keluhan dari riwayat service terakhir berhasil diterapkan.', 'success');
+        }
+
+        function smartFillServiceByCustomerName(val) {
+            if (!val || val.trim().length < 3) return;
+            loadDB();
+            const key = normUserKey(val);
+            const match = (db.customers || []).find(c => normUserKey(c.name) === key)
+                || (db.customers || []).find(c => normUserKey(c.name).includes(key) || key.includes(normUserKey(c.name)));
+            if (!match) return;
+
+            document.getElementById('svc-cust-pic').value = match.picName || '';
+            document.getElementById('svc-cust-contact').value = match.contact || '';
+            applyServiceLinkedIds(match.id, null);
+            renderServiceHistoryHint(null, match.id);
+        }
+
+        function openServiceModalForUnit(unitId) {
+            loadDB();
+            const unit = (db.customerUnits || []).find(u => u && u.id === unitId);
+            if (!unit) return;
+            openServiceModal();
+            applyServiceLinkedIds(unit.customerId, unitId);
+            fillServiceFormFromLinkedUnit(unit);
             checkServiceDuplicate();
         }
 
@@ -9633,14 +9801,14 @@
             }
         }
 
-        function fillServiceFormFields(found) {
+        function fillServiceFormFields(found, opts) {
+            opts = opts || {};
             const desc = found.desc || found.unitName || '';
             const brand = found.merk || found.unitMerk || '';
             const model = found.tipe || found.unitTipe || '';
             const sn = found.sn || found.unitSn || '';
             const artNo = found.artNo || found.unitArtNo || '';
-            
-            // Map product category
+
             let prod = '';
             if (found.unitProduct) {
                 prod = found.unitProduct;
@@ -9650,22 +9818,45 @@
                 else if (subCat.includes('ais')) prod = 'AIS';
                 else if (subCat.includes('aes') || subCat.includes('aesculap')) prod = 'AES';
             }
-            
+
             if (desc) document.getElementById('svc-unit-name').value = desc;
             if (brand) document.getElementById('svc-unit-merk').value = brand;
             if (model) document.getElementById('svc-unit-tipe').value = model;
             if (sn && sn !== '-') document.getElementById('svc-unit-sn').value = sn;
             if (artNo && artNo !== '-') document.getElementById('svc-unit-art-no').value = artNo;
             if (prod) document.getElementById('svc-unit-product').value = prod;
-            
-            // Also fill customer details if found in a service ticket (recurring damage case)
+
             const custName = found.customerName || '';
             const picName = found.picName || '';
             const custContact = found.customerContact || '';
-            
             if (custName) document.getElementById('svc-cust-name').value = custName;
             if (picName) document.getElementById('svc-cust-pic').value = picName;
             if (custContact) document.getElementById('svc-cust-contact').value = custContact;
+
+            let customerId = found.customerId || null;
+            let unitId = found.customerUnitId || null;
+            const matchedUnit = resolveCustomerUnitMatch(artNo, sn, customerId);
+            if (matchedUnit) {
+                unitId = matchedUnit.id;
+                customerId = matchedUnit.customerId;
+                if (!custName) {
+                    const cust = (db.customers || []).find(c => c.id === customerId);
+                    if (cust) {
+                        document.getElementById('svc-cust-name').value = cust.name || '';
+                        document.getElementById('svc-cust-pic').value = cust.picName || '';
+                        document.getElementById('svc-cust-contact').value = cust.contact || '';
+                    }
+                }
+            }
+
+            if (opts.syncDropdowns !== false && (customerId || unitId)) {
+                applyServiceLinkedIds(customerId, unitId);
+            } else {
+                if (customerId) document.getElementById('svc-linked-customer-id').value = customerId;
+                if (unitId) document.getElementById('svc-linked-unit-id').value = unitId;
+            }
+
+            renderServiceHistoryHint(unitId, customerId, artNo, sn);
         }
 
         function smartFillServiceByArtNo(val) {
@@ -9673,29 +9864,25 @@
             loadDB();
             const cleanInput = val.toLowerCase().replace(/[^a-z0-9]/g, '');
             if (cleanInput === '') return;
-            
-            // 1. Search in db.tools
-            let found = (db.tools || []).find(t => (t.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
-            
-            // 2. Search in db.demoUnits if not found
+
+            let found = null;
+            const cu = (db.customerUnits || []).find(u => (u.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
+            if (cu) {
+                const cust = (db.customers || []).find(c => c.id === cu.customerId);
+                found = { customerId: cu.customerId, customerUnitId: cu.id, unitArtNo: cu.artNo, unitProduct: cu.product, unitName: cu.unitName, unitSn: cu.unitSn, unitMerk: cu.unitMerk, unitTipe: cu.unitTipe, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
+            }
+            if (!found) {
+                const prevSvc = (db.serviceTickets || []).filter(s => (s.unitArtNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput)
+                    .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))[0];
+                if (prevSvc) found = prevSvc;
+            }
+            if (!found) {
+                found = (db.tools || []).find(t => (t.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
+            }
             if (!found) {
                 found = (db.demoUnits || []).find(d => (d.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
             }
-            
-            // 3. Search in customerUnits if not found
-            if (!found) {
-                const cu = (db.customerUnits || []).find(u => (u.artNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
-                if (cu) {
-                    const cust = (db.customers || []).find(c => c.id === cu.customerId);
-                    found = { ...cu, unitArtNo: cu.artNo, unitProduct: cu.product, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
-                }
-            }
 
-            // 4. Search in previous serviceTickets if not found
-            if (!found) {
-                found = (db.serviceTickets || []).find(s => (s.unitArtNo || '').toLowerCase().replace(/[^a-z0-9]/g, '') === cleanInput);
-            }
-            
             if (found) {
                 fillServiceFormFields(found);
                 checkServiceDuplicate();
@@ -9706,29 +9893,25 @@
             if (!val || val.trim() === '' || val.trim() === '-') return;
             loadDB();
             const snVal = val.trim().toLowerCase();
-            
-            // 1. Search in db.tools
-            let found = (db.tools || []).find(t => (t.sn || '').toLowerCase() === snVal);
-            
-            // 2. Search in db.demoUnits if not found
+
+            let found = null;
+            const cu = (db.customerUnits || []).find(u => (u.unitSn || '').toLowerCase() === snVal);
+            if (cu) {
+                const cust = (db.customers || []).find(c => c.id === cu.customerId);
+                found = { customerId: cu.customerId, customerUnitId: cu.id, unitArtNo: cu.artNo, unitProduct: cu.product, unitName: cu.unitName, unitSn: cu.unitSn, unitMerk: cu.unitMerk, unitTipe: cu.unitTipe, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
+            }
+            if (!found) {
+                const prevSvc = (db.serviceTickets || []).filter(s => (s.unitSn || '').toLowerCase() === snVal)
+                    .sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0))[0];
+                if (prevSvc) found = prevSvc;
+            }
+            if (!found) {
+                found = (db.tools || []).find(t => (t.sn || '').toLowerCase() === snVal);
+            }
             if (!found) {
                 found = (db.demoUnits || []).find(d => (d.sn || '').toLowerCase() === snVal);
             }
-            
-            // 3. Search in customerUnits if not found
-            if (!found) {
-                const cu = (db.customerUnits || []).find(u => (u.unitSn || '').toLowerCase() === snVal);
-                if (cu) {
-                    const cust = (db.customers || []).find(c => c.id === cu.customerId);
-                    found = { ...cu, unitArtNo: cu.artNo, unitProduct: cu.product, picName: cust ? cust.picName : '', customerName: cust ? cust.name : '', customerContact: cust ? cust.contact : '' };
-                }
-            }
 
-            // 4. Search in previous serviceTickets if not found
-            if (!found) {
-                found = (db.serviceTickets || []).find(s => (s.unitSn || '').toLowerCase() === snVal);
-            }
-            
             if (found) {
                 fillServiceFormFields(found);
                 checkServiceDuplicate();
@@ -9750,6 +9933,9 @@
             document.getElementById('svc-unit-merk').value = '';
             document.getElementById('svc-unit-tipe').value = '';
             document.getElementById('svc-complaint').value = '';
+            const hintBox = document.getElementById('svc-smartfill-hint');
+            if (hintBox) hintBox.classList.add('hidden');
+            window._svcLastTicketHint = null;
             
             const tsSelect = document.getElementById('svc-assigned-ts');
             if (currentUser && currentUser.role === 'ts') {
@@ -9800,8 +9986,24 @@
                 }
             }
 
-            const linkedCustomerId = parseInt(document.getElementById('svc-linked-customer-id').value) || null;
-            const linkedUnitId = parseInt(document.getElementById('svc-linked-unit-id').value) || null;
+            let linkedCustomerId = parseInt(document.getElementById('svc-linked-customer-id').value) || null;
+            let linkedUnitId = parseInt(document.getElementById('svc-linked-unit-id').value) || null;
+            const artNoVal = document.getElementById('svc-unit-art-no').value.trim();
+            const snVal = document.getElementById('svc-unit-sn').value.trim();
+
+            if (!linkedUnitId) {
+                const matchedUnit = resolveCustomerUnitMatch(artNoVal, snVal, linkedCustomerId);
+                if (matchedUnit) {
+                    linkedUnitId = matchedUnit.id;
+                    linkedCustomerId = linkedCustomerId || matchedUnit.customerId;
+                }
+            }
+            if (!linkedCustomerId) {
+                const custName = normUserKey(document.getElementById('svc-cust-name').value);
+                const custContact = normPhoneKey(document.getElementById('svc-cust-contact').value);
+                const matchedCust = (db.customers || []).find(c => normUserKey(c.name) === custName && (!custContact || normPhoneKey(c.contact) === custContact));
+                if (matchedCust) linkedCustomerId = matchedCust.id;
+            }
 
             const newTicket = {
                 id: allocateUniqueId(),
