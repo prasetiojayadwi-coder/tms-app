@@ -3231,6 +3231,37 @@
             return window.matchMedia('(max-width: 767px)').matches;
         }
 
+        /** Render aman: kartu HP + tabel desktop. Selalu early-return saat kosong — jangan hapus empty state di akhir. */
+        function tmsRenderSplitList(tableEl, cardsEl, opts) {
+            if (opts.empty) {
+                if (tableEl) tableEl.innerHTML = opts.emptyTable || '';
+                if (cardsEl) cardsEl.innerHTML = opts.emptyCards != null ? opts.emptyCards : (opts.emptyTable || '');
+                return;
+            }
+            const mobile = isTmsMobileView();
+            if (mobile) {
+                if (tableEl) tableEl.innerHTML = '';
+                if (cardsEl) cardsEl.innerHTML = opts.cardsHtml || '';
+            } else {
+                if (cardsEl) cardsEl.innerHTML = '';
+                if (tableEl) tableEl.innerHTML = opts.tableHtml || '';
+            }
+        }
+
+        function tmsSyncTabIfEmpty(tabId) {
+            if (!supabaseClient) return;
+            loadDB();
+            const emptyChecks = {
+                'customer-master': () => !(db.customers || []).length,
+                'sparepart-master': () => !(db.spareparts || []).length,
+                'customer-service': () => !(db.serviceTickets || []).length,
+                'sph-log': () => !(db.sphDocuments || []).length,
+                'spv-assets': () => !(db.tools || []).length,
+                'demo-inventory': () => !(db.demoUnits || []).length
+            };
+            if (emptyChecks[tabId] && emptyChecks[tabId]()) syncWithCloud();
+        }
+
         const TMS_SYNC_PROFILE = {
             mobile: { debounceMs: 700, heartbeatMs: 12000, pollMs: 10000, presenceIntervalMs: 20000, imageCleanDelayMs: 60000 },
             desktop: { debounceMs: 2500, heartbeatMs: 25000, pollMs: 0, presenceIntervalMs: 15000, imageCleanDelayMs: 3000 }
@@ -5397,8 +5428,8 @@
             if (tabId === 'customer-master' && !(opts && opts.keepCustMobileTab)) {
                 custMasterMobileTab = 'customers';
                 setCustMasterMobileTab('customers');
-                if (supabaseClient && !(db.customers || []).length) syncWithCloud();
             }
+            tmsSyncTabIfEmpty(tabId);
             if (opts && opts.skipUpdate) return;
             updateData(opts && opts.lite ? { lite: true } : undefined);
         }
@@ -9917,12 +9948,14 @@
                 ? 'Tidak ada tiket yang cocok dengan filter.'
                 : 'Belum ada tiket perbaikan. Tap Daftar Unit untuk memulai.';
             if (filtered.length === 0) {
-                container.innerHTML = `<tr><td colspan="7" class="tms-empty-state">${emptyMsg}</td></tr>`;
-                if (cardsMobile) cardsMobile.innerHTML = `<p class="tms-empty-state">${emptyMsg}</p>`;
+                tmsRenderSplitList(container, cardsMobile, {
+                    empty: true,
+                    emptyTable: `<tr><td colspan="7" class="tms-empty-state">${emptyMsg}</td></tr>`,
+                    emptyCards: `<p class="tms-empty-state">${emptyMsg}</p>`
+                });
                 return;
             }
 
-            const showMobileCards = window.matchMedia('(max-width: 767px)').matches;
             const tableRows = [];
             const cardRows = [];
             filtered.forEach(s => {
@@ -9969,7 +10002,7 @@
                             </div>
                         </td>
                     </tr>`);
-                if (showMobileCards && cardsMobile) {
+                if (cardsMobile) {
                     cardRows.push(`<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
                         <div class="flex justify-between items-start gap-3">
                             <input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1">
@@ -9992,9 +10025,10 @@
                     </div>`);
                 }
             });
-            if (!showMobileCards) container.innerHTML = tableRows.join('');
-            else container.innerHTML = '';
-            if (showMobileCards && cardsMobile) cardsMobile.innerHTML = cardRows.join('');
+            tmsRenderSplitList(container, cardsMobile, {
+                tableHtml: tableRows.join(''),
+                cardsHtml: cardRows.join('')
+            });
         }
 
         function generateCustomerCode() {
@@ -10996,7 +11030,10 @@
                 return matchQ && matchF;
             });
             if (!filtered.length) {
-                container.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-gray-400 italic">No SPH records yet.</td></tr>';
+                const sphEmpty = (q || currentSphLogFilter !== 'all')
+                    ? 'Tidak ada SPH yang cocok dengan filter.'
+                    : 'Belum ada SPH. Buat dari Service & Repair atau Combined SPH.';
+                container.innerHTML = `<tr><td colspan="8" class="tms-empty-state">${sphEmpty}</td></tr>`;
                 return;
             }
             const stColors = { issued: 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400', po_received: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400', cancelled: 'bg-red-100 text-red-600' };
@@ -11291,14 +11328,19 @@
             const slice = filtered.slice(0, _sparepartRenderLimit);
             const remaining = filtered.length - slice.length;
 
-            const emptyMsg = '<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No spareparts yet. Add or import from Excel.</p>';
+            const spEmptyMsg = (q || currentSparepartFilter !== 'all')
+                ? 'Tidak ada sparepart yang cocok dengan filter.'
+                : 'Belum ada sparepart. Tap Add atau Import Excel.';
             const delSpBtn = document.getElementById('btn-delete-spareparts');
             const spSelWrap = document.getElementById('sp-select-all-wrap');
             if (!filtered.length) {
                 if (delSpBtn) delSpBtn.classList.add('hidden');
                 if (spSelWrap) spSelWrap.classList.add('hidden');
-                container.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400 italic">No spareparts yet. Add or import from Excel.</td></tr>';
-                if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
+                tmsRenderSplitList(container, cardsMobile, {
+                    empty: true,
+                    emptyTable: `<tr><td colspan="7" class="tms-empty-state">${spEmptyMsg}</td></tr>`,
+                    emptyCards: `<p class="tms-empty-state">${spEmptyMsg}</p>`
+                });
                 resetSparepartSelectAll();
                 return;
             }
@@ -11310,23 +11352,18 @@
             const moreStep = Math.min(remaining, pageSize);
             const moreLabel = `Tampilkan ${moreStep} lagi (${remaining} tersisa)`;
 
-            if (isMobile) {
-                container.innerHTML = '';
-                if (cardsMobile) {
-                    const cardsHtml = slice.map(sp => buildSparepartCardHtml(sp, stColors)).join('');
-                    const moreBtn = remaining > 0
-                        ? `<div class="p-4 text-center border-t border-gray-100 dark:border-lux-800/60 sticky bottom-0 bg-white dark:bg-lux-900"><button type="button" onclick="loadMoreSpareparts()" class="tms-btn tms-btn--outline w-full">${moreLabel}</button></div>`
-                        : (filtered.length > pageSize ? `<p class="p-3 text-center text-[10px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest">${filtered.length} sparepart ditampilkan</p>` : '');
-                    cardsMobile.innerHTML = cardsHtml + moreBtn;
-                }
-            } else {
-                if (cardsMobile) cardsMobile.innerHTML = '';
-                const rowsHtml = slice.map(sp => buildSparepartRowHtml(sp, stColors)).join('');
-                const moreRow = remaining > 0
-                    ? `<tr><td colspan="6" class="p-4 text-center"><button type="button" onclick="loadMoreSpareparts()" class="tms-btn tms-btn--outline">${moreLabel}</button></td></tr>`
-                    : '';
-                container.innerHTML = rowsHtml + moreRow;
-            }
+            const cardsHtml = slice.map(sp => buildSparepartCardHtml(sp, stColors)).join('');
+            const moreBtn = remaining > 0
+                ? `<div class="p-4 text-center border-t border-gray-100 dark:border-lux-800/60 sticky bottom-0 bg-white dark:bg-lux-900"><button type="button" onclick="loadMoreSpareparts()" class="tms-btn tms-btn--outline w-full">${moreLabel}</button></div>`
+                : (filtered.length > pageSize ? `<p class="p-3 text-center text-[10px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest">${filtered.length} sparepart ditampilkan</p>` : '');
+            const rowsHtml = slice.map(sp => buildSparepartRowHtml(sp, stColors)).join('');
+            const moreRow = remaining > 0
+                ? `<tr><td colspan="6" class="p-4 text-center"><button type="button" onclick="loadMoreSpareparts()" class="tms-btn tms-btn--outline">${moreLabel}</button></td></tr>`
+                : '';
+            tmsRenderSplitList(container, cardsMobile, {
+                tableHtml: rowsHtml + moreRow,
+                cardsHtml: cardsHtml + moreBtn
+            });
         }
 
         function openSparepartModal(editId) {
@@ -11669,8 +11706,11 @@
             if (!filtered.length) {
                 if (delCustBtn) delCustBtn.classList.add('hidden');
                 if (selectAllCustWrap) selectAllCustWrap.classList.add('hidden');
-                container.innerHTML = `<tr><td colspan="6" class="tms-empty-state">${noCustMsg}</td></tr>`;
-                if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
+                tmsRenderSplitList(container, cardsMobile, {
+                    empty: true,
+                    emptyTable: `<tr><td colspan="6" class="tms-empty-state">${noCustMsg}</td></tr>`,
+                    emptyCards: emptyMsg
+                });
                 setCustMasterMobileTab(custMasterMobileTab);
                 renderCustomerUnitsPanel();
                 return;
@@ -11727,9 +11767,10 @@
                     </div>`);
                 }
             });
-            if (!isMobile) container.innerHTML += custRows.join('');
-            else container.innerHTML = '';
-            if (cardsMobile) cardsMobile.innerHTML = custCards.join('');
+            tmsRenderSplitList(container, cardsMobile, {
+                tableHtml: custRows.join(''),
+                cardsHtml: custCards.join('')
+            });
 
             setCustMasterMobileTab(custMasterMobileTab);
             renderCustomerUnitsPanel();
@@ -11761,9 +11802,11 @@
                 if (searchEl) { searchEl.disabled = true; searchEl.value = ''; }
                 if (delUnitsBtn) delUnitsBtn.classList.add('hidden');
                 if (selectAllUnitsWrap) selectAllUnitsWrap.classList.add('hidden');
-                const empty = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Please select a customer first.</td></tr>`;
-                container.innerHTML = empty;
-                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">Pilih customer di tab <strong>Customers</strong> terlebih dahulu untuk melihat unit.</p>`;
+                tmsRenderSplitList(container, cardsMobile, {
+                    empty: true,
+                    emptyTable: `<tr><td colspan="6" class="tms-empty-state">Pilih customer terlebih dahulu.</td></tr>`,
+                    emptyCards: `<p class="tms-empty-state">Pilih customer di tab <strong>Customers</strong> terlebih dahulu.</p>`
+                });
                 return;
             }
 
@@ -11788,22 +11831,24 @@
                 subtitle.innerText = sub;
             }
 
-            container.innerHTML = '';
-            if (cardsMobile) cardsMobile.innerHTML = '';
             if (!allUnits.length) {
                 if (delUnitsBtn) delUnitsBtn.classList.add('hidden');
                 if (selectAllUnitsWrap) selectAllUnitsWrap.classList.add('hidden');
-                const empty = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">No units for this customer yet.</td></tr>`;
-                container.innerHTML = empty;
-                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No units yet. Tap Add Unit or Import Units.</p>`;
+                tmsRenderSplitList(container, cardsMobile, {
+                    empty: true,
+                    emptyTable: `<tr><td colspan="6" class="tms-empty-state">Belum ada unit untuk customer ini.</td></tr>`,
+                    emptyCards: `<p class="tms-empty-state">Belum ada unit. Tap Add atau Import Units.</p>`
+                });
                 return;
             }
             if (!units.length) {
                 if (delUnitsBtn) delUnitsBtn.classList.add('hidden');
                 if (selectAllUnitsWrap) selectAllUnitsWrap.classList.add('hidden');
-                const noMatch = `<tr><td colspan="6" class="p-8 text-center text-gray-400 dark:text-lux-500 italic">Tidak ada unit yang cocok dengan pencarian.</td></tr>`;
-                container.innerHTML = noMatch;
-                if (cardsMobile) cardsMobile.innerHTML = `<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">Tidak ada unit yang cocok. Coba kata kunci lain.</p>`;
+                tmsRenderSplitList(container, cardsMobile, {
+                    empty: true,
+                    emptyTable: `<tr><td colspan="6" class="tms-empty-state">Tidak ada unit yang cocok dengan pencarian.</td></tr>`,
+                    emptyCards: `<p class="tms-empty-state">Tidak ada unit yang cocok. Coba kata kunci lain.</p>`
+                });
                 return;
             }
 
@@ -11864,10 +11909,14 @@
             const moreUnitsHint = unitRemaining > 0
                 ? `<p class="p-4 text-center text-[10px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest border-t border-gray-100 dark:border-lux-800/60">${unitSlice.length} dari ${units.length} unit — gunakan pencarian atau buka di desktop untuk daftar lengkap</p>`
                 : '';
-            if (!isMobile) container.innerHTML = unitRows.join('');
-            else container.innerHTML = '';
-            if (cardsMobile) cardsMobile.innerHTML = unitCards.join('') + moreUnitsHint;
-            else if (!isMobile && unitRemaining > 0) container.innerHTML += `<tr><td colspan="6" class="p-4 text-center text-[10px] text-gray-400 italic">${unitSlice.length} dari ${units.length} unit ditampilkan</td></tr>`;
+            let tableHtml = unitRows.join('');
+            if (!isMobile && unitRemaining > 0) {
+                tableHtml += `<tr><td colspan="6" class="p-4 text-center text-[10px] text-gray-400 italic">${unitSlice.length} dari ${units.length} unit ditampilkan</td></tr>`;
+            }
+            tmsRenderSplitList(container, cardsMobile, {
+                tableHtml,
+                cardsHtml: unitCards.join('') + moreUnitsHint
+            });
         }
 
         function selectCustomer(id) {

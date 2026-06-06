@@ -256,11 +256,14 @@ def check_html_integrity():
         ok('Customer Master HP: tab Customers default + kartu mobile scroll')
     else:
         bad('Customer Master HP: perbaikan tampilan mobile tidak lengkap')
-    if ('renderCustomerUnitsPanel();\n                return;' in js
-            and 'cardsMobile.innerHTML = custCards.join' in js):
-        ok('Customer Master HP: fix empty state tidak terhapus + kartu selalu render')
+    if ('tmsRenderSplitList' in js and 'tmsSyncTabIfEmpty' in js):
+        ok('Render aman global: tmsRenderSplitList + sync tab jika kosong')
     else:
-        bad('Customer Master HP: fix render kartu mobile tidak lengkap')
+        bad('Render aman global: tmsRenderSplitList tidak ada')
+    if 'showMobileCards' not in js:
+        ok('Anti-bug HP: tidak ada showMobileCards gate yang bisa kosongkan kartu')
+    else:
+        bad('Anti-bug HP: showMobileCards masih ada — risiko daftar kosong di HP')
     if ('deleteSelectedSpareparts' in js and 'toggleSelectAllSpareparts' in js
             and 'sparepart-checkbox' in js and 'btn-delete-spareparts' in html
             and 'select-all-spareparts-bar' in html):
