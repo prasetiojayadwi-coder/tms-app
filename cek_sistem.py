@@ -256,6 +256,11 @@ def check_html_integrity():
         ok('Customer Master HP: tab Customers default + kartu mobile scroll')
     else:
         bad('Customer Master HP: perbaikan tampilan mobile tidak lengkap')
+    if ('renderCustomerUnitsPanel();\n                return;' in js
+            and 'cardsMobile.innerHTML = custCards.join' in js):
+        ok('Customer Master HP: fix empty state tidak terhapus + kartu selalu render')
+    else:
+        bad('Customer Master HP: fix render kartu mobile tidak lengkap')
     if ('deleteSelectedSpareparts' in js and 'toggleSelectAllSpareparts' in js
             and 'sparepart-checkbox' in js and 'btn-delete-spareparts' in html
             and 'select-all-spareparts-bar' in html):

@@ -3,16 +3,14 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '7.0.0',
-    build: 88,
+    version: '7.0.1',
+    build: 89,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'Review UI/UX menyeluruh — tampilan profesional, user-friendly di HP & desktop.',
+    summary: 'Perbaikan kritis — daftar customer kosong di HP.',
     changes: [
-        { icon: 'fa-mobile-screen', text: 'Service & Repair HP: kartu tiket + tombol alur mudah di-tap' },
-        { icon: 'fa-palette', text: 'Tombol & ikon seragam — tms-icon-btn, tms-svc-btn, heading netral' },
-        { icon: 'fa-list', text: 'Empty state jelas di Tools, Backup, Customer, Service' },
-        { icon: 'fa-language', text: 'Placeholder & label konsisten (Bahasa Indonesia)' },
-        { icon: 'fa-arrows-rotate', text: 'Tab Customer Master stabil saat rotate layar HP' }
+        { icon: 'fa-bug', text: 'Fix: kartu customer HP terhapus setelah render — daftar & pesan kosong tampil' },
+        { icon: 'fa-cloud-arrow-down', text: 'Buka Customer Master otomatis tarik data cloud jika lokal kosong' },
+        { icon: 'fa-mobile-screen', text: 'Kartu customer selalu di-render di HP (tidak bergantung deteksi viewport)' }
     ]
 };

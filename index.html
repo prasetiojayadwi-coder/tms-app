@@ -219,7 +219,7 @@
             #spareparts-cards-mobile,
             #customers-cards-mobile,
             #customer-units-cards-mobile,
-            #service-tickets-cards-mobile { max-height: min(70vh, 640px); -webkit-overflow-scrolling: touch; }
+            #service-tickets-cards-mobile { max-height: min(70vh, 640px); min-height: 120px; -webkit-overflow-scrolling: touch; }
             #view-customer-service .cust-touch-btn { min-height: 44px; }
 
             .app-view.hidden {
@@ -5397,6 +5397,7 @@
             if (tabId === 'customer-master' && !(opts && opts.keepCustMobileTab)) {
                 custMasterMobileTab = 'customers';
                 setCustMasterMobileTab('customers');
+                if (supabaseClient && !(db.customers || []).length) syncWithCloud();
             }
             if (opts && opts.skipUpdate) return;
             updateData(opts && opts.lite ? { lite: true } : undefined);
@@ -11661,24 +11662,28 @@
                 return hay.includes(q);
             });
 
-            const emptyMsg = `<p class="tms-empty-state">Belum ada customer. Tap Add atau Import Excel.</p>`;
+            const noCustMsg = q
+                ? 'Tidak ada customer yang cocok dengan pencarian.'
+                : (customers.length ? 'Tidak ada customer yang cocok.' : 'Belum ada customer. Tap Add atau Import Excel. Data cloud akan dimuat otomatis jika online.');
+            const emptyMsg = `<p class="tms-empty-state">${noCustMsg}</p>`;
             if (!filtered.length) {
                 if (delCustBtn) delCustBtn.classList.add('hidden');
                 if (selectAllCustWrap) selectAllCustWrap.classList.add('hidden');
-                const noCustMsg = q ? 'Tidak ada customer yang cocok dengan pencarian.' : 'Belum ada customer. Klik Add atau Import Excel.';
                 container.innerHTML = `<tr><td colspan="6" class="tms-empty-state">${noCustMsg}</td></tr>`;
                 if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
-            } else {
-                if (delCustBtn) delCustBtn.classList.remove('hidden');
-                if (selectAllCustWrap) selectAllCustWrap.classList.remove('hidden');
+                setCustMasterMobileTab(custMasterMobileTab);
+                renderCustomerUnitsPanel();
+                return;
             }
+
+            if (delCustBtn) delCustBtn.classList.remove('hidden');
+            if (selectAllCustWrap) selectAllCustWrap.classList.remove('hidden');
 
             const unitCountByCust = new Map();
             units.forEach(u => {
                 if (u && u.customerId) unitCountByCust.set(u.customerId, (unitCountByCust.get(u.customerId) || 0) + 1);
             });
             const isMobile = isTmsMobileView();
-            const showMobileCards = window.matchMedia('(max-width: 767px)').matches;
             const custRows = [];
             const custCards = [];
             filtered.forEach(c => {
@@ -11702,7 +11707,7 @@
                         <td class="p-4 text-right" onclick="event.stopPropagation()"><button onclick="openCustomerModal(${c.id})" class="tms-icon-btn" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button></td>
                     </tr>`);
                 }
-                if (showMobileCards && cardsMobile) {
+                if (cardsMobile) {
                     custCards.push(`<div class="p-4 transition cursor-pointer ${cardCls}" onclick="selectCustomerAndShowUnits(${c.id})">
                         <div class="flex justify-between items-start gap-3">
                             <input type="checkbox" value="${c.id}" onchange="syncCustMasterSelectAllState('customers')" class="cust-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
@@ -11724,9 +11729,7 @@
             });
             if (!isMobile) container.innerHTML += custRows.join('');
             else container.innerHTML = '';
-            if (showMobileCards && cardsMobile) {
-                cardsMobile.innerHTML = custCards.length ? custCards.join('') : '';
-            }
+            if (cardsMobile) cardsMobile.innerHTML = custCards.join('');
 
             setCustMasterMobileTab(custMasterMobileTab);
             renderCustomerUnitsPanel();
