@@ -920,7 +920,8 @@
 - [x] `uat_sph_runner.py` — runner otomatis 58 skenario
 - [x] `docs/uat-results.json` — hasil run
 - [x] `docs/UAT-Master-Sparepart-SPH.md` v1.3 — 56 Pass, APPROVED
-- [x] Deploy v6.7.3 ke GitHub Pages
+- [x] Deploy v6.7.3 ke GitHub Pages (`5037ac9`)
+- [x] Live terverifikasi: `release.js` v6.7.3 / build 68, `sw.js` tms-cache-v68
 
 
 
