@@ -1,12 +1,17 @@
-const CACHE_NAME = 'tms-cache-v57';
+const CACHE_NAME = 'tms-cache-v59';
 const CORE_ASSETS = [
   './',
   'index.html',
+  'release.js',
   'config.deploy.js',
   'config.example.js',
   'manifest.json',
   'tms_pwa_icon.png'
 ];
+
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
 
 self.addEventListener('install', (e) => {
   e.waitUntil(

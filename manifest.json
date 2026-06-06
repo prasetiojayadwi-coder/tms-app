@@ -1,7 +1,7 @@
 {
-  "name": "TMS — Sistem Manajemen Alat",
+  "name": "TMS — Tool Management System",
   "short_name": "TMS",
-  "description": "Platform manajemen aset untuk melacak inventaris, layanan pelanggan, dan serah terima alat secara real-time.",
+  "description": "Corporate asset platform for inventory tracking, customer service, and physical handover in real-time.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#09090b",
