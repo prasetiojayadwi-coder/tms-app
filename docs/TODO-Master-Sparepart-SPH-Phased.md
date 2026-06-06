@@ -1001,7 +1001,7 @@
 - [x] `data-batch-type` pada tombol import/template
 - [x] UAT-081 — SPV/Spec full, TSF partial, TS denied
 - [x] Bump v6.7.8 / build 73
-- [ ] Deploy + verifikasi live
+- [x] Deploy v6.7.8 (`a2a208b`) + live terverifikasi build 73
 
 
 
