@@ -5,6 +5,8 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -35,6 +37,59 @@ def warn(msg):
 
 def fetch(path, timeout=8):
     return urllib.request.urlopen(f'{BASE}{path}', timeout=timeout)
+
+
+_XLSX_NS = {'m': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+
+BATCH_TEMPLATE_COLUMNS = {
+    'TMS_Template_Customers.xlsx': [
+        'Customer Name', 'PIC', 'Phone', 'Email', 'City', 'Address', 'Notes',
+    ],
+    'TMS_Template_Customer_Units.xlsx': [
+        'Customer Code', 'Customer Name', 'Art Number', 'Product', 'Unit Name',
+        'Serial Number', 'Merk', 'Type', 'Location', 'Status', 'Notes',
+    ],
+    'TMS_Template_Special_Tools.xlsx': [
+        'Inventory No', 'Art Number', 'Description', 'Category', 'Serial Number',
+        'Merk', 'Type', 'Condition', 'PIC Username', 'Buy Date', 'Cal Date', 'Price',
+    ],
+    'TMS_Template_Backup_Units.xlsx': [
+        'Inventory No', 'Art Number', 'Description', 'Category', 'Serial Number',
+        'Merk', 'Type', 'Condition', 'Buy Date', 'Cal Date', 'Price', 'Reason',
+    ],
+    'TMS_Template_Spareparts.xlsx': [
+        'Art Number', 'Description', 'Price', 'Group', 'Status', 'Notes',
+    ],
+}
+
+
+def _read_xlsx_row1_headers(path: Path):
+    with zipfile.ZipFile(path) as z:
+        shared = []
+        if 'xl/sharedStrings.xml' in z.namelist():
+            root = ET.fromstring(z.read('xl/sharedStrings.xml'))
+            for si in root.findall('m:si', _XLSX_NS):
+                t = si.find('m:t', _XLSX_NS)
+                if t is not None and t.text:
+                    shared.append(t.text)
+                else:
+                    shared.append(''.join(x.text or '' for x in si.findall('.//m:t', _XLSX_NS)))
+        sheet = ET.fromstring(z.read('xl/worksheets/sheet1.xml'))
+        headers = []
+        for row in sheet.findall('.//m:sheetData/m:row', _XLSX_NS):
+            if row.get('r') != '1':
+                continue
+            for cell in sorted(row.findall('m:c', _XLSX_NS), key=lambda c: c.get('r', '')):
+                if cell.get('t') == 'inlineStr':
+                    t = cell.find('m:is/m:t', _XLSX_NS)
+                    headers.append((t.text or '') if t is not None else '')
+                else:
+                    v = cell.find('m:v', _XLSX_NS)
+                    if v is None:
+                        continue
+                    headers.append(shared[int(v.text)] if cell.get('t') == 's' else (v.text or ''))
+            break
+        return headers
 
 
 def check_files():
@@ -205,6 +260,16 @@ def check_html_integrity():
         p = templates_dir / name
         if p.exists() and p.stat().st_size > 500:
             ok(f'File template: {name}')
+            expected = BATCH_TEMPLATE_COLUMNS.get(name)
+            if expected:
+                try:
+                    hdrs = _read_xlsx_row1_headers(p)
+                    if hdrs == expected:
+                        ok(f'Template header match schema: {name}')
+                    else:
+                        bad(f'Template header tidak match schema: {name}')
+                except Exception as e:
+                    bad(f'Template tidak bisa dibaca: {name} ({e})')
         else:
             warn(f'File template belum ada atau kosong: {name}')
 
