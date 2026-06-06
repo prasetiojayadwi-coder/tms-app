@@ -45,6 +45,7 @@
     <script src="config.deploy.js"></script>
     <script src="config.js" onerror="void 0"></script>
     <script src="js/tms-security.js"></script>
+    <script src="js/tms-observability.js"></script>
     <script src="js/tms-runtime.js"></script>
     
     <script>
@@ -3460,11 +3461,10 @@
             isSyncing = true;
             syncPending = false;
             try {
-                const { data, error } = await supabaseClient
-                    .from('tms_sync')
-                    .select('*')
-                    .eq('id', 1)
-                    .single();
+                const fetchCloud = async () => supabaseClient.from('tms_sync').select('*').eq('id', 1).single();
+                const { data, error } = typeof tmsRetryAsync === 'function'
+                    ? await tmsRetryAsync(fetchCloud, { max: 2, baseDelay: 300 })
+                    : await fetchCloud();
 
                 if (error) {
                     if (error.code === 'PGRST116') {
@@ -3604,7 +3604,8 @@
                         }
                     }                }
             } catch (err) {
-                console.warn("Sinkronisasi Cloud ditunda (mode offline-first aktif / server down):", err.message);
+                if (typeof tmsReportError === 'function') tmsReportError(err, 'syncWithCloud');
+                else console.warn("Sinkronisasi Cloud ditunda (mode offline-first aktif / server down):", err.message);
             } finally {
                 isSyncing = false;
                 if (syncPending) {
@@ -8139,6 +8140,7 @@
 
         function deleteItem(type, id) {
             if (type === 'tech' && !tmsRequireRole(['owner', 'spv'], 'Menghapus personel')) return;
+            if ((type === 'tool' || type === 'demo') && !tmsRequireRole(['owner', 'tsf'], 'Menghapus aset inventori')) return;
             if(!confirm("Hapus secara permanen? Data riwayat juga akan hilang.")) return;
             loadDB(); // Sinkronisasi sebelum menghapus
             recordDeletion(id);
@@ -8197,6 +8199,7 @@
         }
 
         function toggleUserLock(userId) {
+            if (!tmsRequireRole(['owner', 'spv'], 'Mengunci/membuka akun personel')) return;
             loadDB();
             const u = db.users[userId];
             if (!u) return;
@@ -8978,8 +8981,10 @@
         }
 
         function backupDatabase() {
+            if (!tmsRequireRole(['owner', 'spv', 'tsf'], 'Ekspor database')) return;
             loadDB();
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const safeDb = cloneDbForCloudUpload(db);
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(safeDb, null, 2));
             const downloadAnchor = document.createElement('a');
             const date = new Date().toISOString().slice(0,10);
             downloadAnchor.setAttribute("href", dataStr);
@@ -8991,6 +8996,7 @@
         }
 
         function restoreDatabase(event) {
+            if (!tmsRequireRole(['owner'], 'Impor database')) return;
             const file = event.target.files[0];
             if (!file) return;
 
@@ -11706,6 +11712,7 @@
         }
 
         function deleteSparepart(id) {
+            if (!tmsRequireRole(['owner', 'spv', 'ts_spec', 'ts_spec_avitum', 'ts_spec_ais'], 'Menghapus sparepart')) return;
             if (!confirm('Delete this sparepart from master?')) return;
             loadDB();
             const sp = (db.spareparts || []).find(x => x.id === id);
@@ -11716,6 +11723,7 @@
         }
 
         function deleteSelectedSpareparts() {
+            if (!tmsRequireRole(['owner', 'spv', 'ts_spec', 'ts_spec_avitum', 'ts_spec_ais'], 'Menghapus sparepart')) return;
             const checked = document.querySelectorAll('.sparepart-checkbox:checked');
             if (!checked.length) {
                 showToast('Pilih Sparepart', 'Centang minimal satu sparepart untuk dihapus.', 'warning');
@@ -12350,6 +12358,7 @@
         }
 
         function deleteSelectedCustomers() {
+            if (!tmsRequireRole(['owner', 'spv'], 'Menghapus customer')) return;
             const checked = document.querySelectorAll('.cust-checkbox:checked');
             if (!checked.length) {
                 showToast('Pilih Customer', 'Centang minimal satu customer untuk dihapus.', 'warning');
@@ -12531,6 +12540,7 @@
         }
 
         function deleteSelectedCustomerUnits() {
+            if (!tmsRequireRole(['owner', 'spv'], 'Menghapus unit customer')) return;
             const checked = document.querySelectorAll('.cust-unit-checkbox:checked');
             if (!checked.length) {
                 showToast('Pilih Unit', 'Centang minimal satu unit untuk dihapus.', 'warning');

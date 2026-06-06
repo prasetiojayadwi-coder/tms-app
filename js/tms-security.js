@@ -86,6 +86,18 @@
         return String(cfg.syncSecret || cfg.supabase?.syncSecret || '').trim();
     }
 
+    function tmsEscToolFields(t) {
+        if (!t) return { noInv: '-', artNo: '-', desc: '-', merk: '-', sn: '-', tipe: '-' };
+        return {
+            noInv: tmsEscHtml(t.noInv || '-'),
+            artNo: tmsEscHtml(t.artNo || '-'),
+            desc: tmsEscHtml(t.desc || '-'),
+            merk: tmsEscHtml(t.merk || '-'),
+            sn: tmsEscHtml(t.sn || '-'),
+            tipe: tmsEscHtml(t.tipe || '-')
+        };
+    }
+
     function cloneDbForCloudUpload(db) {
         const uploadDb = JSON.parse(JSON.stringify(db || {}));
         if (uploadDb.users) {
@@ -108,4 +120,5 @@
     global.isCloudProductionMode = isCloudProductionMode;
     global.getTmsSyncSecret = getTmsSyncSecret;
     global.cloneDbForCloudUpload = cloneDbForCloudUpload;
+    global.tmsEscToolFields = tmsEscToolFields;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -37,9 +37,15 @@
                 tmsResetIdleTimer();
                 return;
             }
-            if (typeof global.logout === 'function') {
-                global.showToast && global.showToast('Sesi Berakhir', 'Login ulang setelah tidak aktif 30 menit.', 'warning');
-                global.logout(true);
+            const doLogout = global.handleLogout || global.logout;
+            if (typeof doLogout === 'function') {
+                if (typeof global.showToast === 'function') {
+                    global.showToast('Sesi Berakhir', 'Login ulang setelah tidak aktif 30 menit.', 'warning');
+                }
+                if (typeof global.tmsLog === 'function') {
+                    global.tmsLog('warn', 'Session idle timeout — auto logout');
+                }
+                doLogout();
             }
         }, TMS_SESSION_IDLE_MS + 500);
     }
@@ -50,12 +56,14 @@
         });
         tmsResetIdleTimer();
 
-        global.addEventListener('error', function (ev) {
-            console.error('[TMS] Uncaught error:', ev.message, ev.filename, ev.lineno);
-        });
-        global.addEventListener('unhandledrejection', function (ev) {
-            console.error('[TMS] Unhandled rejection:', ev.reason);
-        });
+        if (typeof global.tmsReportError !== 'function') {
+            global.addEventListener('error', function (ev) {
+                console.error('[TMS] Uncaught error:', ev.message, ev.filename, ev.lineno);
+            });
+            global.addEventListener('unhandledrejection', function (ev) {
+                console.error('[TMS] Unhandled rejection:', ev.reason);
+            });
+        }
     }
 
     async function tmsRetryAsync(fn, opts) {

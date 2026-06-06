@@ -99,7 +99,7 @@ def check_files():
         'index.html', 'manifest.json', 'sw.js', 'release.js', 'tms_pwa_icon.png',
         'Mulai_Server.bat', 'config.example.js', 'config.deploy.js',
         'Jalankan_Setup.bat', 'jalankan_setup.py', 'supabase_setup.sql',
-        'health.json', 'audit_score.py', 'js/tms-security.js', 'js/tms-runtime.js',
+        'health.json', 'audit_score.py', 'js/tms-security.js', 'js/tms-observability.js', 'js/tms-runtime.js',
     ]
     for name in required:
         p = ROOT / name
@@ -382,6 +382,27 @@ def check_html_integrity():
         ok('QA: pytest test_tms_audit.py ada')
     else:
         bad('QA: tests/test_tms_audit.py hilang')
+    if 'js/tms-observability.js' in html and 'tmsReportError' in js:
+        ok('Production: structured logging (tms-observability)')
+    else:
+        bad('Production: tms-observability tidak lengkap')
+    if "tmsRequireRole(['owner'], 'Impor database')" in js:
+        ok('Keamanan: impor database dibatasi owner')
+    else:
+        bad('Keamanan: restoreDatabase tanpa role guard owner')
+    if 'cloneDbForCloudUpload(db)' in js and 'backupDatabase' in js:
+        ok('Keamanan: backup database tanpa password plain')
+    else:
+        bad('Keamanan: backupDatabase belum sanitize password')
+    if "tmsRequireRole(['owner', 'tsf'], 'Menghapus aset inventori')" in js:
+        ok('Keamanan: hapus aset dibatasi owner/tsf')
+    else:
+        bad('Keamanan: deleteItem tool/demo tanpa role guard')
+    rt_src = (ROOT / 'js/tms-runtime.js').read_text(encoding='utf-8')
+    if 'handleLogout' in js and 'global.handleLogout' in rt_src:
+        ok('Reliabilitas: idle timeout memanggil handleLogout')
+    else:
+        bad('Reliabilitas: idle timeout tidak memanggil handleLogout')
     dyn_calls = set()
     for m in re.finditer(r'onclick=\\"([a-zA-Z_$][\w$]*)\s*\(', js):
         dyn_calls.add(m.group(1))

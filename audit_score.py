@@ -54,6 +54,8 @@ def score_security(js: str, html: str) -> tuple[float, list[str]]:
         ('isCloudProductionMode', 1.0, 'Disable default creds production'),
         ('persistCurrentUserSession', 0.5, 'Session tanpa password'),
         ('check_tms_write_auth', 0.5, 'Supabase write trigger'),
+        ('tmsReportError', 0.5, 'Structured error reporting'),
+        ("tmsRequireRole(['owner'], 'Impor database')", 0.5, 'Restore DB owner-only'),
     ]
     sql = (ROOT / 'supabase_setup.sql').read_text(encoding='utf-8') if (ROOT / 'supabase_setup.sql').exists() else ''
     combined = js + html + sql
@@ -72,7 +74,10 @@ def score_security(js: str, html: str) -> tuple[float, list[str]]:
 def score_architecture(js: str, html: str) -> tuple[float, list[str]]:
     pts, notes = 0.0, []
     modules = list((ROOT / 'js').glob('tms-*.js')) if (ROOT / 'js').is_dir() else []
-    if len(modules) >= 2:
+    if len(modules) >= 3:
+        pts += 3.5
+        notes.append(f'+3.5: {len(modules)} modul JS terpisah')
+    elif len(modules) >= 2:
         pts += 3.0
         notes.append(f'+3.0: {len(modules)} modul JS terpisah')
     if (ROOT / 'health.json').exists():

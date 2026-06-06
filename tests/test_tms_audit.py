@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_73():
+def test_release_version_74():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.3' in rel
+    assert '7.4' in rel
 
 
 def test_pwa_files():
@@ -395,3 +395,54 @@ def test_build_service_ticket_row():
 def test_tms_cards_visible():
     js = _js_bundle()
     assert 'tmsCardsVisible' in js
+
+
+def test_observability_module():
+    assert (ROOT / 'js/tms-observability.js').exists()
+    js = _js_bundle()
+    assert 'tmsReportError' in js
+    assert 'tmsLog' in js
+
+
+def test_idle_logout_uses_handle_logout():
+    rt = (ROOT / 'js/tms-runtime.js').read_text(encoding='utf-8')
+    assert 'handleLogout' in rt
+
+
+def test_restore_database_owner_only():
+    js = _js_bundle()
+    assert "tmsRequireRole(['owner'], 'Impor database')" in js
+
+
+def test_backup_sanitizes_passwords():
+    js = _js_bundle()
+    assert 'cloneDbForCloudUpload(db)' in js
+    idx = js.find('function backupDatabase')
+    block = js[idx:idx + 400]
+    assert 'cloneDbForCloudUpload' in block
+
+
+def test_delete_asset_role_guard():
+    js = _js_bundle()
+    assert "tmsRequireRole(['owner', 'tsf'], 'Menghapus aset inventori')" in js
+
+
+def test_delete_sparepart_role_guard():
+    js = _js_bundle()
+    assert "tmsRequireRole(['owner', 'spv', 'ts_spec'" in js
+
+
+def test_toggle_user_lock_role_guard():
+    js = _js_bundle()
+    assert "tmsRequireRole(['owner', 'spv'], 'Mengunci/membuka akun personel')" in js
+
+
+def test_sync_fetch_retry():
+    js = _js_bundle()
+    assert 'tmsRetryAsync(fetchCloud' in js or 'tmsRetryAsync(fetchCloud' in js.replace('\n', ' ')
+    assert 'fetchCloud' in js
+
+
+def test_tms_esc_tool_fields():
+    sec = (ROOT / 'js/tms-security.js').read_text(encoding='utf-8')
+    assert 'tmsEscToolFields' in sec
