@@ -245,6 +245,11 @@ def check_html_integrity():
         ok('Performa HP: Sparepart Master render batch + pagination (anti-freeze)')
     else:
         bad('Performa HP: optimasi render Sparepart Master tidak lengkap')
+    if ('getTmsSyncProfile' in js and 'startMobileSyncPoll' in js
+            and 'updateData({ lite:' in js and 'TMS_SYNC_PROFILE' in js):
+        ok('HP ringan + sync realtime: profile mobile, poll & update lite')
+    else:
+        bad('HP ringan + sync realtime tidak lengkap')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:

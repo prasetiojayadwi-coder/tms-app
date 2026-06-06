@@ -34,7 +34,8 @@
         @keyframes boot-spin { to { transform: rotate(360deg); } }
     </style>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -160,6 +161,12 @@
             }
             .dark .tms-list-loading { color: #a1a1aa; }
             #spareparts-cards-mobile { max-height: min(70vh, 640px); -webkit-overflow-scrolling: touch; }
+
+            .app-view.hidden {
+                content-visibility: hidden;
+                contain-intrinsic-size: 0 400px;
+            }
+            #spv-chart-condition, #svc-stat-monthly-chart, #svc-stat-status-chart { display: none !important; }
         }
         .cust-master-cb {
             accent-color: #eab308;
@@ -3130,7 +3137,39 @@
         }
 
         let _updateDataQueued = false;
+        let _updateDataPendingLite = false;
         let _syncDebounceTimer = null;
+        let _mobileSyncPollTimer = null;
+
+        function isTmsMobileView() {
+            return window.matchMedia('(max-width: 767px)').matches;
+        }
+
+        const TMS_SYNC_PROFILE = {
+            mobile: { debounceMs: 700, heartbeatMs: 12000, pollMs: 10000, presenceIntervalMs: 20000, imageCleanDelayMs: 60000 },
+            desktop: { debounceMs: 2500, heartbeatMs: 25000, pollMs: 0, presenceIntervalMs: 15000, imageCleanDelayMs: 3000 }
+        };
+
+        function getTmsSyncProfile() {
+            return isTmsMobileView() ? TMS_SYNC_PROFILE.mobile : TMS_SYNC_PROFILE.desktop;
+        }
+
+        function startMobileSyncPoll() {
+            stopMobileSyncPoll();
+            const profile = getTmsSyncProfile();
+            if (!profile.pollMs || !currentUser) return;
+            _mobileSyncPollTimer = setInterval(() => {
+                if (document.hidden || !supabaseClient) return;
+                syncWithCloud();
+            }, profile.pollMs);
+        }
+
+        function stopMobileSyncPoll() {
+            if (_mobileSyncPollTimer) {
+                clearInterval(_mobileSyncPollTimer);
+                _mobileSyncPollTimer = null;
+            }
+        }
         let _imagesCleanedThisSession = false;
         let _notifDebounceTimer = null;
         let _notifLastBadge = -1; 
@@ -3398,7 +3437,7 @@
                             lastMsgCount = db.messages ? db.messages.length : 0;
                             
                             if (currentUser) {
-                                updateData();
+                                updateData({ lite: isTmsMobileView() });
                                 if (typeof renderChatUsers === 'function') renderChatUsers();
                                 if (typeof updateChatBadge === 'function') updateChatBadge();
                             }
@@ -3426,6 +3465,7 @@
 
         async function initRealtimeSync() {
             stopOnlineHeartbeat();
+            stopMobileSyncPoll();
             if (!currentUser) return;
             const client = await ensureSupabaseClient();
             if (!client) {
@@ -3518,7 +3558,7 @@
                                             }
                                         }
 
-                                        updateData();
+                                        updateData({ lite: isTmsMobileView() });
                                         if (typeof renderChatUsers === 'function') renderChatUsers();
                                         if (typeof updateChatBadge === 'function') updateChatBadge();
                                         if (activeChatUser && !document.getElementById('chat-window').classList.contains('hidden') && typeof renderChatMessages === 'function') {
@@ -3554,6 +3594,7 @@
                     
                     if (status === 'SUBSCRIBED') {
                         startOnlineHeartbeat();
+                        startMobileSyncPoll();
                         syncWithCloud();
                         if (currentUser) {
                             try {
@@ -3571,7 +3612,11 @@
                         }
                     } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
                         stopOnlineHeartbeat();
+                        stopMobileSyncPoll();
                         updateOnlineStatusUI(null);
+                        if (currentUser) {
+                            setTimeout(() => initRealtimeSync(), isTmsMobileView() ? 4000 : 8000);
+                        }
                     }
                 });
         }
@@ -4432,7 +4477,7 @@
 
             if (!_imagesCleanedThisSession) {
                 _imagesCleanedThisSession = true;
-                setTimeout(() => cleanExistingLargeImages(), 3000);
+                setTimeout(() => cleanExistingLargeImages(), getTmsSyncProfile().imageCleanDelayMs);
             }
         }
 
@@ -4444,7 +4489,7 @@
                 return;
             }
             clearTimeout(_syncDebounceTimer);
-            _syncDebounceTimer = setTimeout(() => syncWithCloud(false), 2500);
+            _syncDebounceTimer = setTimeout(() => syncWithCloud(false), getTmsSyncProfile().debounceMs);
         }
         function safeSaveLocalStorage() {
             try {
@@ -4477,7 +4522,7 @@
             _onlineHeartbeatTimer = setInterval(() => {
                 if (!currentUser || document.hidden || !supabaseClient) return;
                 syncWithCloud();
-            }, 25000);
+            }, getTmsSyncProfile().heartbeatMs);
         }
         function stopOnlineHeartbeat() {
             if (_onlineHeartbeatTimer) {
@@ -4694,6 +4739,26 @@
         let previousServiceTicketStates = null;
         loadDB(); if(db.messages) lastMsgCount = db.messages.length;
         
+        window.addEventListener('storage', (e) => {
+            if (e.key !== DB_KEY || !e.newValue || !currentUser) return;
+            try {
+                const incoming = JSON.parse(e.newValue);
+                const incomingVer = Number(incoming.version) || 0;
+                const memVer = Number(db && db.version) || 0;
+                if (incomingVer > memVer) {
+                    db = incoming;
+                    loadDB();
+                    updateData({ lite: true });
+                }
+            } catch (err) {
+                console.warn('storage sync:', err);
+            }
+        });
+
+        window.addEventListener('online', () => {
+            if (currentUser && supabaseClient) syncWithCloud();
+        });
+
         // Periodically refresh online status UI and update currentUser.lastOnline in database
         setInterval(async () => {
             if (!currentUser || document.hidden) return;
@@ -4722,7 +4787,7 @@
                     }
                 }
             }
-        }, 15000);
+        }, getTmsSyncProfile().presenceIntervalMs);
 
         document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible' && currentUser && supabaseClient) {
@@ -5085,6 +5150,7 @@
             }
             currentUser = null;
             stopOnlineHeartbeat();
+            stopMobileSyncPoll();
             knownRequestIds = null;
             previousRequestStates = null;
             previousServiceTicketStates = null;
@@ -5118,6 +5184,8 @@
         }
 
         function initAppUI() {
+            const mobileLite = isTmsMobileView();
+            const tabOpts = mobileLite ? { lite: true } : undefined;
             document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); document.getElementById('nav-user-name').innerText = currentUser.name; 
             
             let roleName = 'Field Technician';
@@ -5153,7 +5221,7 @@
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Ticket Log</a>
                     ${handoverMenu}
                     ${approvalsMenu}`;
-                switchTab('spv-dash');
+                switchTab('spv-dash', tabOpts);
             } else if (currentUser.role === 'ts_spec' || currentUser.role === 'ts_spec_avitum' || currentUser.role === 'ts_spec_ais') {
                 menu.innerHTML = `<a href="#" onclick="switchTab('spec-dash')" id="nav-spec-dash" class="nav-link active flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-chart-line w-4 text-center text-sm"></i> Dashboard</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Special Tools</div>
@@ -5164,7 +5232,7 @@
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Operations</div>
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Ticket Log</a>
                     <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Physical Handover</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
-                switchTab('spec-dash');
+                switchTab('spec-dash', tabOpts);
             } else if (currentUser.role === 'ts') {
                 menu.innerHTML = `<a href="#" onclick="switchTab('ts-dash')" id="nav-ts-dash" class="nav-link active flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-chart-line w-4 text-center text-sm"></i> Dashboard</a>
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">My Assets</div>
@@ -5178,15 +5246,25 @@
                     <div class="px-8 py-2 mt-2 text-[9px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-[0.2em]">Operations</div>
                     <a href="#" onclick="switchTab('tickets-log')" id="nav-tickets-log" class="nav-link flex items-center gap-4 px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition"><i class="fa-solid fa-ticket w-4 text-center text-sm"></i> Ticket Log</a>
                     <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Physical Handover</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
-                switchTab('ts-dash');
+                switchTab('ts-dash', tabOpts);
             }
-            updateOwnerDropdown(); syncBatchImportButtons();
+            syncBatchImportButtons();
             checkNotifications();
             requestAnimationFrame(() => {
                 renderChatUsers(); updateChatBadge(); initServiceNotifPolling();
             });
-            if (canBatchImport()) ensureXlsxLib();
-            initRealtimeSync();
+            if (mobileLite) {
+                setTimeout(() => initRealtimeSync(), 300);
+                setTimeout(() => {
+                    updateOwnerDropdown();
+                    if (canBatchImport()) ensureXlsxLib();
+                    updateData();
+                }, 1200);
+            } else {
+                updateOwnerDropdown();
+                if (canBatchImport()) ensureXlsxLib();
+                initRealtimeSync();
+            }
         }
 
         const BATCH_IMPORT_FULL_ROLES = ['owner', 'spv', 'ts_spec', 'ts_spec_avitum', 'ts_spec_ais'];
@@ -5210,7 +5288,7 @@
             });
         }
 
-        function switchTab(tabId) {
+        function switchTab(tabId, opts) {
             activeTab = tabId; document.querySelectorAll('.app-view').forEach(v => { v.classList.add('hidden'); v.classList.remove('flex'); });
             document.querySelectorAll('.nav-link').forEach(l => { l.classList.remove('active'); const icon = l.querySelector('i'); if(icon) icon.classList.remove('text-gold-500'); });
             const view = document.getElementById('view-' + tabId); view.classList.remove('hidden'); view.classList.add('flex');
@@ -5230,7 +5308,8 @@
             document.getElementById('topbar-title').innerText = titles[tabId];
             // Saat masuk tab Service Customer — otomatis tandai semua notif tiket sebagai sudah dibaca
             if (tabId === 'customer-service') { markAllSvcNotifsRead(); }
-            updateData();
+            if (opts && opts.skipUpdate) return;
+            updateData(opts && opts.lite ? { lite: true } : undefined);
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebarOverlay').classList.toggle('hidden'); }
@@ -5799,17 +5878,23 @@
         }
 
         // --- 4. VIEW RENDERING ---
-        function updateData() {
-            if (_updateDataQueued) return;
+        function updateData(opts) {
+            if (_updateDataQueued) {
+                if (opts && opts.lite) _updateDataPendingLite = true;
+                return;
+            }
             _updateDataQueued = true;
+            const lite = (opts && opts.lite) || _updateDataPendingLite;
+            _updateDataPendingLite = false;
             requestAnimationFrame(() => {
                 _updateDataQueued = false;
-                _updateDataImpl();
+                _updateDataImpl(lite);
             });
         }
-        function _updateDataImpl() {
+        function _updateDataImpl(lite) {
             if(!currentUser) return;
 
+            if (!lite) {
             if (!previousRequestStates) {
                 previousRequestStates = new Map();
                 (db.requests || []).forEach(r => {
@@ -5939,8 +6024,14 @@
                     }
                 });
             }
+            } else {
+                if (!previousRequestStates) previousRequestStates = new Map();
+                (db.requests || []).forEach(r => previousRequestStates.set(r.id, r.status));
+                if (!previousServiceTicketStates) previousServiceTicketStates = new Map();
+                (db.serviceTickets || []).forEach(st => previousServiceTicketStates.set(st.id, st.status));
+            }
 
-            updateOwnerDropdown();
+            if (!lite) updateOwnerDropdown();
             if(activeTab === 'tickets-log') renderTicketsLog();
             if(activeTab === 'customer-service') renderServiceTickets();
             
@@ -5969,11 +6060,11 @@
                     if(ho.length > 0) { bg.classList.remove('hidden'); bg.innerText = ho.length; } else bg.classList.add('hidden'); 
                 }
             }
-            if(currentUser.role === 'ts') {
+            if (!lite && currentUser.role === 'ts') {
                 checkStagnantServiceAlerts();
             }
             if(currentUser.role === 'spv' || currentUser.role === 'tsf' || currentUser.role === 'owner') { 
-                checkStagnantServiceAlerts();
+                if (!lite) checkStagnantServiceAlerts();
                 const pr = db.requests.filter(r => {
                     if (r.status !== 'pending_spv' && r.status !== 'pending_tsf') return false;
                     if (currentUser.role === 'tsf') return r.status === 'pending_tsf';
@@ -6452,7 +6543,7 @@
             const goodCount = scopeTools.filter(t => t.condition === 'Baik' && t.status !== 'pending_auth').length + scopeDemos.filter(d => d.condition === 'Baik').length;
             const brokenCount = scopeTools.filter(t => t.condition === 'Rusak').length + scopeDemos.filter(d => d.condition === 'Rusak').length;
             const maintCount = scopeTools.filter(t => t.maintenanceStatus && t.maintenanceStatus !== '').length + scopeDemos.filter(d => d.maintenanceStatus && d.maintenanceStatus !== '').length;
-            updateSpvChart(goodCount, brokenCount, maintCount);
+            if (!isTmsMobileView()) updateSpvChart(goodCount, brokenCount, maintCount);
 
             const hc = document.getElementById('spv-history-log'); hc.innerHTML = '';
             const filteredHistory = db.historyLog.filter(l => {
@@ -8427,6 +8518,7 @@
         // --- 5. FITUR PREMIUM ADVANCED ---
         var spvChart = null;
         async function updateSpvChart(good, broken, maint) {
+            if (isTmsMobileView()) return;
             const ctx = document.getElementById('spv-chart-condition');
             if(!ctx) return;
             try { await loadTmsScript('chart'); } catch(e) { return; }
@@ -10855,10 +10947,6 @@
         }
 
         const SP_FILTER_BTN_IDS = { all: 'flt-sp-all', Avitum: 'flt-sp-Avitum', 'Hospital Care': 'flt-sp-HospitalCare', Aesculap: 'flt-sp-Aesculap', General: 'flt-sp-General' };
-
-        function isTmsMobileView() {
-            return window.matchMedia('(max-width: 767px)').matches;
-        }
 
         function tmsEscHtml(s) {
             if (s == null || s === '') return '';
@@ -13718,6 +13806,7 @@
         let svcStatusChart = null;
 
         async function renderServiceStatsDash() {
+            if (isTmsMobileView()) return;
             try { await loadTmsScript('chart'); } catch(e) { return; }
             const tickets = db.serviceTickets || [];
             const now = new Date();
