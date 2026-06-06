@@ -3,7 +3,9 @@
 import json
 import re
 import urllib.request
+from pathlib import Path
 
+ROOT = Path(__file__).resolve().parent
 BASE = 'https://prasetiojayadwi-coder.github.io/tms-app/'
 
 
@@ -29,14 +31,23 @@ def main():
         'render_opt': 'ticketById' in html,
         'id_fix': '_lastAllocatedId' in html,
         'supabase_config': 'supabase.co' in deploy,
+        'owner_batch': "currentUser.role === 'owner'" in html and 'owner-batch-btn' in html,
+        'xlsx_only': 'isExcelXlsxFile' in html,
     }
+    local_rel = (ROOT / 'release.js').read_text(encoding='utf-8')
+    exp_ver = re.search(r"version:\s*'([^']+)'", local_rel)
+    expected = exp_ver.group(1) if exp_ver else report['version']
+    report['expected'] = expected
+    report['version_match'] = report['version'] == expected
     print(json.dumps(report, indent=2))
     ok = all([
-        report['version'] == '6.7.6',
+        report['version_match'],
         report['sw_match'],
         report['buildExcelBlob'],
         report['template_xlsx'],
         report['supabase_config'],
+        report['owner_batch'],
+        report['xlsx_only'],
     ])
     return 0 if ok else 1
 

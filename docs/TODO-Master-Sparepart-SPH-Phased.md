@@ -989,7 +989,8 @@
 - [x] Guard di open/download/preview/run batch import
 - [x] UAT-081 — SPV/TSF denied, Owner allowed
 - [x] Bump `release.js` v6.7.7 / build 72
-- [ ] Deploy v6.7.7 + verifikasi live
+- [x] Deploy v6.7.7 ke GitHub Pages (`5ffd6ea`)
+- [x] Live terverifikasi: v6.7.7 / build 72 / tms-cache-v72
 
 
 
