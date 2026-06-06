@@ -114,7 +114,7 @@
             color: #a1a1aa !important; border-color: #3f3f46 !important;
         }
         .tms-btn--danger, .tms-mob-btn--danger,
-        #btn-delete-customers, #btn-delete-cust-units,
+        #btn-delete-customers, #btn-delete-cust-units, #btn-delete-spareparts,
         #btn-bulk-delete-tools, #btn-bulk-delete-demo, #btn-bulk-delete-service,
         #btn-sph-cancel, button.tms-card-btn--danger {
             background-color: #dc2626 !important; color: #fff !important; border-color: #dc2626 !important;
@@ -908,19 +908,27 @@
             </section>
 
             <!-- ASET MASTER (TOOLS) -->
-            <section id="view-spv-assets" class="app-view hidden flex-col gap-6 animate-fade-in">
-                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 flex flex-col gap-4 shadow-sm dark:shadow-xl">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <section id="view-spv-assets" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in">
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 flex flex-col gap-4 shadow-sm dark:shadow-xl">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-wrench mr-2 text-gray-500 dark:text-lux-400"></i> Special Tools Inventory</h2>
+                        <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Kelola alat ukur special tools — distribusi, kalibrasi, dan riwayat per alat.</p>
+                    </div>
+                    <div class="flex flex-col lg:flex-row gap-3 lg:items-center">
                         <div class="flex-1 w-full relative max-w-md">
-                            <input type="text" id="search-tool" onkeyup="renderSpvAssets()" class="input-field w-full pr-12" placeholder="Smart Search: Nama, SN, Merk, Tipe, Kategori...">
-                            <button onclick="startQrScanner('spv-search')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gold-600 dark:text-gold-500 hover:text-gold-700 transition" title="Scan QR Aset"><i class="fa-solid fa-qrcode text-lg"></i></button>
+                            <input type="text" id="search-tool" onkeyup="renderSpvAssets()" class="input-field w-full pr-12" placeholder="Cari nama, SN, merk, tipe, kategori...">
+                            <button onclick="startQrScanner('spv-search')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition" title="Scan QR Aset"><i class="fa-solid fa-qrcode text-lg"></i></button>
                         </div>
                         <div class="tms-toolbar tms-toolbar--3 shrink-0">
-                            <button onclick="bulkPrintSpvStickers()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-print mr-1.5"></i> Cetak Stiker</button>
-                            <button onclick="exportToCSV('tools')" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor Excel</button>
-                            <button onclick="openBatchImportModal('tool')" data-batch-type="tool" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Excel</button>
+                            <label id="spv-select-all-wrap" class="tms-select-all cursor-pointer select-none">
+                                <input type="checkbox" id="select-all-spv-bar" onchange="toggleSelectAllSpvAssets(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
+                            </label>
+                            <button onclick="bulkPrintSpvStickers()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-print mr-1.5"></i> Cetak</button>
+                            <button onclick="exportToCSV('tools')" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
+                            <button onclick="openBatchImportModal('tool')" data-batch-type="tool" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
                             <button id="btn-bulk-delete-tools" onclick="bulkDeleteSpvAssets()" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
-                            <button id="btn-add-tool-spv" onclick="openFormModal('tool')" class="tms-btn tms-btn--primary tms-toolbar--span2"><i class="fa-solid fa-plus mr-1.5"></i> Add Asset</button>
+                            <button id="btn-add-tool-spv" onclick="openFormModal('tool')" class="tms-btn tms-btn--primary"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
                         </div>
                     </div>
                     <!-- Sub-menu / Tabs untuk Kategori Special Tools -->
@@ -937,7 +945,7 @@
                         <table class="w-full text-left text-sm border-collapse min-w-[1000px]">
                             <thead>
                                 <tr class="text-[10px] text-gray-500 dark:text-lux-300 font-black uppercase tracking-widest border-b border-gray-200 dark:border-lux-700 bg-gray-50 dark:bg-lux-950 whitespace-nowrap">
-                                    <th class="p-5 text-center w-12"><input type="checkbox" id="select-all-spv-assets" onclick="toggleSelectAllSpvAssets(this)" class="w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer"></th>
+                                    <th class="p-5 text-center w-12"><input type="checkbox" id="select-all-spv-assets" onchange="toggleSelectAllSpvAssets(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer" title="Pilih semua"></th>
                                     <th class="p-5">No Inv & Kategori</th><th class="p-5">Description & Brand</th><th class="p-5">SN & Tipe</th><th class="p-5">PIC / Teknisi</th><th class="p-5">Kondisi & Kalibrasi</th><th class="p-5 text-center">Tindakan Khusus</th>
                                 </tr>
                             </thead>
@@ -948,23 +956,33 @@
             </section>
 
             <!-- INVENTARIS DEMO / BACKUP (TSF & SPV) -->
-            <section id="view-demo-inventory" class="app-view hidden flex-col gap-6 animate-fade-in">
-                <div class="bg-white dark:bg-lux-900 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm dark:shadow-xl">
-                    <div class="flex-1 w-full max-w-md"><input type="text" id="search-demo" onkeyup="renderDemoInventory()" class="input-field w-full focus:border-emerald-500" placeholder="Smart Search: Unit Demo & Backup..."></div>
+            <section id="view-demo-inventory" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in">
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 flex flex-col gap-4 shadow-sm dark:shadow-xl">
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-box-archive mr-2 text-gray-500 dark:text-lux-400"></i> Unit Backup & Demo</h2>
+                        <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Inventaris unit cadangan dan demo — siap distribusi ke teknisi atau customer.</p>
+                    </div>
+                    <div class="flex flex-col lg:flex-row gap-3 lg:items-center">
+                        <div class="flex-1 w-full max-w-md"><input type="text" id="search-demo" onkeyup="renderDemoInventory()" class="input-field w-full" placeholder="Cari unit backup & demo..."></div>
                         <div class="tms-toolbar tms-toolbar--3 shrink-0">
-                        <button onclick="bulkPrintDemoStickers()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-print mr-1.5"></i> Cetak Stiker</button>
-                        <button onclick="exportToCSV('demo')" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor Excel</button>
-                        <button onclick="openBatchImportModal('demo')" data-batch-type="demo" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Excel</button>
-                        <button id="btn-bulk-delete-demo" onclick="bulkDeleteDemoAssets()" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
-                        <button id="btn-add-demo" onclick="openFormModal('demo')" class="hidden tms-btn tms-btn--primary tms-toolbar--span2"><i class="fa-solid fa-plus mr-1.5"></i> Add Backup Unit</button>
+                            <label id="demo-select-all-wrap" class="tms-select-all cursor-pointer select-none">
+                                <input type="checkbox" id="select-all-demo-bar" onchange="toggleSelectAllDemoAssets(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
+                            </label>
+                            <button onclick="bulkPrintDemoStickers()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-print mr-1.5"></i> Cetak</button>
+                            <button onclick="exportToCSV('demo')" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
+                            <button onclick="openBatchImportModal('demo')" data-batch-type="demo" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
+                            <button id="btn-bulk-delete-demo" onclick="bulkDeleteDemoAssets()" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
+                            <button id="btn-add-demo" onclick="openFormModal('demo')" class="hidden tms-btn tms-btn--primary"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
                         </div>
+                    </div>
                 </div>
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
                     <div class="overflow-x-auto custom-scrollbar pb-4">
                         <table class="w-full text-left text-sm border-collapse min-w-[1100px]">
                             <thead>
-                                <tr class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest border-b border-gray-200 dark:border-lux-700 bg-gray-50 dark:bg-lux-950 whitespace-nowrap">
-                                    <th class="p-5 text-center w-12"><input type="checkbox" id="select-all-demo-assets" onclick="toggleSelectAllDemoAssets(this)" class="w-4 h-4 rounded border-emerald-300 accent-emerald-500 cursor-pointer"></th>
+                                <tr class="text-[10px] text-gray-500 dark:text-lux-300 font-black uppercase tracking-widest border-b border-gray-200 dark:border-lux-700 bg-gray-50 dark:bg-lux-950 whitespace-nowrap">
+                                    <th class="p-5 text-center w-12"><input type="checkbox" id="select-all-demo-assets" onchange="toggleSelectAllDemoAssets(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer" title="Pilih semua"></th>
                                     <th class="p-5">Inventory No.</th><th class="p-5">Unit Description</th><th class="p-5">No Seri / Tipe</th><th class="p-5">Lokasi & Tujuan (Reason)</th><th class="p-5">Kondisi & Kalibrasi</th><th class="p-5 text-center">Tindakan Khusus</th>
                                 </tr>
                             </thead>
@@ -1060,13 +1078,18 @@
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sp-stat-active">0</p></div>
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Discontinued</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sp-stat-disc">0</p></div>
                     </div>
-                    <div class="max-md:space-y-2 mt-4">
-                        <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field w-full md:flex-1 md:min-w-[200px] text-[12px]" placeholder="Search Art Number, Description, Group...">
-                        <div class="tms-toolbar tms-toolbar--2">
+                    <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap mt-4">
+                        <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field flex-1 min-w-[180px] text-[12px]" placeholder="Cari Art Number, Description, Group...">
+                        <div class="tms-toolbar tms-toolbar--3 w-full sm:w-auto">
+                            <label id="sp-select-all-wrap" class="hidden tms-select-all cursor-pointer select-none">
+                                <input type="checkbox" id="select-all-spareparts-bar" onchange="toggleSelectAllSpareparts(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
+                            </label>
                             <button onclick="openSparepartModal()" class="tms-btn tms-btn--primary cust-touch-btn"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
                             <button onclick="openBatchImportModal('sparepart')" data-batch-type="sparepart" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
                             <button onclick="downloadBatchTemplate('sparepart')" data-batch-type="sparepart" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
                             <button onclick="exportSparepartsCSV()" class="tms-btn tms-btn--outline cust-touch-btn"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
+                            <button id="btn-delete-spareparts" onclick="deleteSelectedSpareparts()" class="hidden tms-btn tms-btn--danger cust-touch-btn"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
                         </div>
                     </div>
                     <div class="flex gap-2 w-full overflow-x-auto pb-1 pt-3 custom-scrollbar">
@@ -1082,7 +1105,7 @@
                     <div class="hidden md:block overflow-x-auto custom-scrollbar flex-1">
                         <table class="w-full text-left text-[12px] min-w-[700px]">
                             <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400 sticky top-0">
-                                <tr><th class="p-4">Art Number</th><th class="p-4">Description</th><th class="p-4">Price</th><th class="p-4">Group</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th></tr>
+                                <tr><th class="p-4 text-center w-10"><input type="checkbox" id="select-all-spareparts" onchange="toggleSelectAllSpareparts(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer" title="Pilih semua"></th><th class="p-4">Art Number</th><th class="p-4">Description</th><th class="p-4">Price</th><th class="p-4">Group</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th></tr>
                             </thead>
                             <tbody id="spareparts-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
                         </table>
@@ -6668,13 +6691,14 @@
 
                 const isInProcess = hasActiveRequest(t.id);
                 const distBtnHtml = isInProcess
-                    ? `<button disabled class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gray-400 dark:text-lux-600 opacity-40 cursor-not-allowed flex items-center justify-center shadow-sm" title="Sedang dalam proses aktif"><i class="fa-solid fa-lock text-[10px]"></i></button>`
-                    : `<button onclick="openDistributeModal(${t.id}, 'tool')" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-600 dark:text-emerald-500 hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Distribusikan"><i class="fa-solid fa-paper-plane text-[10px]"></i></button>`;
+                    ? `<button disabled class="tms-icon-btn opacity-40 cursor-not-allowed" title="Sedang dalam proses aktif"><i class="fa-solid fa-lock text-[10px]"></i></button>`
+                    : `<button onclick="openDistributeModal(${t.id}, 'tool')" class="tms-icon-btn" title="Distribusikan"><i class="fa-solid fa-paper-plane text-[10px]"></i></button>`;
 
                 sc.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
-                    <td class="p-5 text-center"><input type="checkbox" value="${t.id}" class="spv-asset-checkbox w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer"></td>
-                    <td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block text-gold-600 dark:text-gold-500">${t.noInv}</span><span class="text-gray-500 dark:text-lux-400 text-[10px] whitespace-nowrap">${t.artNo||'-'}</span></td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${t.desc||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.tipe||'-'}</p></td><td class="p-5 text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span><br>${subCatBadge}${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 dark:text-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-300 hover:bg-gray-600 dark:hover:bg-lux-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button><button onclick="openFormModal('tool', ${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 dark:text-gold-500 hover:bg-gold-600 dark:hover:bg-gold-500 hover:text-white dark:hover:text-black transition flex items-center justify-center shadow-sm" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button><button onclick="deleteItem('tool', ${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 dark:hover:bg-red-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button></div></td></tr>`;
+                    <td class="p-5 text-center"><input type="checkbox" value="${t.id}" onchange="syncSpvAssetSelectAllState()" class="spv-asset-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
+                    <td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block font-bold">${t.noInv}</span><span class="text-gray-500 dark:text-lux-400 text-[10px] whitespace-nowrap">${t.artNo||'-'}</span></td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${t.desc||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.tipe||'-'}</p></td><td class="p-5 text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span><br>${subCatBadge}${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="tms-icon-btn" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="tms-icon-btn" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button><button onclick="openFormModal('tool', ${t.id})" class="tms-icon-btn" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button><button onclick="deleteItem('tool', ${t.id})" class="tms-icon-btn tms-icon-btn--danger" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button></div></td></tr>`;
             });
+            syncSpvAssetSelectAllState();
         }
 
         function renderDemoInventory() {
@@ -6715,15 +6739,16 @@
                 const subCatBadge = t.subCategory ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${t.subCategory}</span>` : '';
                 const maintBadge = t.maintenanceStatus ? `<br><span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 mt-1 inline-block whitespace-nowrap">${t.maintenanceStatus}</span>` : '';
                 
-                const editDeleteBtns = (currentUser.role === 'tsf' || currentUser.role === 'owner') ? `<button onclick="openFormModal('demo', ${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gold-600 dark:text-gold-500 hover:bg-gold-600 dark:hover:bg-gold-500 hover:text-white dark:hover:text-black transition flex items-center justify-center shadow-sm" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button><button onclick="deleteItem('demo', ${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-600 dark:text-red-500 hover:bg-red-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>` : '';
+                const editDeleteBtns = (currentUser.role === 'tsf' || currentUser.role === 'owner') ? `<button onclick="openFormModal('demo', ${t.id})" class="tms-icon-btn" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button><button onclick="deleteItem('demo', ${t.id})" class="tms-icon-btn tms-icon-btn--danger" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button>` : '';
                 const isInProcess = hasActiveRequest(t.id);
                 const distBtnHtml = isInProcess
-                    ? `<button disabled class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gray-400 dark:text-lux-600 opacity-40 cursor-not-allowed flex items-center justify-center shadow-sm" title="Sedang dalam proses aktif"><i class="fa-solid fa-lock text-[10px]"></i></button>`
-                    : `<button onclick="openDistributeModal(${t.id}, 'demo')" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-emerald-600 dark:text-emerald-500 hover:bg-emerald-600 dark:hover:bg-emerald-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Distribusikan"><i class="fa-solid fa-paper-plane text-[10px]"></i></button>`;
+                    ? `<button disabled class="tms-icon-btn opacity-40 cursor-not-allowed" title="Sedang dalam proses aktif"><i class="fa-solid fa-lock text-[10px]"></i></button>`
+                    : `<button onclick="openDistributeModal(${t.id}, 'demo')" class="tms-icon-btn" title="Distribusikan"><i class="fa-solid fa-paper-plane text-[10px]"></i></button>`;
                 sc.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
-                    <td class="p-5 text-center"><input type="checkbox" value="${t.id}" class="demo-asset-checkbox w-4 h-4 rounded border-emerald-350 accent-emerald-500 cursor-pointer"></td>
-                    <td class="p-5 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[12px] whitespace-nowrap">${t.noInv}</td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1 whitespace-nowrap">${t.artNo||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||''} ${t.tipe||''}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonStr}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span><br>${subCatBadge}${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-blue-500 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition flex items-center justify-center shadow-sm" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-300 hover:bg-gray-600 dark:hover:bg-lux-500 hover:text-white transition flex items-center justify-center shadow-sm" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button>${editDeleteBtns}</div></td></tr>`;
+                    <td class="p-5 text-center"><input type="checkbox" value="${t.id}" onchange="syncDemoAssetSelectAllState()" class="demo-asset-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
+                    <td class="p-5 text-gray-900 dark:text-white font-mono font-bold text-[12px] whitespace-nowrap">${t.noInv}</td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1 whitespace-nowrap">${t.artNo||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||''} ${t.tipe||''}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonStr}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span><br>${subCatBadge}${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="tms-icon-btn" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="tms-icon-btn" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button>${editDeleteBtns}</div></td></tr>`;
             });
+            syncDemoAssetSelectAllState();
         }
 
         function renderSpvPersonnel() {
@@ -8859,14 +8884,72 @@
             }, 300);
         }
 
+        const SPV_SELECT_ALL_IDS = ['select-all-spv-assets', 'select-all-spv-bar'];
+        const DEMO_SELECT_ALL_IDS = ['select-all-demo-assets', 'select-all-demo-bar'];
+        const SP_SELECT_ALL_IDS = ['select-all-spareparts', 'select-all-spareparts-bar'];
+
         function toggleSelectAllSpvAssets(master) {
-            const checkboxes = document.querySelectorAll('.spv-asset-checkbox');
-            checkboxes.forEach(cb => cb.checked = master.checked);
+            const checked = !!master.checked;
+            document.querySelectorAll('.spv-asset-checkbox').forEach(cb => { cb.checked = checked; });
+            SPV_SELECT_ALL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el !== master) el.checked = checked;
+            });
+        }
+
+        function syncSpvAssetSelectAllState() {
+            const cbs = document.querySelectorAll('.spv-asset-checkbox');
+            const checked = document.querySelectorAll('.spv-asset-checkbox:checked');
+            const allChecked = cbs.length > 0 && checked.length === cbs.length;
+            SPV_SELECT_ALL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = allChecked;
+            });
         }
 
         function toggleSelectAllDemoAssets(master) {
-            const checkboxes = document.querySelectorAll('.demo-asset-checkbox');
-            checkboxes.forEach(cb => cb.checked = master.checked);
+            const checked = !!master.checked;
+            document.querySelectorAll('.demo-asset-checkbox').forEach(cb => { cb.checked = checked; });
+            DEMO_SELECT_ALL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el !== master) el.checked = checked;
+            });
+        }
+
+        function syncDemoAssetSelectAllState() {
+            const cbs = document.querySelectorAll('.demo-asset-checkbox');
+            const checked = document.querySelectorAll('.demo-asset-checkbox:checked');
+            const allChecked = cbs.length > 0 && checked.length === cbs.length;
+            DEMO_SELECT_ALL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = allChecked;
+            });
+        }
+
+        function resetSparepartSelectAll() {
+            SP_SELECT_ALL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = false;
+            });
+        }
+
+        function toggleSelectAllSpareparts(master) {
+            const checked = !!master.checked;
+            document.querySelectorAll('.sparepart-checkbox').forEach(cb => { cb.checked = checked; });
+            SP_SELECT_ALL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el !== master) el.checked = checked;
+            });
+        }
+
+        function syncSparepartSelectAllState() {
+            const cbs = document.querySelectorAll('.sparepart-checkbox');
+            const checked = document.querySelectorAll('.sparepart-checkbox:checked');
+            const allChecked = cbs.length > 0 && checked.length === cbs.length;
+            SP_SELECT_ALL_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.checked = allChecked;
+            });
         }
 
         function bulkPrintSpvStickers() {
@@ -8916,8 +8999,7 @@
             db.tools = db.tools.filter(t => !idsToDelete.includes(t.id));
             db.requests = db.requests.filter(r => !(idsToDelete.includes(r.toolId) && r.toolType === 'tool'));
             
-            const masterCheckbox = document.getElementById('select-all-spv-assets');
-            if (masterCheckbox) masterCheckbox.checked = false;
+            SPV_SELECT_ALL_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
             
             saveDB();
             updateData();
@@ -8947,8 +9029,7 @@
             db.demoUnits = db.demoUnits.filter(d => !idsToDelete.includes(d.id));
             db.requests = db.requests.filter(r => !(idsToDelete.includes(r.toolId) && r.toolType === 'demo'));
             
-            const masterCheckbox = document.getElementById('select-all-demo-assets');
-            if (masterCheckbox) masterCheckbox.checked = false;
+            DEMO_SELECT_ALL_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
             
             saveDB();
             updateData();
@@ -11005,7 +11086,8 @@
             const st = sp.status || 'active';
             const price = (sp.price || 0).toLocaleString('id-ID');
             return `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
-                <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${art}</td>
+                <td class="p-4 text-center"><input type="checkbox" value="${sp.id}" onchange="syncSparepartSelectAllState()" class="sparepart-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
+                <td class="p-4 font-mono text-[11px] font-bold text-gray-600 dark:text-lux-300">${art}</td>
                 <td class="p-4 text-[12px] font-bold text-gray-900 dark:text-white">${desc}</td>
                 <td class="p-4 font-mono text-[11px] text-gray-900 dark:text-white">Rp ${price}</td>
                 <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${grp}</span></td>
@@ -11024,6 +11106,7 @@
             const price = (sp.price || 0).toLocaleString('id-ID');
             return `<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
                 <div class="flex justify-between items-start gap-2">
+                    <input type="checkbox" value="${sp.id}" onchange="syncSparepartSelectAllState()" class="sparepart-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1">
                     <div class="min-w-0 flex-1">
                         <p class="font-mono text-[11px] font-bold text-gray-600 dark:text-lux-300">${art}</p>
                         <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug mt-0.5">${desc}</p>
@@ -11103,11 +11186,19 @@
             const remaining = filtered.length - slice.length;
 
             const emptyMsg = '<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No spareparts yet. Add or import from Excel.</p>';
+            const delSpBtn = document.getElementById('btn-delete-spareparts');
+            const spSelWrap = document.getElementById('sp-select-all-wrap');
             if (!filtered.length) {
-                container.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No spareparts yet. Add or import from Excel.</td></tr>';
+                if (delSpBtn) delSpBtn.classList.add('hidden');
+                if (spSelWrap) spSelWrap.classList.add('hidden');
+                container.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-gray-400 italic">No spareparts yet. Add or import from Excel.</td></tr>';
                 if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
+                resetSparepartSelectAll();
                 return;
             }
+            if (delSpBtn) delSpBtn.classList.remove('hidden');
+            if (spSelWrap) spSelWrap.classList.remove('hidden');
+            resetSparepartSelectAll();
 
             const stColors = { active: 'text-emerald-600 dark:text-emerald-400', discontinued: 'text-amber-600 dark:text-amber-400', obsolete: 'text-red-500' };
             const moreStep = Math.min(remaining, pageSize);
@@ -11208,6 +11299,25 @@
             if (sp) { recordDeletion(id); addToHistory(`Sparepart Master: Deleted ${sp.artNo}.`); }
             saveDB(); updateData();
             showToast('Deleted', 'Sparepart removed.', 'success');
+        }
+
+        function deleteSelectedSpareparts() {
+            const checked = document.querySelectorAll('.sparepart-checkbox:checked');
+            if (!checked.length) {
+                showToast('Pilih Sparepart', 'Centang minimal satu sparepart untuk dihapus.', 'warning');
+                return;
+            }
+            if (!confirm(`Hapus ${checked.length} sparepart terpilih dari master?`)) return;
+            loadDB();
+            const ids = Array.from(checked).map(cb => parseInt(cb.value));
+            ids.forEach(id => {
+                const sp = (db.spareparts || []).find(x => x.id === id);
+                if (sp) { recordDeletion(id); addToHistory(`Sparepart Master: Deleted ${sp.artNo}.`); }
+            });
+            db.spareparts = (db.spareparts || []).filter(x => !ids.includes(x.id));
+            saveDB(); updateData();
+            resetSparepartSelectAll();
+            showToast('Deleted', `${ids.length} sparepart dihapus.`, 'success');
         }
 
         function exportSparepartsCSV() {

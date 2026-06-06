@@ -246,6 +246,17 @@ def check_html_integrity():
         ok('Performa HP: Sparepart Master render batch + pagination (anti-freeze)')
     else:
         bad('Performa HP: optimasi render Sparepart Master tidak lengkap')
+    if ('deleteSelectedSpareparts' in js and 'toggleSelectAllSpareparts' in js
+            and 'sparepart-checkbox' in js and 'btn-delete-spareparts' in html
+            and 'select-all-spareparts-bar' in html):
+        ok('Sparepart Master: checkbox + Pilih Semua + hapus bersamaan')
+    else:
+        bad('Sparepart Master: bulk delete checkbox tidak lengkap')
+    if ('spv-select-all-wrap' in html and 'demo-select-all-wrap' in html
+            and 'Special Tools Inventory' in html and 'Unit Backup & Demo' in html):
+        ok('Tools & Backup: toolbar seragam + Pilih Semua')
+    else:
+        bad('Tools & Backup: toolbar atau Pilih Semua tidak lengkap')
     if ('getTmsSyncProfile' in js and 'startMobileSyncPoll' in js
             and 'updateData({ lite:' in js and 'TMS_SYNC_PROFILE' in js):
         ok('HP ringan + sync realtime: profile mobile, poll & update lite')
