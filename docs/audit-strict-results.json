@@ -1,54 +1,54 @@
 {
   "benchmarks": {
     "allocateUniqueId_x100": {
-      "ms": 9,
+      "ms": 2.4,
       "out": {
         "unique": true
       }
     },
     "searchSparepartsPartial": {
-      "ms": 0.9,
+      "ms": 0.4,
       "out": 8
     },
     "sanitizeDatabase": {
-      "ms": 2.2,
+      "ms": 1,
       "out": true
     },
     "JSON.stringify_db": {
-      "ms": 1,
+      "ms": 0.4,
       "out": 126835
     },
     "renderSparepartMaster": {
-      "ms": 128.8,
+      "ms": 44.1,
       "out": 503
     },
     "renderSphLog": {
-      "ms": 19.9,
+      "ms": 6.7,
       "out": 100
     },
     "getEligibleSphTickets": {
-      "ms": 0.7,
+      "ms": 0.1,
       "out": 200
     },
     "hasEligibleCombinedSph": {
-      "ms": 0.5,
+      "ms": 0.2,
       "out": true
     }
   },
   "bottlenecks": [],
   "bugs": [],
   "ok": [
-    "allocateUniqueId_x100: 9ms OK",
-    "searchSparepartsPartial: 0.9ms OK",
-    "sanitizeDatabase: 2.2ms OK",
-    "JSON.stringify_db: 1ms OK",
-    "renderSparepartMaster: 128.8ms OK",
-    "renderSphLog: 19.9ms OK",
-    "getEligibleSphTickets: 0.7ms OK",
-    "hasEligibleCombinedSph: 0.5ms OK"
+    "allocateUniqueId_x100: 2.4ms OK",
+    "searchSparepartsPartial: 0.4ms OK",
+    "sanitizeDatabase: 1ms OK",
+    "JSON.stringify_db: 0.4ms OK",
+    "renderSparepartMaster: 44.1ms OK",
+    "renderSphLog: 6.7ms OK",
+    "getEligibleSphTickets: 0.1ms OK",
+    "hasEligibleCombinedSph: 0.2ms OK"
   ],
-  "pageLoadMs": 7805,
-  "jsReadyMs": 8097,
+  "pageLoadMs": 1498,
+  "jsReadyMs": 1561,
   "meta": {
     "spareparts": 503,
     "serviceTickets": 200,
@@ -57,5 +57,5 @@
     "jsonMB": 0.12,
     "indexHtmlNote": "monolith ~974KB parse on first load"
   },
-  "liveVersion": "6.7.3"
+  "liveVersion": "6.7.4"
 }

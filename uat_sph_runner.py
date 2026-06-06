@@ -129,10 +129,31 @@ async def run_a(page):
     }''')
     record('UAT-003', 'pass' if imp.get('added', 0) >= 1 and imp.get('skipped', 0) >= 1 else 'fail', str(imp))
 
-    # UAT-004
-    has_export = await js(page, '() => typeof exportSparepartsCSV === "function"')
-    csv_len = await js(page, '() => { loadDB(); return (db.spareparts || []).length; }')
-    record('UAT-004', 'pass' if has_export and csv_len > 0 else 'fail', f'export fn + {csv_len} rows')
+    # UAT-004 — export + template semicolon (Excel Indonesia)
+    csv_chk = await js(page, '''() => {
+        const schema = BATCH_IMPORT_SCHEMAS.sparepart;
+        const tmpl = buildCsvString(schema.columns, []);
+        const headerLine = tmpl.replace(/^\\uFEFF/, '').split('\\n')[0];
+        const expected = 'Art Number;Description;Price;Group;Status;Notes';
+        const parseTest = normalizeImportRow(
+            { 'Art Number': 'CSV-TEST-001', 'Description': 'From CSV', 'Price': '5000', 'Group': 'Avitum', 'Status': 'active', 'Notes': '' },
+            schema
+        );
+        const csv = '\\uFEFFArt Number;Description;Price;Group;Status;Notes\\nUAT-CSV-SEMI-001;Semicolon Import;2500;Avitum;active;ok';
+        const data = new TextEncoder().encode(csv);
+        const wb = XLSX.read(data, { type: 'array', FS: detectCsvDelimiter(csv) });
+        const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' })[0];
+        const norm = normalizeImportRow(raw, schema);
+        const imp = importSparepartsBatch([norm]);
+        return {
+            headerOk: headerLine === expected,
+            delim: TMS_CSV_DELIM,
+            detectOk: detectCsvDelimiter('Art Number;Description;Price') === ';',
+            parseOk: parseTest['Art Number'] === 'CSV-TEST-001' && parseTest['Price'] === '5000',
+            xlsxSemiOk: norm['Art Number'] === 'UAT-CSV-SEMI-001' && imp.added === 1
+        };
+    }''')
+    record('UAT-004', 'pass' if csv_chk.get('headerOk') and csv_chk.get('detectOk') and csv_chk.get('parseOk') and csv_chk.get('xlsxSemiOk') else 'fail', str(csv_chk))
 
     # UAT-005
     filt = await js(page, '''() => {

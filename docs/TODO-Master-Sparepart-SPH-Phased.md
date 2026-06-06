@@ -937,6 +937,20 @@
 - [x] Deploy v6.7.4 ke GitHub Pages (`873f3bb`)
 - [x] Live terverifikasi: `release.js` v6.7.4 / build 69, `sw.js` tms-cache-v69
 
+## Phase 7.4 — CSV Template Excel Indonesia (v6.7.5)
+
+**Target:** v6.7.5 — delimiter titik koma (;), satu kolom per field
+
+### Kode
+- [x] `TMS_CSV_DELIM` + `buildCsvString` / `detectCsvDelimiter` / `downloadCsvFile`
+- [x] Template & export semua modul batch import pakai `;`
+- [x] Import CSV auto-detect `;` atau `,`
+- [x] Folder `templates/` — 5 file CSV referensi
+- [x] UAT-004 verifikasi template semicolon + parse XLSX
+- [x] Bump `release.js` v6.7.5 / build 70
+- [x] Bump `sw.js` `tms-cache-v70`
+- [ ] Deploy v6.7.5 ke GitHub Pages + verifikasi live
+
 
 
 ---

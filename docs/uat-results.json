@@ -13,7 +13,7 @@
   },
   "UAT-004": {
     "status": "pass",
-    "note": "export fn + 7 rows"
+    "note": "{'headerOk': True, 'delim': ';', 'detectOk': True, 'parseOk': True, 'xlsxSemiOk': True}"
   },
   "UAT-005": {
     "status": "pass",

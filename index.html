@@ -1846,7 +1846,7 @@
                 <button type="button" onclick="closeModal('batchImportModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-5 sm:p-8 space-y-5">
-                <p class="text-[12px] text-gray-600 dark:text-lux-400 font-medium leading-relaxed" id="batch-import-desc">Upload Excel (.xlsx, .xls) or CSV. One field per column — use the template for the correct column order.</p>
+                <p class="text-[12px] text-gray-600 dark:text-lux-400 font-medium leading-relaxed" id="batch-import-desc">Upload Excel (.xlsx, .xls) atau CSV. Satu kolom per field — delimiter titik koma (;) untuk Excel Indonesia.</p>
                 <div class="bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/40 rounded-xl p-4">
                     <p class="text-[9px] text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-widest mb-2">Required Columns</p>
                     <p class="text-[11px] font-mono text-gray-700 dark:text-lux-300 break-all leading-relaxed" id="batch-import-columns"></p>
@@ -5163,11 +5163,10 @@
 
         function exportHistoryCSV() {
             loadDB();
-            const headers = ["Waktu", "Aksi / Riwayat"];
-            const rows = db.historyLog.map(h => { const date = new Date(h.time).toLocaleString('id-ID'); return [`"${date}"`, `"${h.action}"`]; });
-            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(",")].concat(rows.map(e => e.join(","))).join("\n");
-            const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "Log_Riwayat_Global.csv"); document.body.appendChild(link); link.click();
-            showToast("Export Successful", "Log file has been downloaded.", "success");
+            const headers = ['Waktu', 'Aksi / Riwayat'];
+            const rows = db.historyLog.map(h => [new Date(h.time).toLocaleString('id-ID'), h.action || '']);
+            downloadCsvFile('Log_Riwayat_Global.csv', buildCsvString(headers, rows));
+            showToast('Export Successful', 'Log file has been downloaded.', 'success');
         }
 
         function hasActiveRequest(toolId) {
@@ -6656,19 +6655,14 @@
 
         function exportToCSV(type) {
             loadDB();
-            let arr = type === 'demo' ? db.demoUnits : db.tools;
-            const headers = ["No Inv", "Deskripsi", "Kategori", "SubKategori", "SN", "Merk", "Tipe", "Kondisi", "Status", "Lokasi/PIC"];
+            const arr = type === 'demo' ? db.demoUnits : db.tools;
+            const headers = ['No Inv', 'Deskripsi', 'Kategori', 'SubKategori', 'SN', 'Merk', 'Tipe', 'Kondisi', 'Status', 'Lokasi/PIC'];
             const rows = arr.map(t => {
                 const owner = t.ownerId === 0 ? 'Gudang' : (db.users[t.ownerId] ? db.users[t.ownerId].name : '-');
-                return [`"${t.noInv}"`, `"${t.desc||''}"`, `"${t.category||'-'}"`, `"${t.subCategory||'-'}"`, `"${t.sn||''}"`, `"${t.merk||''}"`, `"${t.tipe||''}"`, `"${t.condition}"`, `"${t.status}"`, `"${owner}"`];
+                return [t.noInv, t.desc || '', t.category || '-', t.subCategory || '-', t.sn || '', t.merk || '', t.tipe || '', t.condition, t.status, owner];
             });
-            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(",")].concat(rows.map(e => e.join(","))).join("\n");
-            const encodedUri = encodeURI(csvContent); 
-            const link = document.createElement("a"); 
-            link.setAttribute("href", encodedUri); 
-            link.setAttribute("download", `Data_${type.toUpperCase()}_Asset.csv`); 
-            document.body.appendChild(link); link.click(); link.remove();
-            showToast("Export Successful", `CSV file ${type} downloaded.`, "success");
+            downloadCsvFile(`Data_${type.toUpperCase()}_Asset.csv`, buildCsvString(headers, rows));
+            showToast('Export Successful', `CSV file ${type} downloaded.`, 'success');
         }
 
         function initRequest(toolId) {
@@ -9615,6 +9609,39 @@
             return `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border whitespace-nowrap ${cls}">${custUnitStatusLabel(st)}</span>`;
         }
 
+        const TMS_CSV_DELIM = ';';
+
+        function escapeCsvCell(val) {
+            const s = String(val ?? '');
+            if (s.includes(TMS_CSV_DELIM) || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+                return '"' + s.replace(/"/g, '""') + '"';
+            }
+            return s;
+        }
+
+        function buildCsvString(headers, rows) {
+            const lines = [headers.map(escapeCsvCell).join(TMS_CSV_DELIM)];
+            (rows || []).forEach(row => lines.push(row.map(escapeCsvCell).join(TMS_CSV_DELIM)));
+            return '\uFEFF' + lines.join('\n');
+        }
+
+        function detectCsvDelimiter(text) {
+            const line = (text || '').split(/\r?\n/)[0] || '';
+            const sc = (line.match(/;/g) || []).length;
+            const cc = (line.match(/,/g) || []).length;
+            return sc >= cc && sc > 0 ? ';' : ',';
+        }
+
+        function downloadCsvFile(filename, csvContent) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
         const BATCH_IMPORT_SCHEMAS = {
             customer: {
                 title: 'Import Customers',
@@ -9671,7 +9698,8 @@
             'condition': 'Condition', 'kondisi': 'Condition', 'kondisi fisik': 'Condition',
             'pic username': 'PIC Username', 'username pic': 'PIC Username', 'teknisi': 'PIC Username', 'penanggung jawab awal': 'PIC Username',
             'buy date': 'Buy Date', 'tanggal pembelian': 'Buy Date', 'cal date': 'Cal Date', 'tanggal kalibrasi': 'Cal Date',
-            'price': 'Price', 'harga': 'Price', 'reason': 'Reason', 'tujuan': 'Reason', 'alasan': 'Reason'
+            'price': 'Price', 'harga': 'Price', 'group': 'Group', 'grup': 'Group', 'kelompok': 'Group',
+            'reason': 'Reason', 'tujuan': 'Reason', 'alasan': 'Reason'
         };
 
         function normalizeImportHeaderKey(h) {
@@ -9705,7 +9733,7 @@
             _batchImportRows = [];
             document.getElementById('batch-import-title').innerHTML = `<i class="fa-solid fa-file-import text-indigo-500 mr-2"></i> ${schema.title}`;
             document.getElementById('batch-import-desc').innerText = schema.desc;
-            document.getElementById('batch-import-columns').innerText = schema.columns.join(' | ');
+            document.getElementById('batch-import-columns').innerText = schema.columns.join('; ');
             const fileInput = document.getElementById('batch-import-file');
             if (fileInput) fileInput.value = '';
             const preview = document.getElementById('batch-import-preview');
@@ -9720,16 +9748,8 @@
         function downloadBatchTemplate(type) {
             const schema = BATCH_IMPORT_SCHEMAS[type || _batchImportType];
             if (!schema) return;
-            const bom = '\uFEFF';
-            const csv = bom + schema.columns.join(',') + '\n';
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = schema.filename;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            showToast('Template Ready', `${schema.filename} downloaded. Fill one value per column.`, 'success');
+            downloadCsvFile(schema.filename, buildCsvString(schema.columns, []));
+            showToast('Template Ready', `${schema.filename} downloaded — satu kolom per field (delimiter ;).`, 'success');
         }
 
         function previewBatchImportFile(e) {
@@ -9748,7 +9768,11 @@
             reader.onload = (ev) => {
                 try {
                     const data = new Uint8Array(ev.target.result);
-                    const wb = XLSX.read(data, { type: 'array' });
+                    const readOpts = { type: 'array' };
+                    if ((file.name || '').toLowerCase().endsWith('.csv')) {
+                        readOpts.FS = detectCsvDelimiter(new TextDecoder('utf-8').decode(data.slice(0, 1024)));
+                    }
+                    const wb = XLSX.read(data, readOpts);
                     const sheet = wb.Sheets[wb.SheetNames[0]];
                     const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
                     _batchImportRows = rawRows.map(r => normalizeImportRow(r, schema)).filter(r => Object.values(r).some(v => v));
@@ -9762,7 +9786,7 @@
                     if (preview && previewBody) {
                         preview.classList.remove('hidden');
                         const sample = _batchImportRows.slice(0, 5).map((r, i) => {
-                            const label = r['Customer Name'] || r['Unit Name'] || r['Description'] || r['Inventory No'] || `Row ${i + 1}`;
+                            const label = r['Customer Name'] || r['Unit Name'] || r['Art Number'] || r['Description'] || r['Inventory No'] || `Row ${i + 1}`;
                             return `<p class="truncate"><span class="font-bold text-indigo-600 dark:text-indigo-400">#${i + 1}</span> ${label}</p>`;
                         }).join('');
                         previewBody.innerHTML = `<p class="font-bold mb-2">${_batchImportRows.length} row(s) ready to import</p>${sample}${_batchImportRows.length > 5 ? '<p class="text-gray-400 italic">...and more</p>' : ''}`;
@@ -10625,12 +10649,8 @@
         function exportSparepartsCSV() {
             loadDB();
             const headers = ['Art Number', 'Description', 'Price', 'Group', 'Status', 'Notes'];
-            const rows = (db.spareparts || []).map(sp => [`"${sp.artNo}"`, `"${sp.description || ''}"`, sp.price || 0, `"${sp.group || ''}"`, `"${sp.status || ''}"`, `"${sp.notes || ''}"`]);
-            const csv = '\uFEFF' + [headers.join(',')].concat(rows.map(r => r.join(','))).join('\n');
-            const link = document.createElement('a');
-            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-            link.download = 'TMS_Spareparts_Export.csv';
-            document.body.appendChild(link); link.click(); link.remove();
+            const rows = (db.spareparts || []).map(sp => [sp.artNo, sp.description || '', sp.price || 0, sp.group || '', sp.status || '', sp.notes || '']);
+            downloadCsvFile('TMS_Spareparts_Export.csv', buildCsvString(headers, rows));
             showToast('Export Successful', 'Sparepart CSV downloaded.', 'success');
         }
 
@@ -13299,18 +13319,8 @@
                 ];
             });
 
-            const csvContent = [headers, ...rows]
-                .map(row => row.map(cell => `"${String(cell).replace(/\n/g,' ')}"`).join(','))
-                .join('\r\n');
-
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const today = new Date().toLocaleDateString('id-ID').replace(/\//g,'-');
-            a.href = url;
-            a.download = `Laporan_Service_TMS_${today}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
+            const today = new Date().toLocaleDateString('id-ID').replace(/\//g, '-');
+            downloadCsvFile(`Laporan_Service_TMS_${today}.csv`, buildCsvString(headers, rows));
             showToast("Export Successful", `${tickets.length} tiket service diekspor ke Excel/CSV.`, "success");
         }
 
