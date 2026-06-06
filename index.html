@@ -220,14 +220,22 @@
             #customers-cards-mobile,
             #customer-units-cards-mobile,
             #service-tickets-cards-mobile { max-height: min(70vh, 640px); min-height: 120px; -webkit-overflow-scrolling: touch; padding-bottom: 5rem; }
-            #view-customer-service .cust-touch-btn { min-height: 44px; }
+            #view-customer-service .cust-touch-btn,
+            #view-customer-master .cust-touch-btn,
+            #view-sparepart-master .cust-touch-btn { min-height: 44px; }
+            #spareparts-cards-mobile .tms-card-btn,
+            #customers-cards-mobile .tms-card-btn,
+            #customer-units-cards-mobile .tms-card-btn,
             #service-tickets-cards-mobile .svc-ticket-action,
             #service-tickets-cards-mobile .svc-ticket-track,
             #service-tickets-cards-mobile .svc-ticket-receipt,
             #service-tickets-cards-mobile .svc-ticket-delete {
-                min-height: 48px; width: 100%; touch-action: manipulation;
+                min-height: 48px; touch-action: manipulation;
                 -webkit-tap-highlight-color: rgba(234, 179, 8, 0.15);
             }
+            #service-tickets-cards-mobile .svc-ticket-action,
+            #service-tickets-cards-mobile .svc-ticket-track,
+            #service-tickets-cards-mobile .svc-ticket-receipt { width: 100%; }
             #service-tickets-cards-mobile .svc-mob-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; position: relative; z-index: 5; }
             #service-tickets-cards-mobile .svc-ticket-action { position: relative; z-index: 6; }
             .tms-card-btn--primary {
@@ -3244,6 +3252,13 @@
             return window.matchMedia('(max-width: 767px)').matches;
         }
 
+        /** Kartu HP tampak jika viewport mobile ATAU elemen kartu tidak display:none (antisipasi zoom/font HP). */
+        function tmsCardsVisible(cardsEl) {
+            if (!cardsEl) return false;
+            if (isTmsMobileView()) return true;
+            try { return window.getComputedStyle(cardsEl).display !== 'none'; } catch (e) { return false; }
+        }
+
         /** Render aman: kartu HP + tabel desktop. Selalu early-return saat kosong — jangan hapus empty state di akhir. */
         function tmsRenderSplitList(tableEl, cardsEl, opts) {
             if (opts.empty) {
@@ -3251,13 +3266,9 @@
                 if (cardsEl) cardsEl.innerHTML = opts.emptyCards != null ? opts.emptyCards : (opts.emptyTable || '');
                 return;
             }
-            const mobile = isTmsMobileView();
-            if (mobile) {
-                if (tableEl) tableEl.innerHTML = '';
-                if (cardsEl) cardsEl.innerHTML = opts.cardsHtml || '';
-            } else {
-                if (cardsEl) cardsEl.innerHTML = '';
-                if (tableEl) tableEl.innerHTML = opts.tableHtml || '';
+            if (tableEl) tableEl.innerHTML = opts.tableHtml || '';
+            if (cardsEl) {
+                cardsEl.innerHTML = tmsCardsVisible(cardsEl) ? (opts.cardsHtml || '') : '';
             }
         }
 
@@ -10108,8 +10119,10 @@
                     </div>`);
                 }
             });
-            container.innerHTML = tableRows.join('');
-            if (cardsMobile) cardsMobile.innerHTML = cardRows.join('');
+            tmsRenderSplitList(container, cardsMobile, {
+                tableHtml: tableRows.join(''),
+                cardsHtml: cardRows.join('')
+            });
             bindServiceTicketCardActions();
         }
 
@@ -11345,8 +11358,8 @@
                     </div>
                 </div>
                 <div class="tms-card-actions">
-                    <button onclick="openSparepartModal(${sp.id})" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                    <button onclick="deleteSparepart(${sp.id})" class="tms-card-btn tms-card-btn--danger"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                    <button type="button" onclick="openSparepartModal(${sp.id}); return false;" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                    <button type="button" onclick="deleteSparepart(${sp.id}); return false;" class="tms-card-btn tms-card-btn--danger"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
                 </div>
             </div>`;
         }
@@ -11845,8 +11858,8 @@
                             <span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black shrink-0">${unitCount} unit</span>
                         </div>
                             <div class="tms-card-actions" onclick="event.stopPropagation()">
-                                <button onclick="openCustomerModal(${c.id})" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                                <button onclick="selectCustomerAndShowUnits(${c.id})" class="tms-card-btn"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
+                                <button type="button" onclick="openCustomerModal(${c.id}); return false;" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                <button type="button" onclick="selectCustomerAndShowUnits(${c.id}); return false;" class="tms-card-btn"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
                             </div>
                     </div>`);
                 }
@@ -11984,8 +11997,8 @@
                             </div>
                         </div>
                             <div class="tms-card-actions">
-                                <button onclick="openServiceModalForUnit(${u.id})" class="tms-card-btn"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
-                                <button onclick="openCustomerUnitModal(${u.id})" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                <button type="button" onclick="openServiceModalForUnit(${u.id}); return false;" class="tms-card-btn"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
+                                <button type="button" onclick="openCustomerUnitModal(${u.id}); return false;" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
                             </div>
                     </div>`);
                 }

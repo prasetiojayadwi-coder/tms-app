@@ -299,6 +299,28 @@ def check_html_integrity():
         ok('UI profesional: resize tab customer + icon-btn konsisten')
     else:
         bad('UI profesional: perbaikan konsistensi tidak lengkap')
+    if 'function tmsCardsVisible' in js and 'tmsCardsVisible(cardsEl)' in js:
+        ok('Tombol HP: tmsCardsVisible — kartu render jika panel tampak di layar')
+    else:
+        bad('Tombol HP: tmsCardsVisible tidak ada — risiko kartu kosong di HP')
+    if 'window.runServiceTicketAction' in js and 'runServiceTicketAction(this)' in js:
+        ok('Tombol HP: service Pickup/Track onclick + window fallback')
+    else:
+        bad('Tombol HP: runServiceTicketAction tidak lengkap')
+    dyn_calls = set()
+    for m in re.finditer(r'onclick=\\"([a-zA-Z_$][\w$]*)\s*\(', js):
+        dyn_calls.add(m.group(1))
+    missing_dyn = sorted(dyn_calls - func_defs)
+    if missing_dyn:
+        bad(f'JS dinamis onclick tanpa fungsi: {", ".join(missing_dyn)}')
+    elif dyn_calls:
+        ok(f'JS dinamis: semua {len(dyn_calls)} handler onclick valid')
+    card_btn_js = re.findall(r'<button[^>]*class="[^"]*tms-card-btn[^"]*"[^>]*>', js)
+    card_no_click = [b for b in card_btn_js if 'onclick' not in b]
+    if card_no_click:
+        bad(f'Kartu HP: {len(card_no_click)} tms-card-btn dinamis tanpa onclick')
+    elif card_btn_js:
+        ok(f'Kartu HP: semua {len(card_btn_js)} tms-card-btn dinamis punya onclick')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:
