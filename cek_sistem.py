@@ -225,10 +225,12 @@ def check_html_integrity():
     else:
         bad('Service & Repair: importCustomerUnitsBatch tidak lengkap')
     if ("'Description'" in js and 'deleteSelectedCustomerUnits' in js and 'deleteSelectedCustomers' in js
-            and 'btn-delete-cust-units' in html and 'btn-delete-customers' in html):
-        ok('Customer Master: Description + Delete terpilih (customer & unit)')
+            and 'btn-delete-cust-units' in html and 'btn-delete-customers' in html
+            and 'select-all-customers-bar' in html and 'select-all-cust-units-bar' in html
+            and 'toggleSelectAllCustomers' in js and 'Pilih Semua' in html):
+        ok('Customer Master: Pilih Semua toolbar + Delete (customer & unit)')
     else:
-        bad('Customer Master: bulk delete tidak lengkap')
+        bad('Customer Master: bulk delete / pilih semua tidak lengkap')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:
