@@ -1,5 +1,6 @@
 # Kredensial lokal (jangan commit)
 config.js
+supabase.key
 
 # config.deploy.js = untuk GitHub Pages (anon key public, dilindungi RLS)
 

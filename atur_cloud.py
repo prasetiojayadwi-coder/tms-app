@@ -10,8 +10,11 @@ if not key:
     print('\n[ERROR] Key kosong. Ulangi dengan paste key dari Supabase.')
     raise SystemExit(1)
 
-if not key.startswith('eyJ'):
-    print('\n[PERINGATAN] Key biasanya diawali "eyJ". Pastikan Anda copy "anon public", bukan service_role.')
+if key.startswith('sb_secret_'):
+    print('\n[ERROR] Ini Secret Key. Gunakan Publishable Key (sb_publishable_...) dari baris api_tms.')
+    raise SystemExit(1)
+if not (key.startswith('eyJ') or key.startswith('sb_publishable_')):
+    print('\n[PERINGATAN] Key tidak dikenali. Harus anon (eyJ...) atau publishable (sb_publishable_...).')
     lanjut = input('Lanjutkan simpan? (y/n): ').strip().lower()
     if lanjut != 'y':
         raise SystemExit(1)

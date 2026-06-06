@@ -9,12 +9,13 @@ echo.
 echo  Hanya 2 langkah:
 echo.
 echo  [1] Browser akan terbuka ke halaman Supabase.
-echo      Login ^> scroll ke "anon public" ^> klik COPY
+echo      Tab "Publishable and secret API keys"
+echo      Copy key baris "api_tms" (sb_publishable_...)
 echo.
 echo  [2] Kembali ke jendela ini, PASTE key-nya.
 echo.
 pause
-start https://supabase.com/dashboard/project/mezuatmcjqjxfsvepizv/settings/api
+start https://supabase.com/dashboard/project/mezuatmcjqjxfsvepizv/settings/api-keys
 echo.
 python atur_cloud.py
 if errorlevel 1 (
