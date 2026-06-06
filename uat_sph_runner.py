@@ -278,6 +278,31 @@ async def run_a(page):
     }''')
     record('UAT-084', 'pass' if cu_sel.get('custDeleted') and cu_sel.get('custLeft') and cu_sel.get('unitDeleted') and cu_sel.get('unitLeft') else 'fail', str(cu_sel))
 
+    # UAT-085 — sparepart cloud merge + orphan unit cleanup
+    sync_fix = await js(page, '''() => {
+        const local = {
+            version: 100, customers: [{ id: 1, code: 'C1', name: 'RS A', status: 'active', updatedAt: '2026-01-01' }],
+            customerUnits: [
+                { id: 10, customerId: 1, unitName: 'OK', updatedAt: '2026-01-01' },
+                { id: 11, customerId: 999, unitName: 'Orphan', updatedAt: '2026-01-01' }
+            ],
+            spareparts: [], sphDocuments: [], deletedIds: []
+        };
+        const cloud = {
+            version: 200, customers: [{ id: 1, code: 'C1', name: 'RS A', status: 'active', updatedAt: '2026-01-02' }],
+            customerUnits: [{ id: 10, customerId: 1, unitName: 'OK', updatedAt: '2026-01-02' }],
+            spareparts: [{ id: 501, artNo: 'SP-501', description: 'Filter', price: 1000, group: 'Avitum', status: 'active', updatedAt: '2026-01-02' }],
+            sphDocuments: [], deletedIds: []
+        };
+        const merged = mergeDatabases(local, cloud);
+        return {
+            spCount: (merged.spareparts || []).length === 1,
+            orphanGone: (merged.customerUnits || []).length === 1,
+            linkedOnly: getLinkedCustomerUnits(merged.customerUnits, merged.customers).length === 1
+        };
+    }''')
+    record('UAT-085', 'pass' if sync_fix.get('spCount') and sync_fix.get('orphanGone') and sync_fix.get('linkedOnly') else 'fail', str(sync_fix))
+
 
 # --- Section B: SPH Builder ---
 

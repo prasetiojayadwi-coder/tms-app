@@ -964,10 +964,11 @@
                         <button onclick="setSparepartFilter('General')" id="flt-sp-General" class="sp-filter-btn px-4 py-2 bg-gray-100 dark:bg-lux-800 text-gray-600 dark:text-lux-300 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">General</button>
                     </div>
                 </div>
-                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
-                    <div class="overflow-x-auto custom-scrollbar">
+                <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl flex flex-col min-h-[200px]">
+                    <div id="spareparts-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
+                    <div class="hidden md:block overflow-x-auto custom-scrollbar flex-1">
                         <table class="w-full text-left text-[12px] min-w-[700px]">
-                            <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400">
+                            <thead class="bg-gray-50 dark:bg-[#131316] text-[10px] uppercase tracking-widest text-gray-500 dark:text-lux-400 sticky top-0">
                                 <tr><th class="p-4">Art Number</th><th class="p-4">Description</th><th class="p-4">Price</th><th class="p-4">Group</th><th class="p-4">Status</th><th class="p-4 text-right">Actions</th></tr>
                             </thead>
                             <tbody id="spareparts-container" class="divide-y divide-gray-100 dark:divide-lux-800/60"></tbody>
@@ -3554,6 +3555,12 @@
             if ((local.customers || []).some(c => c && c.id && !cloudCustIds.has(c.id))) return true;
             const cloudUnitIds = new Set((cloud.customerUnits || []).filter(x => x).map(x => x.id));
             if ((local.customerUnits || []).some(u => u && u.id && !cloudUnitIds.has(u.id))) return true;
+
+            const cloudSpIds = new Set((cloud.spareparts || []).filter(x => x).map(x => x.id));
+            if ((local.spareparts || []).some(s => s && s.id && !cloudSpIds.has(s.id))) return true;
+
+            const cloudSphIds = new Set((cloud.sphDocuments || []).filter(x => x).map(x => x.id));
+            if ((local.sphDocuments || []).some(d => d && d.id && !cloudSphIds.has(d.id))) return true;
             
             return false;
         }
@@ -3814,6 +3821,17 @@
                 return true;
             });
             if ((target.customerUnits || []).length !== beforeCUnit) changed = true;
+
+            const custIdSet = new Set((target.customers || []).map(c => c && c.id).filter(Boolean));
+            const beforeOrphan = (target.customerUnits || []).length;
+            target.customerUnits = (target.customerUnits || []).filter(u => {
+                if (!u) return false;
+                if (custIdSet.has(u.customerId)) return true;
+                if (u.id) markRemoved(u.id);
+                changed = true;
+                return false;
+            });
+            if ((target.customerUnits || []).length !== beforeOrphan) changed = true;
 
             const beforeSp = (target.spareparts || []).length;
             target.spareparts = dedupeKeyed(dedupeById(target.spareparts), sp => normArtKey(sp.artNo));
@@ -4104,6 +4122,32 @@
                 cUnitMap.set(u.id, ext ? mergeRecord(u, ext, 'tool') : u);
             });
             merged.customerUnits = Array.from(cUnitMap.values());
+
+            // 10. Merge Spareparts
+            const spMap = new Map();
+            (cloud.spareparts || []).forEach(sp => {
+                if (!sp || !sp.id || mergedDeleted.includes(sp.id)) return;
+                spMap.set(sp.id, sp);
+            });
+            (local.spareparts || []).forEach(sp => {
+                if (!sp || !sp.id || mergedDeleted.includes(sp.id)) return;
+                const ext = spMap.get(sp.id);
+                spMap.set(sp.id, ext ? mergeRecord(sp, ext, 'tool') : sp);
+            });
+            merged.spareparts = Array.from(spMap.values());
+
+            // 11. Merge SPH Documents
+            const sphMap = new Map();
+            (cloud.sphDocuments || []).forEach(d => {
+                if (!d || !d.id || mergedDeleted.includes(d.id)) return;
+                sphMap.set(d.id, d);
+            });
+            (local.sphDocuments || []).forEach(d => {
+                if (!d || !d.id || mergedDeleted.includes(d.id)) return;
+                const ext = sphMap.get(d.id);
+                sphMap.set(d.id, ext ? mergeRecord(d, ext, 'serviceTicket') : d);
+            });
+            merged.sphDocuments = Array.from(sphMap.values());
 
             // Simpan versi tertinggi atau bump jika ada kontribusi lokal baru yang belum di cloud
             sanitizeDatabase(merged);
@@ -10745,6 +10789,13 @@
             renderSparepartMaster();
         }
 
+        function getLinkedCustomerUnits(units, customers) {
+            const unitList = units || db.customerUnits || [];
+            const custList = customers || db.customers || [];
+            const custIds = new Set(custList.map(c => c && c.id).filter(Boolean));
+            return unitList.filter(u => u && custIds.has(u.customerId));
+        }
+
         function renderSparepartMaster() {
             loadDB();
             const items = (db.spareparts || []).slice();
@@ -10756,29 +10807,55 @@
             if (statActive) statActive.innerText = items.filter(s => s.status === 'active').length;
             if (statDisc) statDisc.innerText = items.filter(s => s.status === 'discontinued').length;
             const container = document.getElementById('spareparts-container');
+            const cardsMobile = document.getElementById('spareparts-cards-mobile');
             if (!container) return;
             container.innerHTML = '';
+            if (cardsMobile) cardsMobile.innerHTML = '';
             const filtered = items.filter(sp => {
                 const hay = `${sp.artNo || ''} ${sp.description || ''} ${sp.group || ''}`.toLowerCase();
                 const matchQ = hay.includes(q);
                 const matchF = currentSparepartFilter === 'all' || sp.group === currentSparepartFilter;
                 return matchQ && matchF;
             }).sort((a, b) => (a.artNo || '').localeCompare(b.artNo || ''));
+            const emptyMsg = '<p class="p-8 text-center text-gray-400 dark:text-lux-500 italic text-[12px]">No spareparts yet. Add or import from Excel.</p>';
             if (!filtered.length) {
                 container.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No spareparts yet. Add or import from Excel.</td></tr>';
+                if (cardsMobile) cardsMobile.innerHTML = emptyMsg;
                 return;
             }
-            const stColors = { active: 'text-emerald-600', discontinued: 'text-amber-600', obsolete: 'text-red-500' };
-            container.innerHTML = filtered.map(sp => `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
+            const stColors = { active: 'text-emerald-600 dark:text-emerald-400', discontinued: 'text-amber-600 dark:text-amber-400', obsolete: 'text-red-500' };
+            filtered.forEach(sp => {
+                const row = `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30">
                     <td class="p-4 font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</td>
-                    <td class="p-4 text-[12px] font-bold">${sp.description}</td>
-                    <td class="p-4 font-mono text-[11px]">Rp ${(sp.price || 0).toLocaleString('id-ID')}</td>
-                    <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase">${sp.group || 'General'}</span></td>
+                    <td class="p-4 text-[12px] font-bold text-gray-900 dark:text-white">${sp.description}</td>
+                    <td class="p-4 font-mono text-[11px] text-gray-900 dark:text-white">Rp ${(sp.price || 0).toLocaleString('id-ID')}</td>
+                    <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${sp.group || 'General'}</span></td>
                     <td class="p-4"><span class="text-[10px] font-black uppercase ${stColors[sp.status] || ''}">${sp.status || 'active'}</span></td>
                     <td class="p-4 text-right"><div class="flex justify-end gap-2">
                         <button onclick="openSparepartModal(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-violet-500 hover:bg-violet-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-pen text-[10px]"></i></button>
                         <button onclick="deleteSparepart(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
-                    </div></td></tr>`).join('');
+                    </div></td></tr>`;
+                container.innerHTML += row;
+                if (cardsMobile) {
+                    cardsMobile.innerHTML += `<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="min-w-0 flex-1">
+                                <p class="font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</p>
+                                <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug mt-0.5">${sp.description || '-'}</p>
+                                <p class="text-[11px] font-mono text-gray-600 dark:text-lux-300 mt-1">Rp ${(sp.price || 0).toLocaleString('id-ID')}</p>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${sp.group || 'General'}</span>
+                                <p class="text-[9px] font-black uppercase mt-2 ${stColors[sp.status] || ''}">${sp.status || 'active'}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-3">
+                            <button onclick="openSparepartModal(${sp.id})" class="cust-touch-btn py-2.5 rounded-xl bg-violet-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                            <button onclick="deleteSparepart(${sp.id})" class="cust-touch-btn py-2.5 rounded-xl bg-red-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                        </div>
+                    </div>`;
+                }
+            });
         }
 
         function openSparepartModal(editId) {
@@ -10854,7 +10931,7 @@
             loadDB();
             const sp = (db.spareparts || []).find(x => x.id === id);
             db.spareparts = (db.spareparts || []).filter(x => x.id !== id);
-            if (sp) addToHistory(`Sparepart Master: Deleted ${sp.artNo}.`);
+            if (sp) { recordDeletion(id); addToHistory(`Sparepart Master: Deleted ${sp.artNo}.`); }
             saveDB(); updateData();
             showToast('Deleted', 'Sparepart removed.', 'success');
         }
@@ -11059,7 +11136,7 @@
         function renderCustomerMaster() {
             loadDB();
             const customers = (db.customers || []).slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-            const units = db.customerUnits || [];
+            const units = getLinkedCustomerUnits();
             const searchEl = document.getElementById('search-customers');
             const q = (searchEl ? searchEl.value : '').toLowerCase();
 
@@ -11359,10 +11436,13 @@
             }
 
             const delIds = new Set(toDelete.map(c => c.id));
+            const unitsToDrop = (db.customerUnits || []).filter(u => delIds.has(u.customerId));
             db.customers = (db.customers || []).filter(x => !delIds.has(x.id));
             db.customerUnits = (db.customerUnits || []).filter(u => !delIds.has(u.customerId));
             if (selectedCustomerId && delIds.has(selectedCustomerId)) selectedCustomerId = null;
 
+            toDelete.forEach(c => { recordDeletion(c.id); });
+            unitsToDrop.forEach(u => { if (u.id) recordDeletion(u.id); });
             toDelete.forEach(c => addToHistory(`Master Customer: Menghapus customer ${c.name} (${c.code}).`));
             saveDB();
             updateData();
@@ -11566,7 +11646,7 @@
 
             const delIds = new Set(toDelete.map(u => u.id));
             db.customerUnits = (db.customerUnits || []).filter(x => !delIds.has(x.id));
-            toDelete.forEach(u => addToHistory(`Master Customer: Menghapus unit ${u.unitName || u.id}.`));
+            toDelete.forEach(u => { if (u.id) recordDeletion(u.id); addToHistory(`Master Customer: Menghapus unit ${u.unitName || u.id}.`); });
             saveDB();
             updateData();
             return { deleted: toDelete.length, blocked };

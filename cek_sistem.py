@@ -231,6 +231,10 @@ def check_html_integrity():
         ok('Customer Master: Pilih Semua toolbar + Delete (customer & unit)')
     else:
         bad('Customer Master: bulk delete / pilih semua tidak lengkap')
+    if 'getLinkedCustomerUnits' in js and 'spareparts-cards-mobile' in html and 'merged.spareparts' in js:
+        ok('Sync mobile: sparepart merge + kartu HP + unit orphan cleanup')
+    else:
+        bad('Sync mobile: sparepart merge atau tampilan HP tidak lengkap')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:
