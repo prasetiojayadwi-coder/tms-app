@@ -207,6 +207,28 @@ async def run_a(page):
     }''')
     record('UAT-008', 'pass' if fill else 'fail', 'exact match smart fill')
 
+    # UAT-082 — customer-unit import: auto customer + AVITUM + upsert
+    cu_imp = await js(page, '''() => {
+        loadDB();
+        const beforeCust = (db.customers || []).length;
+        const rows = [{
+            'Customer Code': '', 'Customer Name': 'RS UAT Import Auto',
+            'Art Number': '710200C', 'Product': 'AVITUM', 'Unit Name': 'Dialog UAT',
+            'Serial Number': 'SN-UAT-CU-001', 'Merk': '', 'Type': '', 'Location': 'HD', 'Status': '', 'Notes': ''
+        }];
+        const r1 = importCustomerUnitsBatch(rows);
+        const r2 = importCustomerUnitsBatch(rows);
+        const unit = (db.customerUnits || []).find(u => u.unitSn === 'SN-UAT-CU-001');
+        return {
+            added1: r1.added === 1,
+            customersCreated: r1.customersCreated === 1,
+            product: unit && unit.product === 'Avitum',
+            updated2: r2.updated === 1 && r2.added === 0,
+            noDupCust: (db.customers || []).length === beforeCust + 1
+        };
+    }''')
+    record('UAT-082', 'pass' if cu_imp.get('added1') and cu_imp.get('customersCreated') and cu_imp.get('product') and cu_imp.get('updated2') and cu_imp.get('noDupCust') else 'fail', str(cu_imp))
+
 
 # --- Section B: SPH Builder ---
 

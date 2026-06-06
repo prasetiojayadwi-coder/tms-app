@@ -31,6 +31,10 @@
     "status": "pass",
     "note": "exact match smart fill"
   },
+  "UAT-082": {
+    "status": "pass",
+    "note": "{'added1': True, 'customersCreated': True, 'product': True, 'updated2': True, 'noDupCust': True}"
+  },
   "UAT-010": {
     "status": "pass",
     "note": "{'quoted': True, 'sphNo': 'SPH-2606-0001', 'quotePrice': 4000000, 'subtotal': 3500000}"

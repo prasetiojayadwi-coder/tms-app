@@ -2966,6 +2966,10 @@
             const v = String(val).trim();
             if (v === 'AIS') return 'Hospital Care';
             if (v === 'AES') return 'Aesculap';
+            const lower = v.toLowerCase();
+            const hit = TMS_PRODUCT_CATEGORIES.find(c => c.toLowerCase() === lower);
+            if (hit) return hit;
+            if (lower === 'hospitalcare' || lower === 'hospital care') return 'Hospital Care';
             return v;
         }
         const DB_KEY = 'tms_enterprise_db_v23';
@@ -9727,9 +9731,9 @@
             },
             'customer-unit': {
                 title: 'Import Customer Units',
-                desc: 'Upload unit customer (.xlsx, satu kolom per field). Hubungkan ke customer via Customer Code atau Customer Name. Wajib: Unit Name + referensi customer.',
+                desc: 'Upload unit customer (.xlsx). Customer Code boleh kosong — customer dibuat/ di-update otomatis dari Customer Name (tanpa duplikat). Unit duplikat (Art No/SN sama) di-update, bukan ditambah lagi. Wajib: Customer Name + Unit Name.',
                 columns: ['Customer Code', 'Customer Name', 'Art Number', 'Product', 'Unit Name', 'Serial Number', 'Merk', 'Type', 'Location', 'Status', 'Notes'],
-                required: ['Unit Name'],
+                required: ['Customer Name', 'Unit Name'],
                 filename: 'TMS_Template_Customer_Units.xlsx'
             },
             tool: {
@@ -9917,6 +9921,63 @@
             return null;
         }
 
+        function findCustomerUnitForUpsert(customerId, artNo, unitSn) {
+            const units = db.customerUnits || [];
+            const artKey = artNo ? normArtKey(artNo) : '';
+            const snKey = unitSn ? normSnKey(unitSn) : '';
+            if (artKey) {
+                const byArt = units.find(u => u && u.customerId === customerId && normArtKey(u.artNo) === artKey);
+                if (byArt) return byArt;
+            }
+            if (snKey) {
+                const bySn = units.find(u => u && normSnKey(u.unitSn) === snKey);
+                if (bySn) return bySn;
+            }
+            return null;
+        }
+
+        function upsertCustomerForUnitImport(row, custCache) {
+            const name = (row['Customer Name'] || '').trim();
+            const code = (row['Customer Code'] || '').trim();
+            if (!name && !code) return { customer: null, created: false, error: 'Customer Name atau Customer Code wajib' };
+
+            const cacheKey = code ? 'c:' + normInvKey(code) : 'n:' + normUserKey(name);
+            if (custCache.has(cacheKey)) return { customer: custCache.get(cacheKey), created: false };
+
+            let cust = findCustomerByImportRef(code, name);
+            let created = false;
+            const now = new Date().toISOString();
+
+            if (cust) {
+                if (code && !cust.code) cust.code = code;
+                cust.updatedAt = now;
+            } else {
+                if (!name) return { customer: null, created: false, error: 'Customer Name wajib untuk customer baru' };
+                const pic = (row['PIC'] || '').trim() || 'PIC Import';
+                const phone = (row['Phone'] || '').trim() || '-';
+                const conflicts = findCustomerConflicts({ name, contact: phone, email: (row['Email'] || '').trim() }, null);
+                if (conflicts.length) {
+                    cust = findCustomerByImportRef('', name);
+                    if (!cust) return { customer: null, created: false, error: `${conflicts[0].label} duplikat` };
+                } else {
+                    cust = {
+                        id: allocateUniqueId(),
+                        code: code || generateCustomerCode(),
+                        name, picName: pic, contact: phone,
+                        email: (row['Email'] || '').trim(), city: (row['City'] || '').trim(),
+                        address: (row['Address'] || '').trim(), notes: '',
+                        status: 'active', updatedAt: now
+                    };
+                    db.customers.push(cust);
+                    created = true;
+                }
+            }
+            custCache.set(cacheKey, cust);
+            custCache.set('n:' + normUserKey(cust.name), cust);
+            if (cust.code) custCache.set('c:' + normInvKey(cust.code), cust);
+            return { customer: cust, created };
+        }
+
         function reserveInvNumber(isDemo, preferred) {
             if (preferred && !findBackupUnitConflicts({ noInv: preferred }, null).length) return preferred;
             return generateInvNumber(isDemo);
@@ -9947,29 +10008,58 @@
         }
 
         function importCustomerUnitsBatch(rows) {
-            let added = 0, skipped = 0;
+            let added = 0, updated = 0, skipped = 0, customersCreated = 0;
             const errors = [];
             db.customerUnits = db.customerUnits || [];
+            db.customers = db.customers || [];
+            const custCache = new Map();
+
             rows.forEach((row, idx) => {
-                const unitName = row['Unit Name'];
-                const cust = findCustomerByImportRef(row['Customer Code'], row['Customer Name']) || (selectedCustomerId ? (db.customers || []).find(c => c.id === selectedCustomerId) : null);
-                if (!unitName) { skipped++; errors.push(`Row ${idx + 1}: Unit Name required`); return; }
-                if (!cust) { skipped++; errors.push(`Row ${idx + 1}: customer not found`); return; }
+                const unitName = (row['Unit Name'] || '').trim();
+                if (!unitName) { skipped++; errors.push(`Row ${idx + 1}: Unit Name wajib`); return; }
+
+                let custRes = upsertCustomerForUnitImport(row, custCache);
+                if (!custRes.customer && selectedCustomerId) {
+                    const fallback = (db.customers || []).find(c => c.id === selectedCustomerId);
+                    if (fallback) custRes = { customer: fallback, created: false };
+                }
+                if (!custRes.customer) {
+                    skipped++; errors.push(`Row ${idx + 1}: ${custRes.error || 'customer tidak ditemukan'}`); return;
+                }
+                if (custRes.created) customersCreated++;
+
                 const product = normalizeProductCategory(row['Product'] || TMS_PRODUCT_CATEGORIES[0]);
-                if (!TMS_PRODUCT_CATEGORIES.includes(product)) { skipped++; errors.push(`Row ${idx + 1}: invalid Product`); return; }
-                const fields = { artNo: row['Art Number'] || '', unitSn: row['Serial Number'] || '' };
-                if (findCustomerUnitConflicts(fields, null, cust.id).length) { skipped++; errors.push(`Row ${idx + 1}: duplicate Art No / SN`); return; }
+                if (!TMS_PRODUCT_CATEGORIES.includes(product)) {
+                    skipped++; errors.push(`Row ${idx + 1}: Product tidak valid (${row['Product'] || '-'})`); return;
+                }
+
+                const artNo = (row['Art Number'] || '').trim();
+                const unitSn = (row['Serial Number'] || '').trim();
+                const existing = findCustomerUnitForUpsert(custRes.customer.id, artNo, unitSn);
+
+                if (existing && existing.customerId !== custRes.customer.id) {
+                    skipped++; errors.push(`Row ${idx + 1}: SN "${unitSn}" sudah dipakai customer lain`); return;
+                }
+
                 const now = new Date().toISOString();
-                db.customerUnits.push({
-                    id: allocateUniqueId(), customerId: cust.id,
-                    artNo: fields.artNo, product, unitName,
-                    unitSn: fields.unitSn, unitMerk: row['Merk'] || '', unitTipe: row['Type'] || '',
-                    location: row['Location'] || '', status: mapImportUnitStatus(row['Status']),
-                    notes: row['Notes'] || '', updatedAt: now
-                });
-                added++;
+                const payload = {
+                    artNo, product, unitName,
+                    unitSn, unitMerk: (row['Merk'] || '').trim(), unitTipe: (row['Type'] || '').trim(),
+                    location: (row['Location'] || '').trim(), status: mapImportUnitStatus(row['Status']),
+                    notes: (row['Notes'] || '').trim(), updatedAt: now
+                };
+
+                if (existing) {
+                    Object.assign(existing, payload, { customerId: custRes.customer.id });
+                    updated++;
+                } else {
+                    const conflicts = findCustomerUnitConflicts({ artNo, unitSn }, null, custRes.customer.id);
+                    if (conflicts.length) { skipped++; errors.push(`Row ${idx + 1}: duplikat ${conflicts[0].label}`); return; }
+                    db.customerUnits.push({ id: allocateUniqueId(), customerId: custRes.customer.id, ...payload });
+                    added++;
+                }
             });
-            return { added, skipped, errors };
+            return { added, updated, skipped, customersCreated, errors };
         }
 
         function importToolsBatch(rows, isDemo) {
@@ -10020,15 +10110,23 @@
             else if (_batchImportType === 'sparepart') result = importSparepartsBatch(_batchImportRows);
             else return;
 
-            if (result.added > 0) {
-                addToHistory(`${currentUser.name.split(' ')[0]} batch-imported ${result.added} ${_batchImportType} record(s).`);
+            if (result.added > 0 || result.updated > 0 || result.customersCreated > 0) {
+                const histParts = [];
+                if (result.added) histParts.push(`${result.added} baru`);
+                if (result.updated) histParts.push(`${result.updated} update`);
+                if (result.customersCreated) histParts.push(`${result.customersCreated} customer`);
+                addToHistory(`${currentUser.name.split(' ')[0]} batch-import ${_batchImportType}: ${histParts.join(', ')}.`);
                 saveDB();
                 updateData();
                 invalidateServiceHistoryIndex();
             }
             closeModal('batchImportModal');
-            const errNote = result.errors.length ? ` ${result.errors.length} issue(s) — check skipped rows.` : '';
-            showToast('Import Complete', `${result.added} added, ${result.skipped} skipped.${errNote}`, result.added ? 'success' : 'error');
+            const errNote = result.errors.length ? ` ${result.errors.length} baris dilewati — cek detail.` : '';
+            let summary = `${result.added} unit ditambah`;
+            if (result.updated) summary += `, ${result.updated} di-update`;
+            if (result.customersCreated) summary += `, ${result.customersCreated} customer baru`;
+            summary += `, ${result.skipped} dilewati.${errNote}`;
+            showToast('Import Complete', summary, (result.added || result.updated) ? 'success' : 'error');
             if (_batchImportType === 'customer' || _batchImportType === 'customer-unit') {
                 renderCustomerMaster();
                 if (activeTab === 'customer-service') renderServiceTickets();

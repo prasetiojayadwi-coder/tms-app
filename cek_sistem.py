@@ -217,8 +217,11 @@ def check_html_integrity():
         ok('Service & Repair: syncBatchImportButtons di renderServiceTickets')
     else:
         bad('Service & Repair: syncBatchImportButtons tidak dipanggil saat render')
-    if 'function importCustomerUnitsBatch' in js and 'findCustomerUnitConflicts' in js.split('importCustomerUnitsBatch')[1][:1200]:
-        ok('Service & Repair: importCustomerUnitsBatch + proteksi duplikat')
+    cu_imp = js.split('function importCustomerUnitsBatch', 1)
+    cu_block = cu_imp[1][:2200] if len(cu_imp) > 1 else ''
+    if ('function importCustomerUnitsBatch' in js and 'upsertCustomerForUnitImport' in js
+            and 'findCustomerUnitForUpsert' in cu_block and 'customersCreated' in cu_block):
+        ok('Service & Repair: importCustomerUnitsBatch + auto customer + upsert unit')
     else:
         bad('Service & Repair: importCustomerUnitsBatch tidak lengkap')
 
