@@ -1,0 +1,137 @@
+{
+  "UAT-001": {
+    "status": "pass",
+    "note": "live sparepart view=True",
+    "env": "live"
+  },
+  "UAT-002": {
+    "status": "pass",
+    "note": "duplicate form validation UI",
+    "env": "local"
+  },
+  "UAT-005": {
+    "status": "pass",
+    "note": "Avitum filter renders rows",
+    "env": "local"
+  },
+  "UAT-007": {
+    "status": "pass",
+    "note": "edit price=2750000",
+    "env": "local"
+  },
+  "UAT-020": {
+    "status": "pass",
+    "note": "live SPH Log view=True",
+    "env": "live"
+  },
+  "UAT-023": {
+    "status": "pass",
+    "note": "filter Pending PO clicked",
+    "env": "local"
+  },
+  "UAT-072": {
+    "status": "pass",
+    "note": "modal title=SPH-UAT-UI-001",
+    "env": "local"
+  },
+  "UAT-073": {
+    "status": "pass",
+    "note": "PDF print window opened",
+    "env": "local"
+  },
+  "UAT-076": {
+    "status": "pass",
+    "note": "cancelled filter + stat card",
+    "env": "local"
+  },
+  "UAT-016": {
+    "status": "pass",
+    "note": "combined btn visible=True",
+    "env": "local"
+  },
+  "UAT-078": {
+    "status": "pass",
+    "note": "hint visible=True",
+    "env": "local"
+  },
+  "UAT-077": {
+    "status": "pass",
+    "note": "{'hidden': True, 'title': ' On-Site Analysis & SPH'}",
+    "env": "local"
+  },
+  "UAT-080": {
+    "status": "pass",
+    "note": "docSph preview image in modal",
+    "env": "local"
+  },
+  "UAT-075": {
+    "status": "pass",
+    "note": "cancelSphDocument cancelled=True",
+    "env": "local"
+  },
+  "UAT-060": {
+    "status": "pass",
+    "note": "{'spare': True, 'sph': True, 'svc': True}",
+    "env": "local"
+  },
+  "UAT-061": {
+    "status": "pass",
+    "note": "{'spare': True, 'sph': True, 'svc': True}",
+    "env": "local"
+  },
+  "UAT-062": {
+    "status": "pass",
+    "note": "specialist SPH Log nav",
+    "env": "local"
+  },
+  "UAT-063": {
+    "status": "pass",
+    "note": "{'notAssignee': True, 'assignedTsId': 2, 'tsId': 1}",
+    "env": "local"
+  },
+  "UAT-064": {
+    "status": "pass",
+    "note": "{'spare': True, 'sph': True, 'svc': True}",
+    "env": "local"
+  },
+  "UAT-079": {
+    "status": "pass",
+    "note": "Cancel btn hidden for TS",
+    "env": "local"
+  },
+  "UAT-027": {
+    "status": "na",
+    "note": "Superseded by UAT-072 modal test",
+    "env": "local"
+  },
+  "UAT-034": {
+    "status": "pass",
+    "note": "signature canvas count=2",
+    "env": "local"
+  },
+  "UAT-041": {
+    "status": "pass",
+    "note": "openOnsiteRepair",
+    "env": "local"
+  },
+  "UAT-050": {
+    "status": "pass",
+    "note": "bulk BAST fn",
+    "env": "local"
+  },
+  "UAT-074": {
+    "status": "pass",
+    "note": "partial search data",
+    "env": "local"
+  },
+  "LIVE-SMOKE": {
+    "status": "pass",
+    "note": "TMS_RELEASE=6.7.3",
+    "env": "live"
+  },
+  "UAT-070": {
+    "status": "partial",
+    "note": "localStorage 2-context sync OK; supabase=False",
+    "env": "local"
+  }
+}

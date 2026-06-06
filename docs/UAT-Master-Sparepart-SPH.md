@@ -9,7 +9,7 @@
 | **Environment** | ☐ Staging · ☑ Production (GitHub Pages) + localhost:8765 |
 | **URL** | https://prasetiojayadwi-coder.github.io/tms-app/ |
 | **Tanggal UAT** | 2026-06-06 |
-| **Tester** | Cursor Agent (automated uat_sph_runner.py) |
+| **Tester** | Cursor Agent (`uat_sph_runner.py` + `uat_sph_ui_runner.py`) |
 
 ### Legenda
 
@@ -57,7 +57,7 @@
 | 3 | Klik Save | Toast sukses; baris muncul di tabel |
 | 4 | Cek stats Total / Active | Counter bertambah |
 
-**Catatan:** _______________
+**Catatan:** Phase 1 logic (`uat_sph_runner.py`) + Phase 2 UI (`uat_sph_ui_runner.py`) selesai 2026-06-06. UAT-027 N/A (superseded UAT-072). UAT-070 PARTIAL — localStorage 2-context sync OK; Supabase realtime belum diverifikasi. Sign-off nama bisnis menunggu tester.
 
 ---
 
@@ -231,7 +231,7 @@
 | UAT-024 | AC-22 | P2 | SPV | ☑ Pass ☐ Fail |
 | UAT-025 | AC-33, T-25 | P3 | SPV | ☑ Pass ☐ Fail |
 | UAT-026 | — | P2 | SPV | ☑ Pass ☐ Fail |
-| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** |
+| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** |
 
 ### UAT-020 — SPH muncul di SPH Log (Pending PO)
 
@@ -719,7 +719,7 @@
 
 | Step | Aksi | Expected Result |
 |------|------|-----------------|
-| 1 | Login sebagai `ts1` | Role TS |
+| 1 | Login sebagai `teknisi1` | Role TS |
 | 2 | Buka SPH detail `issued` | Tombol Cancel SPH **tidak** tampil |
 | 3 | (Opsional) Panggil `cancelSphDocument` via console | Toast "Not Allowed" |
 
@@ -740,7 +740,7 @@
 
 | ID | AC | P | Hasil |
 |----|----|---|-------|
-| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** |
+| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☑ **PARTIAL** (local sync OK) |
 | UAT-071 | BR-18 | P3 | TS | ☑ Pass ☐ Fail |
 
 ### UAT-070 — SPH & sparepart sync antar perangkat
@@ -794,6 +794,51 @@
 
 ---
 
+## M. UAT Phase 2 — UI Verification
+
+| Field | Value |
+|-------|-------|
+| **Runner** | `uat_sph_ui_runner.py` |
+| **Tanggal** | 2026-06-06 |
+| **Environment** | localhost:8765 + GitHub Pages live |
+
+### UI Results Summary
+
+| ID | UI Status | Environment | Note |
+|----|-----------|-------------|------|
+| LIVE-SMOKE | PASS | live | TMS_RELEASE=6.7.3 |
+| UAT-001 | PASS | live | live sparepart view=True |
+| UAT-002 | PASS | local | duplicate form validation UI |
+| UAT-005 | PASS | local | Avitum filter renders rows |
+| UAT-007 | PASS | local | edit price=2750000 |
+| UAT-016 | PASS | local | combined btn visible=True |
+| UAT-020 | PASS | live | live SPH Log view=True |
+| UAT-023 | PASS | local | filter Pending PO clicked |
+| UAT-027 | NA | local | Superseded by UAT-072 modal test |
+| UAT-034 | PASS | local | signature canvas count=2 |
+| UAT-041 | PASS | local | openOnsiteRepair |
+| UAT-050 | PASS | local | bulk BAST fn |
+| UAT-060 | PASS | local | {'spare': True, 'sph': True, 'svc': True} |
+| UAT-061 | PASS | local | {'spare': True, 'sph': True, 'svc': True} |
+| UAT-062 | PASS | local | specialist SPH Log nav |
+| UAT-063 | PASS | local | {'notAssignee': True, 'assignedTsId': 2, 'tsId': 1} |
+| UAT-064 | PASS | local | {'spare': True, 'sph': True, 'svc': True} |
+| UAT-070 | PARTIAL | local | localStorage 2-context sync OK; supabase=False |
+| UAT-072 | PASS | local | modal title=SPH-UAT-UI-001 |
+| UAT-073 | PASS | local | PDF print window opened |
+| UAT-074 | PASS | local | partial search data |
+| UAT-075 | PASS | local | cancelSphDocument cancelled=True |
+| UAT-076 | PASS | local | cancelled filter + stat card |
+| UAT-077 | PASS | local | {'hidden': True, 'title': ' On-Site Analysis & SPH'} |
+| UAT-078 | PASS | local | hint visible=True |
+| UAT-079 | PASS | local | Cancel btn hidden for TS |
+| UAT-080 | PASS | local | docSph preview image in modal |
+
+---
+
+
+---
+
 ## K. Ringkasan Hasil UAT
 
 | Seksi | Total | Pass | Fail | N/A |
@@ -806,7 +851,7 @@
 | F. Bulk BAST & Notif | 5 | 5 | 0 | 0 |
 | G. Permission | 5 | 5 | 0 | 0 |
 | H. Phase 5 & 6 | 9 | 9 | 0 | 0 |
-| I. Cloud Sync & Media | 2 | 1 | 0 | 1 |
+| I. Cloud Sync & Media | 2 | 1 | 0 | 0 (UAT-070 Partial) |
 | **TOTAL** | **58** | 56 | 0 | 2 |
 
 ### Kriteria Kelulusan UAT
@@ -838,7 +883,7 @@
 
 **Keputusan UAT:** ☑ **APPROVED**
 
-**Catatan:** Semua P1 lulus otomatis via `uat_sph_runner.py`. UAT-027 N/A (superseded UAT-072). UAT-070 N/A (2 perangkat + Supabase live). Sign-off nama bisnis menunggu tester.
+**Catatan:** Phase 1 logic (`uat_sph_runner.py`) + Phase 2 UI (`uat_sph_ui_runner.py`) selesai 2026-06-06. UAT-027 N/A (superseded UAT-072). UAT-070 PARTIAL — localStorage 2-context sync OK; Supabase realtime belum diverifikasi. Sign-off nama bisnis menunggu tester.
 
 ---
 
@@ -852,4 +897,4 @@
 
 ---
 
-*UAT Pack v1.3 — 2026-06-06 — automated run: 56 Pass, 0 Fail, 2 N/A*
+*UAT Pack v1.4 — 2026-06-06 — Phase1: 56 Pass/2 N/A | Phase2 UI: 25 Pass/1 Partial/1 N/A*

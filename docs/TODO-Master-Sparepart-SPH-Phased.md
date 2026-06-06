@@ -902,7 +902,8 @@
 - [x] UAT otomatis 58 skenario via `uat_sph_runner.py` — 56 Pass, 0 Fail, 2 N/A (2026-06-06)
 - [x] Bugfix UAT: `allocateUniqueId()` monotonic + HP owner unik (DEF-001, DEF-002)
 - [x] Release v6.7.3 / build 68 — deploy bugfix + UAT pack
-- [ ] UAT manual visual UAT-070 (multi-device sync) + sign-off nama bisnis (menunggu tester)
+- [x] UAT Phase 2 UI via `uat_sph_ui_runner.py` — 25 Pass, 1 Partial (UAT-070), 1 N/A
+- [ ] UAT-070 Supabase realtime multi-device (live cloud) + sign-off nama bisnis
 
 
 
