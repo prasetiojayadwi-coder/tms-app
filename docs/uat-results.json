@@ -187,6 +187,10 @@
     "status": "pass",
     "note": "owner role"
   },
+  "UAT-081": {
+    "status": "pass",
+    "note": "{'spvDenied': True, 'tsfDenied': True, 'ownerOk': True}"
+  },
   "UAT-079": {
     "status": "pass",
     "note": "TS cannot cancel SPH"

@@ -978,6 +978,19 @@
 - [ ] UAT-070 Supabase realtime 2 perangkat (manual)
 - [ ] Sign-off bisnis §L
 
+## Phase 7.7 — Batch Import Owner Only (v6.7.7)
+
+**Target:** v6.7.7 — upload .xlsx saja, batch import hanya Owner
+
+### Kode
+- [x] `canBatchImport()` — role `owner` only
+- [x] `isExcelXlsxFile()` — tolak CSV/.xls
+- [x] `syncBatchImportButtons()` — sembunyikan `.owner-batch-btn` untuk non-Owner
+- [x] Guard di open/download/preview/run batch import
+- [x] UAT-081 — SPV/TSF denied, Owner allowed
+- [x] Bump `release.js` v6.7.7 / build 72
+- [ ] Deploy v6.7.7 + verifikasi live
+
 
 
 ---

@@ -801,7 +801,7 @@
                         <div class="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto shrink-0">
                             <button onclick="bulkPrintSpvStickers()" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-gold-500 text-gold-600 dark:text-gold-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-print mr-1.5 sm:mr-2"></i> Cetak Stiker</button>
                             <button onclick="exportToCSV('tools')" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5 sm:mr-2"></i> Ekspor Excel</button>
-                            <button onclick="openBatchImportModal('tool')" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
+                            <button onclick="openBatchImportModal('tool')" class="owner-batch-btn flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
                             <button id="btn-bulk-delete-tools" onclick="bulkDeleteSpvAssets()" class="hidden flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-1.5 sm:mr-2"></i> Delete Selected</button>
                             <button id="btn-add-tool-spv" onclick="openFormModal('tool')" class="flex-1 md:flex-none bg-gold-500 text-white dark:text-black font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5 sm:mr-2"></i> Add Asset</button>
                         </div>
@@ -837,7 +837,7 @@
                     <div class="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto shrink-0">
                         <button onclick="bulkPrintDemoStickers()" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-print mr-1.5 sm:mr-2"></i> Cetak Stiker</button>
                         <button onclick="exportToCSV('demo')" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5 sm:mr-2"></i> Ekspor Excel</button>
-                        <button onclick="openBatchImportModal('demo')" class="flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
+                        <button onclick="openBatchImportModal('demo')" class="owner-batch-btn flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
                         <button id="btn-bulk-delete-demo" onclick="bulkDeleteDemoAssets()" class="hidden flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-1.5 sm:mr-2"></i> Delete Selected</button>
                         <button id="btn-add-demo" onclick="openFormModal('demo')" class="hidden flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(5,150,105,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5 sm:mr-2"></i> Add Backup Unit</button>
                     </div>
@@ -868,9 +868,9 @@
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="cust-stat-active">0</p></div>
                     </div>
                     <div class="flex flex-wrap gap-2 mt-4">
-                        <button onclick="openBatchImportModal('customer')" class="cust-touch-btn flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
-                        <button onclick="openBatchImportModal('customer-unit')" class="cust-touch-btn flex-1 sm:flex-none bg-indigo-500 hover:bg-indigo-600 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
-                        <button onclick="downloadBatchTemplate('customer')" class="cust-touch-btn flex-1 sm:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                        <button onclick="openBatchImportModal('customer')" class="owner-batch-btn cust-touch-btn flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
+                        <button onclick="openBatchImportModal('customer-unit')" class="owner-batch-btn cust-touch-btn flex-1 sm:flex-none bg-indigo-500 hover:bg-indigo-600 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
+                        <button onclick="downloadBatchTemplate('customer')" class="owner-batch-btn cust-touch-btn flex-1 sm:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
                     </div>
                 </div>
 
@@ -932,8 +932,8 @@
                     <div class="flex flex-wrap gap-2 mt-4">
                         <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field flex-1 min-w-[200px] text-[12px]" placeholder="Search Art Number, Description, Group...">
                         <button onclick="openSparepartModal()" class="bg-violet-600 hover:bg-violet-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
-                        <button onclick="openBatchImportModal('sparepart')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
-                        <button onclick="downloadBatchTemplate('sparepart')" class="bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                        <button onclick="openBatchImportModal('sparepart')" class="owner-batch-btn bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Excel</button>
+                        <button onclick="downloadBatchTemplate('sparepart')" class="owner-batch-btn bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template Excel</button>
                         <button onclick="exportSparepartsCSV()" class="bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-emerald-600 dark:text-emerald-500 font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor Excel</button>
                     </div>
                     <div class="flex gap-2 w-full overflow-x-auto pb-1 pt-3 custom-scrollbar">
@@ -1846,7 +1846,7 @@
                 <button type="button" onclick="closeModal('batchImportModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="p-5 sm:p-8 space-y-5">
-                <p class="text-[12px] text-gray-600 dark:text-lux-400 font-medium leading-relaxed" id="batch-import-desc">Upload file Excel (.xlsx). Satu kolom per field — unduh template lalu isi di Excel.</p>
+                <p class="text-[12px] text-gray-600 dark:text-lux-400 font-medium leading-relaxed" id="batch-import-desc">Upload file Excel (.xlsx) — satu kolom per field. Hanya akun Owner yang dapat import batch.</p>
                 <div class="bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/40 rounded-xl p-4">
                     <p class="text-[9px] text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-widest mb-2">Required Columns</p>
                     <p class="text-[11px] font-mono text-gray-700 dark:text-lux-300 break-all leading-relaxed" id="batch-import-columns"></p>
@@ -1855,7 +1855,7 @@
                     <button type="button" onclick="downloadBatchTemplate(_batchImportType)" class="flex-1 py-3.5 bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-indigo-500 text-gray-700 dark:text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition"><i class="fa-solid fa-download mr-2"></i> Download Template</button>
                     <label class="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-2">
                         <i class="fa-solid fa-upload"></i> Choose File
-                        <input type="file" id="batch-import-file" accept=".xlsx,.xls" onchange="previewBatchImportFile(event)" class="hidden">
+                        <input type="file" id="batch-import-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="previewBatchImportFile(event)" class="hidden">
                     </label>
                 </div>
                 <div id="batch-import-preview" class="hidden bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-xl p-4 max-h-48 overflow-y-auto custom-scrollbar">
@@ -5005,7 +5005,18 @@
                     <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Physical Handover</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
                 switchTab('ts-dash');
             }
-            updateOwnerDropdown(); checkNotifications(); renderChatUsers(); updateChatBadge(); initRealtimeSync(); initServiceNotifPolling();
+            updateOwnerDropdown(); checkNotifications(); renderChatUsers(); updateChatBadge(); initRealtimeSync(); initServiceNotifPolling(); syncBatchImportButtons();
+        }
+
+        function canBatchImport() {
+            return currentUser && currentUser.role === 'owner';
+        }
+
+        function syncBatchImportButtons() {
+            const show = canBatchImport();
+            document.querySelectorAll('.owner-batch-btn').forEach(el => {
+                el.classList.toggle('hidden', !show);
+            });
         }
 
         function switchTab(tabId) {
@@ -9609,11 +9620,10 @@
             return `<span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase border whitespace-nowrap ${cls}">${custUnitStatusLabel(st)}</span>`;
         }
 
-        function detectCsvDelimiter(text) {
-            const line = (text || '').split(/\r?\n/)[0] || '';
-            const sc = (line.match(/;/g) || []).length;
-            const cc = (line.match(/,/g) || []).length;
-            return sc >= cc && sc > 0 ? ';' : ',';
+        function isExcelXlsxFile(file) {
+            if (!file || !file.name) return false;
+            const n = file.name.toLowerCase();
+            return n.endsWith('.xlsx') || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
         }
 
         function buildExcelBlob(headers, rows, sheetName) {
@@ -9713,16 +9723,11 @@
             return out;
         }
 
-        function canBatchImportAssets() {
-            const r = currentUser?.role;
-            return r === 'spv' || r === 'owner' || r === 'tsf' || r === 'ts_spec' || r === 'ts_spec_avitum' || r === 'ts_spec_ais';
-        }
-
         function openBatchImportModal(type) {
             const schema = BATCH_IMPORT_SCHEMAS[type];
             if (!schema) return;
-            if ((type === 'tool' || type === 'demo') && !canBatchImportAssets()) {
-                showToast('Access Denied', 'Batch import for assets requires Supervisor, Owner, or Specialist role.', 'error');
+            if (!canBatchImport()) {
+                showToast('Access Denied', 'Batch import hanya dapat dilakukan oleh akun Owner.', 'error');
                 return;
             }
             _batchImportType = type;
@@ -9742,6 +9747,10 @@
         }
 
         function downloadBatchTemplate(type) {
+            if (!canBatchImport()) {
+                showToast('Access Denied', 'Download template batch hanya untuk akun Owner.', 'error');
+                return;
+            }
             const schema = BATCH_IMPORT_SCHEMAS[type || _batchImportType];
             if (!schema) return;
             downloadExcelFile(schema.filename, schema.columns, [], 'Template');
@@ -9756,6 +9765,15 @@
             const preview = document.getElementById('batch-import-preview');
             const previewBody = document.getElementById('batch-import-preview-body');
             if (!file || !schema) return;
+            if (!canBatchImport()) {
+                if (errEl) { errEl.innerText = 'Batch import hanya untuk akun Owner.'; errEl.classList.remove('hidden'); }
+                return;
+            }
+            if (!isExcelXlsxFile(file)) {
+                if (errEl) { errEl.innerText = 'Gunakan file Excel .xlsx — satu kolom per field sesuai template.'; errEl.classList.remove('hidden'); }
+                if (btn) btn.disabled = true;
+                return;
+            }
             if (typeof XLSX === 'undefined') {
                 if (errEl) { errEl.innerText = 'Excel library not loaded. Please refresh the page.'; errEl.classList.remove('hidden'); }
                 return;
@@ -9764,11 +9782,7 @@
             reader.onload = (ev) => {
                 try {
                     const data = new Uint8Array(ev.target.result);
-                    const readOpts = { type: 'array' };
-                    if ((file.name || '').toLowerCase().endsWith('.csv')) {
-                        readOpts.FS = detectCsvDelimiter(new TextDecoder('utf-8').decode(data.slice(0, 1024)));
-                    }
-                    const wb = XLSX.read(data, readOpts);
+                    const wb = XLSX.read(data, { type: 'array' });
                     const sheet = wb.Sheets[wb.SheetNames[0]];
                     const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
                     _batchImportRows = rawRows.map(r => normalizeImportRow(r, schema)).filter(r => Object.values(r).some(v => v));
@@ -9918,6 +9932,10 @@
 
         function runBatchImport() {
             if (!_batchImportType || !_batchImportRows.length) return;
+            if (!canBatchImport()) {
+                showToast('Access Denied', 'Batch import hanya dapat dilakukan oleh akun Owner.', 'error');
+                return;
+            }
             loadDB();
             const btn = document.getElementById('btn-run-batch-import');
             if (btn) { btn.disabled = true; btn.innerText = 'Importing...'; }

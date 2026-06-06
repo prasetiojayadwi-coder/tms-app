@@ -3,15 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '6.7.6',
-    build: 71,
+    version: '6.7.7',
+    build: 72,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'Template & export Excel (.xlsx) — satu kolom per field, tanpa CSV.',
+    summary: 'Batch import Excel (.xlsx) — Owner only, satu kolom per field.',
     changes: [
-        { icon: 'fa-file-excel', text: 'Download template .xlsx — Art Number, Description, Price, Group, Status, Notes di kolom terpisah' },
-        { icon: 'fa-file-import', text: 'Import hanya Excel (.xlsx) — buka langsung di Excel, isi per kolom' },
-        { icon: 'fa-file-export', text: 'Export sparepart, tools, service, log — format Excel bukan CSV' },
-        { icon: 'fa-folder-open', text: 'Folder templates/ — 5 file .xlsx referensi' }
+        { icon: 'fa-user-shield', text: 'Batch import/update hanya akun Owner — sparepart, customer, tools, backup' },
+        { icon: 'fa-file-excel', text: 'Upload wajib .xlsx — satu kolom per field di Excel' },
+        { icon: 'fa-file-import', text: 'Template Excel untuk 5 modul batch import' },
+        { icon: 'fa-eye-slash', text: 'Tombol Import/Template disembunyikan untuk non-Owner' }
     ]
 };

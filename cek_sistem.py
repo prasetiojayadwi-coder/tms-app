@@ -145,11 +145,23 @@ def check_html_integrity():
         else:
             bad(f'Modul SPH: {cid} hilang')
 
-    for fn in ('buildExcelBlob', 'downloadExcelFile', 'downloadBatchTemplate'):
+    for fn in ('buildExcelBlob', 'downloadExcelFile', 'downloadBatchTemplate', 'canBatchImport', 'isExcelXlsxFile', 'syncBatchImportButtons'):
         if f'function {fn}' in js:
             ok(f'Excel batch import: {fn} ada')
         else:
             bad(f'Excel batch import: {fn} hilang')
+
+    if "currentUser.role === 'owner'" in js and 'owner-batch-btn' in html:
+        ok('Batch import dibatasi akun Owner + tombol owner-batch-btn')
+    else:
+        bad('Guard batch import Owner tidak ditemukan')
+
+    if "accept=\".xlsx" in html and '.xls"' not in html.split('batch-import-file')[1][:120] if 'batch-import-file' in html else False:
+        ok('Upload batch hanya menerima .xlsx')
+    elif 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' in html:
+        ok('Upload batch hanya menerima .xlsx')
+    else:
+        warn('Accept file batch import perlu dicek manual')
 
     if 'TMS_Template_Spareparts.xlsx' in js and 'aoa_to_sheet' in js:
         ok('Template sparepart Excel (.xlsx) — satu kolom per field')

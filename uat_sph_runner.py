@@ -478,6 +478,18 @@ async def run_g(page):
     record('UAT-062', 'pass', 'specialist view — nav includes sph-log read')
     record('UAT-063', 'pass', 'assignedTsId gate in renderServiceTickets')
     record('UAT-064', 'pass' if perms.get('ownerRole') else 'fail', 'owner role')
+    batch_owner = await js(page, '''() => {
+        const prev = currentUser;
+        currentUser = { role: 'spv', name: 'SPV' };
+        const spvDenied = !canBatchImport();
+        currentUser = { role: 'tsf', name: 'TSF' };
+        const tsfDenied = !canBatchImport();
+        currentUser = { role: 'owner', name: 'Owner' };
+        const ownerOk = canBatchImport();
+        currentUser = prev;
+        return { spvDenied, tsfDenied, ownerOk };
+    }''')
+    record('UAT-081', 'pass' if batch_owner.get('spvDenied') and batch_owner.get('tsfDenied') and batch_owner.get('ownerOk') else 'fail', str(batch_owner))
     record('UAT-079', 'pass' if cancel_ts else 'fail', 'TS cannot cancel SPH')
 
 
