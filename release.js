@@ -3,15 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '6.8.8',
-    build: 83,
+    version: '6.8.9',
+    build: 84,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'HP lebih ringan saat buka + sync realtime lebih cepat antar device.',
+    summary: 'Tombol seragam di seluruh app — netral elegan, delete merah, toolbar rapi.',
     changes: [
-        { icon: 'fa-feather', text: 'Mode ringan HP: tanpa chart berat, font defer, view tersembunyi di-skip render' },
-        { icon: 'fa-cloud-arrow-down', text: 'Realtime: poll 10s + heartbeat 12s di HP, reconnect otomatis' },
-        { icon: 'fa-bolt', text: 'Update lite dari cloud — refresh tab aktif & badge tanpa popup berat' },
-        { icon: 'fa-wifi', text: 'Sync saat online kembali + antar tab browser (storage event)' }
+        { icon: 'fa-palette', text: 'Sistem tombol TMS: primary gelap, outline netral, layout toolbar grid' },
+        { icon: 'fa-trash', text: 'Delete / bulk delete / kartu Delete — merah konsisten' },
+        { icon: 'fa-table-columns', text: 'Toolbar Customer, Sparepart, Service, Assets — tata letak profesional' },
+        { icon: 'fa-window-maximize', text: 'Modal Save/Import — warna seragam, footer rapi' }
     ]
 };

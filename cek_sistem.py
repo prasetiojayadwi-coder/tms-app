@@ -235,10 +235,11 @@ def check_html_integrity():
         ok('Sync mobile: sparepart merge + kartu HP + unit orphan cleanup')
     else:
         bad('Sync mobile: sparepart merge atau tampilan HP tidak lengkap')
-    if 'tms-mob-btn--primary' in html and 'tms-mob-card-btn' in html and 'tms-mob-toolbar' in html:
-        ok('Mobile UI: toolbar & kartu tombol seragam (tms-mob)')
+    if ('tms-btn--primary' in html and 'tms-btn--danger' in html
+            and 'tms-toolbar' in html and 'tms-card-btn' in html):
+        ok('UI tombol seragam: tms-btn primary/outline + delete merah')
     else:
-        bad('Mobile UI: tms-mob toolbar tidak lengkap')
+        bad('UI tombol seragam (tms-btn) tidak lengkap')
     if ('loadMoreSpareparts' in js and 'buildSparepartCardHtml' in js
             and '_renderSparepartMasterImpl' in js and 'isTmsMobileView' in js
             and 'max-md:tms-mob-toolbar' not in html):

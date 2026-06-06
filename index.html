@@ -82,73 +82,98 @@
 
         .cust-mobile-tab-active { @apply bg-white dark:bg-lux-900 text-gray-900 dark:text-white shadow-sm; }
         .cust-mobile-tab-inactive { @apply text-gray-500 dark:text-lux-400; }
+
+        /* ── TMS Unified Button System ── */
+        .tms-toolbar, .tms-mob-toolbar {
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%;
+        }
+        .tms-btn, .tms-mob-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            min-height: 40px; padding: 10px 14px; border-radius: 12px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+            line-height: 1.2; white-space: nowrap; cursor: pointer; border: 1px solid transparent;
+            transition: background-color .15s, border-color .15s, color .15s, opacity .15s;
+            box-shadow: none !important; background-image: none !important;
+        }
+        .tms-btn--primary, .tms-mob-btn--primary {
+            background-color: #18181b !important; color: #fafafa !important; border-color: #18181b !important;
+        }
+        .dark .tms-btn--primary, .dark .tms-mob-btn--primary {
+            background-color: #e4e4e7 !important; color: #18181b !important; border-color: #e4e4e7 !important;
+        }
+        .tms-btn--outline, .tms-mob-btn--outline {
+            background-color: #fafafa !important; color: #3f3f46 !important; border-color: #d4d4d8 !important;
+        }
+        .dark .tms-btn--outline, .dark .tms-mob-btn--outline {
+            background-color: #18181b !important; color: #d4d4d8 !important; border-color: #3f3f46 !important;
+        }
+        .tms-btn--ghost, .tms-mob-btn--ghost {
+            background-color: transparent !important; color: #52525b !important; border-color: #e4e4e7 !important;
+        }
+        .dark .tms-btn--ghost, .dark .tms-mob-btn--ghost {
+            color: #a1a1aa !important; border-color: #3f3f46 !important;
+        }
+        .tms-btn--danger, .tms-mob-btn--danger,
+        #btn-delete-customers, #btn-delete-cust-units,
+        #btn-bulk-delete-tools, #btn-bulk-delete-demo, #btn-bulk-delete-service,
+        #btn-sph-cancel, button.tms-card-btn--danger {
+            background-color: #dc2626 !important; color: #fff !important; border-color: #dc2626 !important;
+        }
+        .tms-btn--danger:hover, .tms-mob-btn--danger:hover,
+        #btn-delete-customers:hover, #btn-delete-cust-units:hover,
+        #btn-bulk-delete-tools:hover, #btn-bulk-delete-demo:hover, #btn-bulk-delete-service:hover,
+        button.tms-card-btn--danger:hover {
+            background-color: #b91c1c !important; border-color: #b91c1c !important;
+        }
+        .tms-btn:disabled, .tms-mob-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .tms-modal-actions {
+            display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;
+            padding-top: 1.25rem; margin-top: 1.25rem;
+            border-top: 1px solid #e4e4e7;
+        }
+        .dark .tms-modal-actions { border-top-color: #3f3f46; }
+        .tms-select-all, .tms-mob-select-all {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 40px; padding: 10px 14px; border-radius: 12px;
+            border: 1px solid #e4e4e7; background: transparent; cursor: pointer; user-select: none;
+        }
+        .dark .tms-select-all, .dark .tms-mob-select-all { border-color: #3f3f46; }
+        .tms-card-actions, .tms-mob-card-actions {
+            display: flex; gap: 8px; margin-top: 12px; padding-top: 12px;
+            border-top: 1px solid #f4f4f5;
+        }
+        .dark .tms-card-actions, .dark .tms-mob-card-actions { border-top-color: #27272a; }
+        .tms-card-btn, .tms-mob-card-btn {
+            flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+            border-radius: 10px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+            background-color: #f4f4f5 !important; color: #3f3f46 !important; border: 1px solid #e4e4e7 !important;
+            box-shadow: none !important;
+        }
+        .dark .tms-card-btn, .dark .tms-mob-card-btn {
+            background-color: #27272a !important; color: #d4d4d8 !important; border-color: #3f3f46 !important;
+        }
+        .tms-icon-btn {
+            width: 2rem; height: 2rem; border-radius: 0.5rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            background-color: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;
+            transition: background-color .15s, color .15s;
+        }
+        .dark .tms-icon-btn { background-color: #27272a; color: #a1a1aa; border-color: #3f3f46; }
+        .tms-icon-btn:hover { background-color: #e4e4e7; color: #18181b; }
+        .dark .tms-icon-btn:hover { background-color: #3f3f46; color: #fafafa; }
+        .tms-icon-btn--danger { color: #dc2626 !important; }
+        .tms-icon-btn--danger:hover { background-color: #dc2626 !important; color: #fff !important; border-color: #dc2626 !important; }
+
         @media (max-width: 767px) {
             #view-customer-master .cust-touch-btn,
             #view-sparepart-master .cust-touch-btn { min-height: 44px; }
+            .tms-btn, .tms-mob-btn { min-height: 44px; }
 
-            .tms-mob-toolbar { display: grid; gap: 8px; width: 100%; }
-            .tms-mob-toolbar--2 { grid-template-columns: 1fr 1fr; }
-            .tms-mob-toolbar--3 { grid-template-columns: 1fr 1fr 1fr; }
-            .tms-mob-toolbar--span2 { grid-column: span 2; }
-
-            .tms-mob-btn {
-                display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-                min-height: 44px; padding: 10px 12px; border-radius: 12px;
-                font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
-                line-height: 1.2; white-space: nowrap; transition: background-color .15s, border-color .15s, color .15s;
-            }
-            .tms-mob-btn--primary {
-                background-color: #18181b; color: #fafafa; border: 1px solid #18181b;
-            }
-            .dark .tms-mob-btn--primary {
-                background-color: #e4e4e7; color: #18181b; border-color: #e4e4e7;
-            }
-            .tms-mob-btn--outline {
-                background-color: #fafafa; color: #3f3f46; border: 1px solid #d4d4d8;
-            }
-            .dark .tms-mob-btn--outline {
-                background-color: #18181b; color: #d4d4d8; border-color: #3f3f46;
-            }
-            .tms-mob-btn--ghost {
-                background-color: transparent; color: #52525b; border: 1px solid #e4e4e7;
-            }
-            .dark .tms-mob-btn--ghost {
-                color: #a1a1aa; border-color: #3f3f46; background-color: transparent;
-            }
-            .tms-mob-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-            .tms-mob-select-all {
-                display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-                min-height: 44px; padding: 10px 12px; border-radius: 12px;
-                border: 1px solid #e4e4e7; background: transparent; cursor: pointer; user-select: none;
-            }
-            .dark .tms-mob-select-all { border-color: #3f3f46; }
-
-            .tms-mob-card-actions {
-                display: flex; gap: 8px; margin-top: 12px; padding-top: 12px;
-                border-top: 1px solid #f4f4f5;
-            }
-            .dark .tms-mob-card-actions { border-top-color: #27272a; }
-            .tms-mob-card-btn {
-                flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-                border-radius: 10px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-                background-color: #f4f4f5; color: #3f3f46; border: 1px solid #e4e4e7;
-            }
-            .dark .tms-mob-card-btn {
-                background-color: #27272a; color: #d4d4d8; border-color: #3f3f46;
-            }
-
-            #view-customer-master .batch-import-btn,
-            #view-customer-master #btn-add-cust-unit,
-            #view-customer-master #btn-delete-cust-units,
-            #view-customer-master button[onclick="openCustomerModal()"],
-            #view-customer-master #btn-delete-customers,
-            #view-sparepart-master button[onclick="openSparepartModal()"],
-            #view-sparepart-master .batch-import-btn,
-            #view-sparepart-master button[onclick="exportSparepartsCSV()"] {
-                background-image: none !important;
-                box-shadow: none !important;
-            }
+            .tms-mob-toolbar, .tms-toolbar { display: grid; gap: 8px; width: 100%; }
+            .tms-mob-toolbar--2, .tms-toolbar--2 { grid-template-columns: 1fr 1fr; }
+            .tms-mob-toolbar--3, .tms-toolbar--3 { grid-template-columns: 1fr 1fr 1fr; }
+            .tms-mob-toolbar--4, .tms-toolbar--4 { grid-template-columns: 1fr 1fr; }
+            .tms-mob-toolbar--span2, .tms-toolbar--span2 { grid-column: span 2; }
 
             .tms-list-loading {
                 padding: 2.5rem 1rem;
@@ -716,7 +741,7 @@
                             <div><label class="input-label">Alamat Email</label><input type="email" id="prof-email" class="input-field"></div>
                             <div><label class="input-label">Nomor HP</label><input type="text" id="prof-phone" class="input-field"></div>
                         </div>
-                        <div class="pt-6 mt-6 border-t border-gray-100 dark:border-lux-800 flex justify-end"><button type="submit" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition">Save Profile</button></div>
+                        <div class="tms-modal-actions"><button type="submit" class="tms-btn tms-btn--primary">Save Profile</button></div>
                         
                         <div class="mt-8 pt-8 border-t border-gray-200 dark:border-lux-800">
                             <h3 class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-2"><i class="fa-solid fa-database text-gold-500 mr-2"></i> Pencadangan & Pemulihan Database</h3>
@@ -790,7 +815,7 @@
                             </div>
                         </div>
                         <div class="mt-6 pt-4 border-t border-gray-200 dark:border-lux-800 flex justify-center">
-                            <button onclick="switchTab('spv-assets')" class="w-full py-3 bg-gold-500 text-white dark:text-black font-black text-[11px] uppercase tracking-widest rounded-xl hover:bg-gold-600 transition shadow-md shadow-gold-500/10"><i class="fa-solid fa-list mr-1.5"></i> Kelola Special Tools</button>
+                            <button onclick="switchTab('spv-assets')" class="tms-btn tms-btn--primary w-full"><i class="fa-solid fa-list mr-1.5"></i> Kelola Special Tools</button>
                         </div>
                     </div>
 
@@ -890,12 +915,12 @@
                             <input type="text" id="search-tool" onkeyup="renderSpvAssets()" class="input-field w-full pr-12" placeholder="Smart Search: Nama, SN, Merk, Tipe, Kategori...">
                             <button onclick="startQrScanner('spv-search')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gold-600 dark:text-gold-500 hover:text-gold-700 transition" title="Scan QR Aset"><i class="fa-solid fa-qrcode text-lg"></i></button>
                         </div>
-                        <div class="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto shrink-0">
-                            <button onclick="bulkPrintSpvStickers()" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-gold-500 text-gold-600 dark:text-gold-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-print mr-1.5 sm:mr-2"></i> Cetak Stiker</button>
-                            <button onclick="exportToCSV('tools')" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5 sm:mr-2"></i> Ekspor Excel</button>
-                            <button onclick="openBatchImportModal('tool')" data-batch-type="tool" class="batch-import-btn flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
-                            <button id="btn-bulk-delete-tools" onclick="bulkDeleteSpvAssets()" class="hidden flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-1.5 sm:mr-2"></i> Delete Selected</button>
-                            <button id="btn-add-tool-spv" onclick="openFormModal('tool')" class="flex-1 md:flex-none bg-gold-500 text-white dark:text-black font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5 sm:mr-2"></i> Add Asset</button>
+                        <div class="tms-toolbar tms-toolbar--3 shrink-0">
+                            <button onclick="bulkPrintSpvStickers()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-print mr-1.5"></i> Cetak Stiker</button>
+                            <button onclick="exportToCSV('tools')" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor Excel</button>
+                            <button onclick="openBatchImportModal('tool')" data-batch-type="tool" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Excel</button>
+                            <button id="btn-bulk-delete-tools" onclick="bulkDeleteSpvAssets()" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
+                            <button id="btn-add-tool-spv" onclick="openFormModal('tool')" class="tms-btn tms-btn--primary tms-toolbar--span2"><i class="fa-solid fa-plus mr-1.5"></i> Add Asset</button>
                         </div>
                     </div>
                     <!-- Sub-menu / Tabs untuk Kategori Special Tools -->
@@ -926,13 +951,13 @@
             <section id="view-demo-inventory" class="app-view hidden flex-col gap-6 animate-fade-in">
                 <div class="bg-white dark:bg-lux-900 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm dark:shadow-xl">
                     <div class="flex-1 w-full max-w-md"><input type="text" id="search-demo" onkeyup="renderDemoInventory()" class="input-field w-full focus:border-emerald-500" placeholder="Smart Search: Unit Demo & Backup..."></div>
-                    <div class="flex flex-wrap md:flex-nowrap gap-2 sm:gap-3 w-full md:w-auto shrink-0">
-                        <button onclick="bulkPrintDemoStickers()" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-print mr-1.5 sm:mr-2"></i> Cetak Stiker</button>
-                        <button onclick="exportToCSV('demo')" class="flex-1 md:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5 sm:mr-2"></i> Ekspor Excel</button>
-                        <button onclick="openBatchImportModal('demo')" data-batch-type="demo" class="batch-import-btn flex-1 md:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest transition whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5 sm:mr-2"></i> Import Excel</button>
-                        <button id="btn-bulk-delete-demo" onclick="bulkDeleteDemoAssets()" class="hidden flex-1 md:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-trash mr-1.5 sm:mr-2"></i> Delete Selected</button>
-                        <button id="btn-add-demo" onclick="openFormModal('demo')" class="hidden flex-1 md:flex-none bg-emerald-600 hover:bg-emerald-700 text-white font-black px-3 sm:px-5 py-2.5 sm:py-3.5 rounded-xl text-[9px] sm:text-[10px] md:text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(5,150,105,0.3)] transition whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5 sm:mr-2"></i> Add Backup Unit</button>
-                    </div>
+                        <div class="tms-toolbar tms-toolbar--3 shrink-0">
+                        <button onclick="bulkPrintDemoStickers()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-print mr-1.5"></i> Cetak Stiker</button>
+                        <button onclick="exportToCSV('demo')" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor Excel</button>
+                        <button onclick="openBatchImportModal('demo')" data-batch-type="demo" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Excel</button>
+                        <button id="btn-bulk-delete-demo" onclick="bulkDeleteDemoAssets()" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
+                        <button id="btn-add-demo" onclick="openFormModal('demo')" class="hidden tms-btn tms-btn--primary tms-toolbar--span2"><i class="fa-solid fa-plus mr-1.5"></i> Add Backup Unit</button>
+                        </div>
                 </div>
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl overflow-hidden shadow-sm dark:shadow-xl">
                     <div class="overflow-x-auto custom-scrollbar pb-4">
@@ -959,10 +984,10 @@
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Units</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-units">0</p></div>
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1 max-md:text-gray-900 max-md:dark:text-white" id="cust-stat-active">0</p></div>
                     </div>
-                    <div class="flex flex-wrap gap-2 mt-4 tms-mob-toolbar tms-mob-toolbar--2">
-                        <button onclick="openBatchImportModal('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline flex-1 sm:flex-none md:bg-indigo-600 md:hover:bg-indigo-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
-                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline flex-1 sm:flex-none md:bg-indigo-500 md:hover:bg-indigo-600 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
-                        <button onclick="downloadBatchTemplate('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline tms-mob-toolbar--span2 flex-1 sm:flex-none md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-gray-700 md:dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                    <div class="tms-toolbar tms-toolbar--2 mt-4">
+                        <button onclick="openBatchImportModal('customer')" data-batch-type="customer" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
+                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
+                        <button onclick="downloadBatchTemplate('customer')" data-batch-type="customer" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn tms-toolbar--span2"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
                     </div>
                 </div>
 
@@ -977,13 +1002,13 @@
                             <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-building text-blue-500 mr-2"></i> Customer / Hospital Data</h3>
                             <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap max-md:gap-2">
                                 <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 min-w-[180px] max-md:w-full text-[12px]" placeholder="Search customer, PIC, city...">
-                                <div class="flex flex-wrap gap-2 sm:items-center tms-mob-toolbar tms-mob-toolbar--3 w-full md:w-auto">
-                                    <label id="cust-select-all-wrap" class="hidden cust-touch-btn tms-mob-select-all md:inline-flex md:items-center md:gap-2 md:px-4 md:py-3 md:rounded-xl md:border md:border-gray-200 md:dark:border-lux-600 md:bg-gray-50 md:dark:bg-lux-800 cursor-pointer select-none">
+                                <div class="tms-toolbar tms-toolbar--3 w-full md:w-auto">
+                                    <label id="cust-select-all-wrap" class="hidden cust-touch-btn tms-select-all cursor-pointer select-none">
                                         <input type="checkbox" id="select-all-customers-bar" onchange="toggleSelectAllCustomers(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
                                         <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
                                     </label>
-                                    <button onclick="openCustomerModal()" class="cust-touch-btn tms-mob-btn tms-mob-btn--primary md:bg-blue-600 md:hover:bg-blue-700 md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add</button>
-                                    <button id="btn-delete-customers" onclick="deleteSelectedCustomers()" class="hidden cust-touch-btn tms-mob-btn tms-mob-btn--ghost md:bg-red-600 md:hover:bg-red-700 md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
+                                    <button onclick="openCustomerModal()" class="tms-btn tms-btn--primary cust-touch-btn"><i class="fa-solid fa-plus mr-1"></i> Add</button>
+                                    <button id="btn-delete-customers" onclick="deleteSelectedCustomers()" class="hidden tms-btn tms-btn--danger cust-touch-btn"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
                                 </div>
                             </div>
                         </div>
@@ -1003,13 +1028,13 @@
                                 <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Customer Units</h3>
                                 <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer to view units</p>
                             </div>
-                            <div class="flex flex-wrap gap-2 items-center tms-mob-toolbar tms-mob-toolbar--3 w-full md:w-auto">
-                                <label id="cust-units-select-all-wrap" class="hidden cust-touch-btn tms-mob-select-all md:inline-flex md:items-center md:gap-2 md:px-4 md:py-3 md:rounded-xl md:border md:border-gray-200 md:dark:border-lux-600 md:bg-gray-50 md:dark:bg-lux-800 cursor-pointer select-none">
+                            <div class="tms-toolbar tms-toolbar--3 w-full md:w-auto">
+                                <label id="cust-units-select-all-wrap" class="hidden cust-touch-btn tms-select-all cursor-pointer select-none">
                                     <input type="checkbox" id="select-all-cust-units-bar" onchange="toggleSelectAllCustomerUnits(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
                                     <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
                                 </label>
-                                <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="cust-touch-btn tms-mob-btn tms-mob-btn--primary flex-1 sm:flex-none md:bg-emerald-600 md:hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add</button>
-                                <button id="btn-delete-cust-units" onclick="deleteSelectedCustomerUnits()" class="hidden cust-touch-btn tms-mob-btn tms-mob-btn--ghost flex-1 sm:flex-none md:bg-red-600 md:hover:bg-red-700 md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
+                                <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="tms-btn tms-btn--primary cust-touch-btn disabled:opacity-40 disabled:cursor-not-allowed"><i class="fa-solid fa-plus mr-1"></i> Add</button>
+                                <button id="btn-delete-cust-units" onclick="deleteSelectedCustomerUnits()" class="hidden tms-btn tms-btn--danger cust-touch-btn"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
                             </div>
                         </div>
                         <div id="customer-units-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
@@ -1037,11 +1062,11 @@
                     </div>
                     <div class="max-md:space-y-2 mt-4">
                         <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field w-full md:flex-1 md:min-w-[200px] text-[12px]" placeholder="Search Art Number, Description, Group...">
-                        <div class="flex flex-wrap gap-2 tms-mob-toolbar tms-mob-toolbar--2">
-                            <button onclick="openSparepartModal()" class="cust-touch-btn tms-mob-btn tms-mob-btn--primary md:bg-violet-600 md:hover:bg-violet-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
-                            <button onclick="openBatchImportModal('sparepart')" data-batch-type="sparepart" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-indigo-600 md:hover:bg-indigo-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
-                            <button onclick="downloadBatchTemplate('sparepart')" data-batch-type="sparepart" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-gray-700 md:dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
-                            <button onclick="exportSparepartsCSV()" class="cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-emerald-600 md:dark:text-emerald-500 font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
+                        <div class="tms-toolbar tms-toolbar--2">
+                            <button onclick="openSparepartModal()" class="tms-btn tms-btn--primary cust-touch-btn"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
+                            <button onclick="openBatchImportModal('sparepart')" data-batch-type="sparepart" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
+                            <button onclick="downloadBatchTemplate('sparepart')" data-batch-type="sparepart" class="tms-btn tms-btn--outline batch-import-btn cust-touch-btn"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                            <button onclick="exportSparepartsCSV()" class="tms-btn tms-btn--outline cust-touch-btn"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
                         </div>
                     </div>
                     <div class="flex gap-2 w-full overflow-x-auto pb-1 pt-3 custom-scrollbar">
@@ -1101,15 +1126,14 @@
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
                     <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-screwdriver-wrench mr-2"></i> Service & Repair Customer</h2>
                     <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Alur perbaikan unit customer: registrasi, analisa, penawaran PO, perbaikan bengkel, dan serah terima (BAST).</p>
-                    <div class="flex flex-wrap items-center gap-2 mt-4">
-                        <button id="btn-register-service" onclick="openServiceModal()" class="hidden bg-gold-500 hover:bg-gold-600 text-white dark:text-black font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap shadow-[0_0_12px_rgba(234,179,8,0.25)] transition"><i class="fa-solid fa-plus mr-1.5"></i> Daftar Unit</button>
-                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="batch-import-btn bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap transition"><i class="fa-solid fa-file-import mr-1.5"></i> Import Unit Excel</button>
-                        <button onclick="downloadBatchTemplate('customer-unit')" data-batch-type="customer-unit" class="batch-import-btn bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap transition"><i class="fa-solid fa-download mr-1.5"></i> Template Unit</button>
-                        <span class="hidden sm:inline-block w-px h-7 bg-gray-200 dark:bg-lux-700 mx-0.5" aria-hidden="true"></span>
-                        <button onclick="exportServiceTicketsCSV()" class="bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-emerald-500 text-emerald-600 dark:text-emerald-500 font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap transition"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor Excel</button>
-                        <button id="btn-bulk-bast" onclick="openBulkBastModal()" class="hidden bg-teal-600 hover:bg-teal-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap transition"><i class="fa-solid fa-layer-group mr-1.5"></i> Gabungkan BAST</button>
-                        <button id="btn-create-combined-sph" onclick="openSphBuilderModal()" class="hidden bg-violet-600 hover:bg-violet-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap transition"><i class="fa-solid fa-file-invoice mr-1.5"></i> Combined SPH</button>
-                        <button id="btn-bulk-delete-service" onclick="bulkDeleteServiceTickets()" class="hidden bg-red-600 hover:bg-red-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap transition"><i class="fa-solid fa-trash mr-1.5"></i> Hapus Terpilih</button>
+                    <div class="tms-toolbar tms-toolbar--2 mt-4">
+                        <button id="btn-register-service" onclick="openServiceModal()" class="hidden tms-btn tms-btn--primary"><i class="fa-solid fa-plus mr-1.5"></i> Daftar Unit</button>
+                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-file-import mr-1.5"></i> Import Unit Excel</button>
+                        <button onclick="downloadBatchTemplate('customer-unit')" data-batch-type="customer-unit" class="tms-btn tms-btn--outline batch-import-btn"><i class="fa-solid fa-download mr-1.5"></i> Template Unit</button>
+                        <button onclick="exportServiceTicketsCSV()" class="tms-btn tms-btn--outline"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
+                        <button id="btn-bulk-bast" onclick="openBulkBastModal()" class="hidden tms-btn tms-btn--outline"><i class="fa-solid fa-layer-group mr-1.5"></i> Gabung BAST</button>
+                        <button id="btn-create-combined-sph" onclick="openSphBuilderModal()" class="hidden tms-btn tms-btn--outline"><i class="fa-solid fa-file-invoice mr-1.5"></i> Combined SPH</button>
+                        <button id="btn-bulk-delete-service" onclick="bulkDeleteServiceTickets()" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-trash mr-1.5"></i> Delete</button>
                     </div>
                     <p id="combined-sph-hint" class="hidden mt-3 text-[10px] text-violet-600 dark:text-violet-400 font-bold leading-relaxed"></p>
                 </div>
@@ -1209,7 +1233,7 @@
             <section id="view-spv-personnel" class="app-view hidden flex-col gap-6 animate-fade-in">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm dark:shadow-xl">
                     <div class="flex-1 w-full"><input type="text" id="search-tech" onkeyup="renderSpvPersonnel()" class="input-field w-full max-w-md" placeholder="Search employee name or NIK..."></div>
-                    <button id="btn-add-tech" onclick="openFormModal('tech')" class="bg-gray-100 dark:bg-lux-800 border border-gold-500/50 hover:bg-gold-500 text-gold-600 dark:text-gold-500 hover:text-white dark:hover:text-black font-black px-8 py-3.5 rounded-xl text-[11px] uppercase tracking-widest w-full md:w-auto transition shadow-sm whitespace-nowrap"><i class="fa-solid fa-user-plus mr-2"></i> Add Personnel</button>
+                    <button id="btn-add-tech" onclick="openFormModal('tech')" class="tms-btn tms-btn--primary w-full md:w-auto"><i class="fa-solid fa-user-plus mr-2"></i> Add Personnel</button>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="spv-users-container"></div>
             </section>
@@ -1249,7 +1273,7 @@
             <section id="view-ts-toolbox" class="app-view hidden flex-col gap-6 animate-fade-in">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 sm:p-8 shadow-sm dark:shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
                     <h2 class="text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white w-full"><i class="fa-solid fa-toolbox text-gold-500 mr-2"></i> My Asset Inventory</h2>
-                    <button onclick="openFormModal('tool')" class="bg-gold-500 text-white dark:text-black font-black px-6 py-3.5 rounded-xl text-[11px] uppercase tracking-widest shadow-[0_0_15px_rgba(234,179,8,0.3)] shrink-0 w-full md:w-auto hover:bg-gold-600 transition whitespace-nowrap"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Special Tools</button>
+                    <button onclick="openFormModal('tool')" class="tms-btn tms-btn--primary shrink-0 w-full md:w-auto"><i class="fa-solid fa-plus mr-2"></i> Daftarkan Special Tools</button>
                 </div>
                 
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm dark:shadow-xl -mt-2">
@@ -1451,7 +1475,7 @@
                     </div>
                 </div>
                 <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-lux-800">
-                    <button type="submit" id="btn-save-tech" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Save Personnel</button>
+                    <button type="submit" id="btn-save-tech" class="tms-btn tms-btn--primary">Save Personnel</button>
                 </div>
             </form>
         </div>
@@ -1507,7 +1531,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-lux-800"><button type="submit" id="btn-add-tool" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Save Asset Data</button></div>
+                <div class="tms-modal-actions"><button type="submit" id="btn-add-tool" class="tms-btn tms-btn--primary">Save Asset Data</button></div>
             </form>
         </div>
     </div>
@@ -1896,7 +1920,7 @@
                 </div>
                 <div id="customer-form-error" class="text-[10px] text-red-500 font-bold hidden mb-4"></div>
                 <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
-                    <button type="submit" id="btn-save-customer" class="px-8 py-4 bg-blue-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-blue-700 transition">Save Customer</button>
+                    <button type="submit" id="btn-save-customer" class="tms-btn tms-btn--primary">Save Customer</button>
                 </div>
             </form>
         </div>
@@ -1939,7 +1963,7 @@
                 </div>
                 <div id="cust-unit-form-error" class="text-[10px] text-red-500 font-bold hidden mb-4"></div>
                 <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
-                    <button type="submit" id="btn-save-cust-unit" class="px-8 py-4 bg-emerald-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-emerald-700 transition">Save Unit</button>
+                    <button type="submit" id="btn-save-cust-unit" class="tms-btn tms-btn--primary">Save Unit</button>
                 </div>
             </form>
         </div>
@@ -1960,7 +1984,7 @@
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button type="button" onclick="downloadBatchTemplate(_batchImportType)" class="flex-1 py-3.5 bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 hover:border-indigo-500 text-gray-700 dark:text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition"><i class="fa-solid fa-download mr-2"></i> Download Template</button>
-                    <label class="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition cursor-pointer text-center flex items-center justify-center gap-2">
+                    <label class="tms-btn tms-btn--outline flex-1 cursor-pointer text-center">
                         <i class="fa-solid fa-upload"></i> Choose File
                         <input type="file" id="batch-import-file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="previewBatchImportFile(event)" class="hidden">
                     </label>
@@ -1972,7 +1996,7 @@
                 <div id="batch-import-error" class="text-[10px] text-red-500 font-bold hidden"></div>
                 <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-lux-800 gap-3">
                     <button type="button" onclick="closeModal('batchImportModal')" class="px-6 py-3.5 bg-gray-100 dark:bg-lux-800 text-gray-700 dark:text-white font-black text-[11px] uppercase tracking-widest rounded-xl">Cancel</button>
-                    <button type="button" id="btn-run-batch-import" onclick="runBatchImport()" disabled class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-[11px] uppercase tracking-widest rounded-xl transition">Import Data</button>
+                    <button type="button" id="btn-run-batch-import" onclick="runBatchImport()" disabled class="tms-btn tms-btn--primary disabled:opacity-40 disabled:cursor-not-allowed">Import Data</button>
                 </div>
             </div>
         </div>
@@ -2060,7 +2084,7 @@
                         <input type="checkbox" id="svc-register-another" class="w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer">
                         Register another unit for this customer
                     </label>
-                    <button type="submit" id="btn-save-service" class="px-8 py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(234,179,8,0.25)] hover:bg-gold-600 transition">Register Unit</button>
+                    <button type="submit" id="btn-save-service" class="tms-btn tms-btn--primary">Register Unit</button>
                 </div>
             </form>
         </div>
@@ -2087,7 +2111,7 @@
                     </div>
                 </div>
                 <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
-                    <button type="submit" class="w-full py-4 bg-gold-500 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-gold-600 transition shadow-md">Send Unit to TSF Workshop</button>
+                    <button type="submit" class="tms-btn tms-btn--primary w-full">Send Unit to TSF Workshop</button>
                 </div>
             </form>
         </div>
@@ -2116,7 +2140,7 @@
                 </div>
                 <div id="sparepart-form-error" class="text-[10px] text-red-500 font-bold hidden mb-4"></div>
                 <div class="flex justify-end pt-5 border-t border-gray-200 dark:border-lux-800">
-                    <button type="submit" id="btn-save-sparepart" class="px-8 py-4 bg-violet-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-violet-700 transition">Save Sparepart</button>
+                    <button type="submit" id="btn-save-sparepart" class="tms-btn tms-btn--primary">Save Sparepart</button>
                 </div>
             </form>
         </div>
@@ -2155,7 +2179,7 @@
                 </div>
                 <div><label class="input-label">Upload Official SPH Document (optional)</label><input type="file" id="sph-builder-doc" class="input-field file:bg-violet-500/10 file:text-violet-500 file:border-0 file:rounded-lg file:px-3 file:py-1 file:mr-3 file:font-bold file:text-xs cursor-pointer" accept="application/pdf,image/*"></div>
                 <div class="flex justify-end pt-4 border-t border-gray-200 dark:border-lux-800">
-                    <button type="submit" class="px-8 py-4 bg-violet-600 text-white font-black text-[12px] uppercase tracking-[0.15em] rounded-xl hover:bg-violet-700 transition">Issue Combined SPH</button>
+                    <button type="submit" class="tms-btn tms-btn--primary">Issue Combined SPH</button>
                 </div>
             </form>
         </div>
@@ -2171,8 +2195,8 @@
             <div class="p-6 sm:p-8 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar" id="sph-detail-body"></div>
             <div class="border-t border-gray-200 dark:border-lux-800 p-4 flex flex-wrap gap-2 justify-end bg-gray-50 dark:bg-[#09090b]">
                 <button type="button" onclick="exportSphPdf(_sphDetailActiveId)" class="px-4 py-2.5 bg-gray-200 dark:bg-lux-800 text-gray-800 dark:text-white font-black rounded-xl text-[10px] uppercase tracking-widest"><i class="fa-solid fa-file-pdf mr-1"></i> Export PDF</button>
-                <button type="button" id="btn-sph-cancel" onclick="cancelSphDocument(_sphDetailActiveId)" class="hidden px-4 py-2.5 bg-red-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest"><i class="fa-solid fa-ban mr-1"></i> Cancel SPH</button>
-                <button type="button" onclick="closeModal('sphDetailModal')" class="px-4 py-2.5 bg-violet-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest">Close</button>
+                <button type="button" id="btn-sph-cancel" onclick="cancelSphDocument(_sphDetailActiveId)" class="hidden tms-btn tms-btn--danger"><i class="fa-solid fa-ban mr-1"></i> Cancel SPH</button>
+                <button type="button" onclick="closeModal('sphDetailModal')" class="tms-btn tms-btn--outline">Close</button>
             </div>
         </div>
     </div>
@@ -2187,7 +2211,7 @@
             <div class="p-6 space-y-4">
                 <p class="text-[11px] text-gray-500">Multiple customers have eligible tickets for Combined SPH. Choose one:</p>
                 <select id="sph-customer-pick-select" class="input-field"></select>
-                <button type="button" onclick="confirmSphCustomerPick()" class="w-full py-3 bg-violet-600 text-white font-black rounded-xl text-[11px] uppercase tracking-widest">Continue</button>
+                <button type="button" onclick="confirmSphCustomerPick()" class="tms-btn tms-btn--primary w-full">Continue</button>
             </div>
         </div>
     </div>
@@ -10987,8 +11011,8 @@
                 <td class="p-4"><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase text-gray-500 border-gray-200 dark:border-lux-700">${grp}</span></td>
                 <td class="p-4"><span class="text-[10px] font-black uppercase ${stColors[st] || ''}">${st}</span></td>
                 <td class="p-4 text-right"><div class="flex justify-end gap-2">
-                    <button onclick="openSparepartModal(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-violet-500 hover:bg-violet-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                    <button onclick="deleteSparepart(${sp.id})" class="w-8 h-8 rounded-lg bg-gray-100 dark:bg-lux-800 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                    <button onclick="openSparepartModal(${sp.id})" class="tms-icon-btn"><i class="fa-solid fa-pen text-[10px]"></i></button>
+                    <button onclick="deleteSparepart(${sp.id})" class="tms-icon-btn tms-icon-btn--danger"><i class="fa-solid fa-trash text-[10px]"></i></button>
                 </div></td></tr>`;
         }
 
@@ -11010,9 +11034,9 @@
                         <p class="text-[9px] font-black uppercase mt-2 ${stColors[st] || ''}">${st}</p>
                     </div>
                 </div>
-                <div class="tms-mob-card-actions">
-                    <button onclick="openSparepartModal(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                    <button onclick="deleteSparepart(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                <div class="tms-card-actions">
+                    <button onclick="openSparepartModal(${sp.id})" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                    <button onclick="deleteSparepart(${sp.id})" class="tms-card-btn tms-card-btn--danger"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
                 </div>
             </div>`;
         }
@@ -11094,7 +11118,7 @@
                 if (cardsMobile) {
                     const cardsHtml = slice.map(sp => buildSparepartCardHtml(sp, stColors)).join('');
                     const moreBtn = remaining > 0
-                        ? `<div class="p-4 text-center border-t border-gray-100 dark:border-lux-800/60 sticky bottom-0 bg-white dark:bg-lux-900"><button type="button" onclick="loadMoreSpareparts()" class="tms-mob-btn tms-mob-btn--outline w-full">${moreLabel}</button></div>`
+                        ? `<div class="p-4 text-center border-t border-gray-100 dark:border-lux-800/60 sticky bottom-0 bg-white dark:bg-lux-900"><button type="button" onclick="loadMoreSpareparts()" class="tms-btn tms-btn--outline w-full">${moreLabel}</button></div>`
                         : (filtered.length > pageSize ? `<p class="p-3 text-center text-[10px] text-gray-400 dark:text-lux-500 font-bold uppercase tracking-widest">${filtered.length} sparepart ditampilkan</p>` : '');
                     cardsMobile.innerHTML = cardsHtml + moreBtn;
                 }
@@ -11102,7 +11126,7 @@
                 if (cardsMobile) cardsMobile.innerHTML = '';
                 const rowsHtml = slice.map(sp => buildSparepartRowHtml(sp, stColors)).join('');
                 const moreRow = remaining > 0
-                    ? `<tr><td colspan="6" class="p-4 text-center"><button type="button" onclick="loadMoreSpareparts()" class="px-4 py-2 rounded-xl bg-gray-100 dark:bg-lux-800 text-[10px] font-black uppercase tracking-widest hover:bg-gray-200 dark:hover:bg-lux-700 transition">${moreLabel}</button></td></tr>`
+                    ? `<tr><td colspan="6" class="p-4 text-center"><button type="button" onclick="loadMoreSpareparts()" class="tms-btn tms-btn--outline">${moreLabel}</button></td></tr>`
                     : '';
                 container.innerHTML = rowsHtml + moreRow;
             }
@@ -11463,10 +11487,10 @@
                             </div>
                             <span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black shrink-0">${unitCount} unit</span>
                         </div>
-                        <div class="tms-mob-card-actions" onclick="event.stopPropagation()">
-                            <button onclick="openCustomerModal(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                            <button onclick="selectCustomerAndShowUnits(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
-                        </div>
+                            <div class="tms-card-actions" onclick="event.stopPropagation()">
+                                <button onclick="openCustomerModal(${c.id})" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                <button onclick="selectCustomerAndShowUnits(${c.id})" class="tms-card-btn"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
+                            </div>
                     </div>`);
                 }
             });
@@ -11578,10 +11602,10 @@
                                 <div class="mt-2">${statusBadge}</div>
                             </div>
                         </div>
-                        <div class="tms-mob-card-actions">
-                            <button onclick="openServiceModalForUnit(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
-                            <button onclick="openCustomerUnitModal(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                        </div>
+                            <div class="tms-card-actions">
+                                <button onclick="openServiceModalForUnit(${u.id})" class="tms-card-btn"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
+                                <button onclick="openCustomerUnitModal(${u.id})" class="tms-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                            </div>
                     </div>`);
                 }
             });
