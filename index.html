@@ -2569,7 +2569,7 @@
     </div>
 
     <!-- Modal Form: Handover Digital Signature (Pickup, TSF, Field Handover) -->
-    <div id="handoverSignatureModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[100] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+    <div id="handoverSignatureModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[500] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
         <div class="bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/40 rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
             <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b] sticky top-0 z-20">
                 <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500" id="handover-sig-title"><i class="fa-solid fa-signature mr-3"></i> Handover Signature</h3>
@@ -4209,6 +4209,7 @@
             });
             (target.serviceTickets || []).forEach(s => {
                 if (!s) return;
+                if (s.status === 'pickup') { s.status = 'registered'; changed = true; }
                 const resolved = resolveTicketAssignedTsId(s, target.users);
                 if (resolved != null && Number(s.assignedTsId) !== resolved) {
                     s.assignedTsId = resolved;
@@ -9888,7 +9889,55 @@
         }
 
         function findServiceTicket(id) {
-            return (db.serviceTickets || []).find(x => Number(x.id) === Number(id)) || null;
+            if (id == null || id === '') return null;
+            const sid = String(id);
+            const nid = Number(id);
+            return (db.serviceTickets || []).find(x => {
+                if (!x || x.id == null) return false;
+                return String(x.id) === sid || (!isNaN(nid) && Number(x.id) === nid);
+            }) || null;
+        }
+
+        function isServiceFieldUser(u) {
+            if (!u || (u.status && u.status !== 'active')) return false;
+            if (u.role === 'ts') return true;
+            const j = normUserKey(u.jabatan || '');
+            return j.includes('technical service') || j.includes('teknisi lapangan') || j === 'teknisi';
+        }
+
+        function getTicketPjName(s) {
+            if (!s) return '';
+            const tsUser = getDbUser(resolveTicketAssignedTsId(s) || s.assignedTsId);
+            return tsUser ? tsUser.name : (s.assignedTsName || '');
+        }
+
+        function ticketPjMatchesCurrentUser(s) {
+            if (!currentUser || !s) return false;
+            const cuName = normUserKey(currentUser.name);
+            const cuUser = normUserKey(currentUser.user);
+            const pjName = normUserKey(getTicketPjName(s));
+            if (pjName && (pjName === cuName || pjName.startsWith(cuName) || cuName.startsWith(pjName))) return true;
+            if (normUserKey(s.assignedTsName) === cuName || normUserKey(s.assignedTsUser) === cuUser) return true;
+            const tsUser = getDbUser(s.assignedTsId);
+            if (tsUser && (normUserKey(tsUser.user) === cuUser || normUserKey(tsUser.name) === cuName)) return true;
+            return false;
+        }
+
+        function repairTicketAssignmentForCurrentUser(s) {
+            if (!s || !currentUser || !isServiceFieldUser(currentUser)) return false;
+            if (!ticketPjMatchesCurrentUser(s)) return false;
+            const uid = Number(currentUser.id);
+            if (!uid) return false;
+            if (Number(s.assignedTsId) === uid) return false;
+            s.assignedTsId = uid;
+            s.assignedTsName = currentUser.name;
+            s.assignedTsUser = currentUser.user;
+            return true;
+        }
+
+        function normalizeServiceTicketStatus(s) {
+            if (!s || !s.status) return;
+            if (s.status === 'pickup') s.status = 'registered';
         }
 
         function populateServiceTsSelect() {
@@ -9905,20 +9954,24 @@
 
         function svcTicketBtn(id, handler, label, icon, primary, extra) {
             const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
-            const sid = Number(id);
+            const sid = String(id);
             const ex = extra ? ` data-svc-extra="${extra}"` : '';
-            const call = handler === 'actionServiceTicket'
-                ? `actionServiceTicket(${sid}, '${extra || ''}')`
-                : `${handler}(${sid})`;
-            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="${call}; return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
         function runServiceTicketAction(btn) {
-            if (!btn || !btn.dataset) return;
-            const id = parseInt(btn.dataset.svcId, 10);
+            if (!btn || !btn.dataset) {
+                showToast('Tombol error', 'Elemen aksi tidak valid. Refresh halaman.', 'error');
+                return;
+            }
+            const rawId = btn.dataset.svcId;
             const handler = btn.dataset.svcHandler;
             const extra = btn.dataset.svcExtra || '';
-            if (!id || !handler) return;
+            if (!rawId || !handler) {
+                showToast('Tombol error', 'Data tiket tidak lengkap. Refresh halaman.', 'error');
+                return;
+            }
+            const id = /^\d+$/.test(rawId) ? Number(rawId) : rawId;
             try {
                 const runners = {
                     actionServiceTicket: () => actionServiceTicket(id, extra),
@@ -9934,42 +9987,38 @@
                     deleteServiceTicket: () => deleteServiceTicket(id)
                 };
                 if (runners[handler]) runners[handler]();
+                else showToast('Tombol error', `Handler "${handler}" tidak ditemukan.`, 'error');
             } catch (err) {
                 console.error('runServiceTicketAction:', err);
-                showToast('Error', 'Gagal menjalankan aksi. Muat ulang halaman lalu coba lagi.', 'error');
+                showToast('Error', 'Gagal menjalankan aksi: ' + (err.message || err), 'error');
             }
         }
         window.runServiceTicketAction = runServiceTicketAction;
 
+        function bindServiceTicketGlobalActions() {
+            if (document._svcGlobalActionBound) return;
+            document._svcGlobalActionBound = true;
+            document.addEventListener('click', (e) => {
+                const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                runServiceTicketAction(btn);
+            }, true);
+        }
+
         function bindServiceTicketCardActions() {
-            ['service-tickets-cards-mobile', 'service-tickets-container'].forEach(cid => {
-                const el = document.getElementById(cid);
-                if (!el || el._svcActionBound) return;
-                el._svcActionBound = true;
-                const onTap = (e) => {
-                    const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete');
-                    if (!btn) return;
-                    if (btn.tagName === 'BUTTON' && btn.getAttribute('onclick')) return;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    runServiceTicketAction(btn);
-                };
-                el.addEventListener('click', onTap);
-            });
+            bindServiceTicketGlobalActions();
         }
 
         function isAssignedServiceTs(s) {
-            if (!currentUser || currentUser.role !== 'ts') return false;
+            if (!currentUser || !isServiceFieldUser(currentUser)) return false;
             const uid = Number(currentUser.id);
             const resolved = resolveTicketAssignedTsId(s);
             if (resolved != null && resolved > 0 && uid === resolved) return true;
             const ts = getDbUser(s.assignedTsId);
             if (ts && uid === Number(ts.id)) return true;
-            const cuName = normUserKey(currentUser.name);
-            const cuUser = normUserKey(currentUser.user);
-            if (normUserKey(s.assignedTsName) === cuName || normUserKey(s.assignedTsUser) === cuUser) return true;
-            if (ts && (normUserKey(ts.name) === cuName || normUserKey(ts.user) === cuUser)) return true;
-            return false;
+            return ticketPjMatchesCurrentUser(s);
         }
 
         function buildServiceTicketRow(s) {
@@ -10102,6 +10151,14 @@
             let countReg = 0, countAnalysing = 0, countPo = 0, countRepair = 0, countDone = 0;
 
             const tickets = db.serviceTickets || [];
+            let assignmentFixed = false;
+            tickets.forEach(s => {
+                if (!s) return;
+                normalizeServiceTicketStatus(s);
+                if (repairTicketAssignmentForCurrentUser(s)) assignmentFixed = true;
+            });
+            if (assignmentFixed) saveDB();
+
             tickets.forEach(s => {
                 if (!s || !s.status) return;
                 if (s.status === 'registered') countReg++;
@@ -13438,9 +13495,13 @@
                 return;
             }
 
-            if (action === 'pickup' && !isAssignedServiceTs(s)) {
-                showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat memproses pickup/konfirmasi on-site.', 'error');
-                return;
+            if (action === 'pickup') {
+                if (repairTicketAssignmentForCurrentUser(s)) saveDB();
+                if (!isAssignedServiceTs(s)) {
+                    const pj = getTicketPjName(s) || 'belum ditunjuk';
+                    showToast('Akses ditolak', `PJ tiket: ${pj}. Login sebagai teknisi PJ atau hubungi SPV.`, 'error');
+                    return;
+                }
             }
             if (action === 'receive_field' && !isAssignedServiceTs(s)) {
                 showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat menerima unit di lapangan.', 'error');
@@ -13465,6 +13526,7 @@
         let handoverSigStep = 1;
 
         function openHandoverSignatureModal(id, action) {
+            try {
             loadDB();
             const s = findServiceTicket(id);
             if (!s) {
@@ -13570,6 +13632,10 @@
                 if (handoverGiverDraw) handoverGiverDraw.resize();
                 if (handoverReceiverDraw) handoverReceiverDraw.resize();
             }, 200);
+            } catch (err) {
+                console.error('openHandoverSignatureModal:', err);
+                showToast('Form gagal dibuka', (err.message || err) + ' — muat ulang halaman.', 'error');
+            }
         }
 
         function submitHandoverSignature(e) {

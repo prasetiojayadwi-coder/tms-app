@@ -315,14 +315,14 @@ def check_html_integrity():
         ok('Service PJ: getDbUser + resolveTicketAssignedTsId + isAssignedServiceTs')
     else:
         bad('Service PJ: resolver teknisi penanggung jawab tidak lengkap')
-    if (
-        'actionServiceTicket(${sid}' in js
-        or "onclick=\"actionServiceTicket(" in js
-        or "onclick=\\\"actionServiceTicket(" in js
-    ):
-        ok('Service Pickup: tombol langsung actionServiceTicket')
+    if 'bindServiceTicketGlobalActions' in js and 'document._svcGlobalActionBound' in js:
+        ok('Service Pickup: klik global capture — tombol selalu terhubung')
     else:
-        bad('Service Pickup: onclick actionServiceTicket tidak ada')
+        bad('Service Pickup: bindServiceTicketGlobalActions tidak ada')
+    if 'function repairTicketAssignmentForCurrentUser' in js and 'function ticketPjMatchesCurrentUser' in js:
+        ok('Service PJ: auto-repair penugasan teknisi by nama/ID')
+    else:
+        bad('Service PJ: auto-repair penugasan tidak lengkap')
     dyn_calls = set()
     for m in re.finditer(r'onclick=\\"([a-zA-Z_$][\w$]*)\s*\(', js):
         dyn_calls.add(m.group(1))
