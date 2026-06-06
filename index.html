@@ -228,7 +228,8 @@
                 min-height: 48px; width: 100%; touch-action: manipulation;
                 -webkit-tap-highlight-color: rgba(234, 179, 8, 0.15);
             }
-            #service-tickets-cards-mobile .svc-mob-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+            #service-tickets-cards-mobile .svc-mob-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; position: relative; z-index: 5; }
+            #service-tickets-cards-mobile .svc-ticket-action { position: relative; z-index: 6; }
             .tms-card-btn--primary {
                 background-color: #18181b !important; color: #fafafa !important; border-color: #18181b !important;
             }
@@ -9800,42 +9801,50 @@
         function svcTicketBtn(id, handler, label, icon, primary, extra) {
             const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
             const ex = extra ? ` data-svc-extra="${extra}"` : '';
-            return `<button type="button" data-svc-id="${id}" data-svc-handler="${handler}"${ex} class="${cls}"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+            return `<button type="button" data-svc-id="${id}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
         function runServiceTicketAction(btn) {
+            if (!btn || !btn.dataset) return;
             const id = parseInt(btn.dataset.svcId, 10);
             const handler = btn.dataset.svcHandler;
             const extra = btn.dataset.svcExtra || '';
             if (!id || !handler) return;
-            const runners = {
-                actionServiceTicket: () => actionServiceTicket(id, extra),
-                openQuotationModal: () => openQuotationModal(id),
-                openAnalysisModal: () => openAnalysisModal(id),
-                openOnsiteRepair: () => openOnsiteRepair(id),
-                openTsfQuickRepair: () => openTsfQuickRepair(id),
-                openPoModal: () => openPoModal(id),
-                openServiceRepairModal: () => openServiceRepairModal(id),
-                openServiceDeliveryModal: () => openServiceDeliveryModal(id),
-                showServiceDetail: () => showServiceDetail(id),
-                openServiceReceiptModal: () => openServiceReceiptModal(id),
-                deleteServiceTicket: () => deleteServiceTicket(id)
-            };
-            if (runners[handler]) runners[handler]();
+            try {
+                const runners = {
+                    actionServiceTicket: () => actionServiceTicket(id, extra),
+                    openQuotationModal: () => openQuotationModal(id),
+                    openAnalysisModal: () => openAnalysisModal(id),
+                    openOnsiteRepair: () => openOnsiteRepair(id),
+                    openTsfQuickRepair: () => openTsfQuickRepair(id),
+                    openPoModal: () => openPoModal(id),
+                    openServiceRepairModal: () => openServiceRepairModal(id),
+                    openServiceDeliveryModal: () => openServiceDeliveryModal(id),
+                    showServiceDetail: () => showServiceDetail(id),
+                    openServiceReceiptModal: () => openServiceReceiptModal(id),
+                    deleteServiceTicket: () => deleteServiceTicket(id)
+                };
+                if (runners[handler]) runners[handler]();
+            } catch (err) {
+                console.error('runServiceTicketAction:', err);
+                showToast('Error', 'Gagal menjalankan aksi. Muat ulang halaman lalu coba lagi.', 'error');
+            }
         }
+        window.runServiceTicketAction = runServiceTicketAction;
 
         function bindServiceTicketCardActions() {
             ['service-tickets-cards-mobile', 'service-tickets-container'].forEach(cid => {
                 const el = document.getElementById(cid);
                 if (!el || el._svcActionBound) return;
                 el._svcActionBound = true;
-                el.addEventListener('click', (e) => {
+                const onTap = (e) => {
                     const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete');
-                    if (!btn) return;
-                    e.preventDefault();
+                    if (!btn || btn.tagName === 'BUTTON' && btn.getAttribute('onclick')) return;
                     e.stopPropagation();
                     runServiceTicketAction(btn);
-                }, { passive: false });
+                };
+                el.addEventListener('click', onTap);
+                el.addEventListener('touchend', onTap);
             });
         }
 
@@ -9858,7 +9867,9 @@
             if (s.status === 'registered') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
                 if (isAssignedServiceTs(s)) {
-                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
+                    const pickupLabel = s.repairLoc === 'onsite' ? 'Konfirmasi On-Site' : 'Pickup Unit';
+                    const pickupIcon = s.repairLoc === 'onsite' ? 'fa-location-dot' : 'fa-truck-pickup';
+                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', pickupLabel, pickupIcon, pri, 'pickup');
                 }
             } else if (s.status === 'picked_up') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
@@ -10067,6 +10078,9 @@
                         </td>
                     </tr>`);
                 if (cardsMobile) {
+                    const onsiteBadge = s.repairLoc === 'onsite'
+                        ? `<span class="inline-block mt-1 px-2 py-0.5 rounded text-[8px] font-black uppercase bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">On-Site Repair</span>`
+                        : '';
                     const mobPriCls = 'tms-card-btn tms-card-btn--primary svc-ticket-action';
                     const mobActBtn = row.actionBtn
                         ? row.actionBtn.replace(/tms-svc-btn tms-svc-btn--primary svc-ticket-action/g, mobPriCls).replace(/tms-svc-btn svc-ticket-action/g, 'tms-card-btn svc-ticket-action')
@@ -10074,29 +10088,28 @@
                     cardRows.push(`<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
                         <div class="flex justify-between items-start gap-3">
                             <input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
-                            <div class="min-w-0 flex-1 svc-ticket-track cursor-pointer" role="button" data-svc-id="${s.id}" data-svc-handler="showServiceDetail">
+                            <div class="min-w-0 flex-1">
                                 <p class="font-mono text-[11px] font-bold text-gray-900 dark:text-white">${noSvc}</p>
                                 <p class="text-[9px] text-gray-400 dark:text-lux-500 mt-0.5">${row.date}</p>
                                 <p class="font-bold text-[14px] text-gray-900 dark:text-white mt-2 leading-snug">${custName}</p>
                                 <p class="text-[11px] text-gray-600 dark:text-lux-400 mt-1">${descStr}</p>
                                 <p class="text-[10px] font-mono text-gray-500 dark:text-lux-500 mt-1">${unitMeta}</p>
+                                ${onsiteBadge}
                                 <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1"><i class="fa-solid fa-user-gear mr-1 opacity-60"></i>${tsName}</p>
                             </div>
                             <div class="shrink-0">${row.statusBadge}</div>
                         </div>
                         <div class="tms-card-actions flex-wrap">
-                            <button type="button" data-svc-id="${s.id}" data-svc-handler="showServiceDetail" class="tms-card-btn svc-ticket-track"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Track</button>
-                            ${s.status !== 'registered' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="openServiceReceiptModal" class="tms-card-btn svc-ticket-receipt"><i class="fa-solid fa-print mr-1"></i>Tanda Terima</button>` : ''}
-                            ${currentUser.role === 'owner' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="deleteServiceTicket" class="tms-card-btn tms-card-btn--danger svc-ticket-delete"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>` : ''}
+                            <button type="button" data-svc-id="${s.id}" data-svc-handler="showServiceDetail" class="tms-card-btn svc-ticket-track" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Track</button>
+                            ${s.status !== 'registered' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="openServiceReceiptModal" class="tms-card-btn svc-ticket-receipt" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid fa-print mr-1"></i>Tanda Terima</button>` : ''}
+                            ${currentUser.role === 'owner' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="deleteServiceTicket" class="tms-card-btn tms-card-btn--danger svc-ticket-delete" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>` : ''}
                         </div>
                         ${mobActBtn ? `<div class="svc-mob-actions">${mobActBtn}</div>` : `<p class="text-[10px] text-gray-400 dark:text-lux-500 italic mt-2 text-center">Menunggu giliran</p>`}
                     </div>`);
                 }
             });
-            tmsRenderSplitList(container, cardsMobile, {
-                tableHtml: tableRows.join(''),
-                cardsHtml: cardRows.join('')
-            });
+            container.innerHTML = tableRows.join('');
+            if (cardsMobile) cardsMobile.innerHTML = cardRows.join('');
             bindServiceTicketCardActions();
         }
 
@@ -12790,7 +12803,7 @@
             const noSvc = generateServiceNumber();
             
             const tsSelect = document.getElementById('svc-assigned-ts');
-            const assignedTsId = parseInt(tsSelect.value);
+            const assignedTsId = parseInt(tsSelect.value, 10) || null;
 
             // Read photo before (multiple)
             let unitPhotosBefore = [];
@@ -12837,7 +12850,7 @@
                 unitSn: document.getElementById('svc-unit-sn').value || '-',
                 complaint: document.getElementById('svc-complaint').value,
                 assignedTsId: assignedTsId,
-                repairLoc: document.getElementById('svc-repair-loc').value || 'tsf',
+                repairLoc: (document.getElementById('svc-repair-loc').value || 'tsf').trim(),
                 unitPhotoBefore: unitPhotosBefore.length > 0 ? unitPhotosBefore : null,
                 status: 'registered',
                 history: [{
@@ -13293,7 +13306,7 @@
 
         function actionServiceTicket(id, action) {
             loadDB();
-            const s = db.serviceTickets.find(x => x.id === id);
+            const s = db.serviceTickets.find(x => Number(x.id) === Number(id));
             if (!s) return;
 
             if (['pickup', 'receive_tsf', 'receive_field'].includes(action)) {
@@ -13346,10 +13359,17 @@
             handoverSigStep = 1;
 
             if (action === 'pickup') {
-                title = "Tanda Tangan Pickup (RS \u2192 TS)";
-                statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan oleh perwakilan Customer/RS (${s.picName || s.customerName}) kepada Teknisi Lapangan TMS untuk dikirim ke workshop TSF.`;
-                giverLabel = "PIC Customer (Pengirim)";
-                receiverLabel = "Teknisi TMS (Penerima)";
+                if (s.repairLoc === 'onsite') {
+                    title = "Konfirmasi On-Site Repair";
+                    statement = `Saya mengkonfirmasi kedatangan di lokasi customer (${s.customerName}) untuk perbaikan on-site unit di atas. Perbaikan dilakukan di tempat, tanpa pengiriman ke workshop TSF.`;
+                    giverLabel = "PIC Customer (Verifikasi)";
+                    receiverLabel = "Teknisi TMS (On-Site)";
+                } else {
+                    title = "Tanda Tangan Pickup (RS \u2192 TS)";
+                    statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan oleh perwakilan Customer/RS (${s.picName || s.customerName}) kepada Teknisi Lapangan TMS untuk dikirim ke workshop TSF.`;
+                    giverLabel = "PIC Customer (Pengirim)";
+                    receiverLabel = "Teknisi TMS (Penerima)";
+                }
                 
                 // Turn-by-turn: hide receiver initially
                 if (receiverCol) receiverCol.classList.add('hidden');
