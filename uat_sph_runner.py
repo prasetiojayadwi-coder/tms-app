@@ -141,6 +141,7 @@ async def run_a(page):
     record('UAT-003', 'pass' if imp.get('added', 0) >= 1 and imp.get('skipped', 0) >= 1 else 'fail', str(imp))
 
     # UAT-004 — template & export Excel (.xlsx), satu kolom per field
+    await js(page, '''async () => { if (typeof ensureXlsxLib === 'function') await ensureXlsxLib(); return typeof XLSX !== 'undefined'; }''')
     xlsx_chk = await js(page, '''() => {
         const schema = BATCH_IMPORT_SCHEMAS.sparepart;
         const filenameOk = schema.filename === 'TMS_Template_Spareparts.xlsx';

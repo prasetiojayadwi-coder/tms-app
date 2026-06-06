@@ -228,11 +228,21 @@ def check_html_integrity():
         else:
             bad(f'Modul SPH: {cid} hilang')
 
-    for fn in ('buildExcelBlob', 'downloadExcelFile', 'downloadBatchTemplate', 'canBatchImport', 'canBatchImportType', 'isExcelXlsxFile', 'syncBatchImportButtons'):
+    for fn in ('buildExcelBlob', 'downloadExcelFile', 'downloadBatchTemplate', 'canBatchImport', 'canBatchImportType', 'isExcelXlsxFile', 'syncBatchImportButtons', 'ensureXlsxLib'):
         if f'function {fn}' in js:
             ok(f'Excel batch import: {fn} ada')
         else:
             bad(f'Excel batch import: {fn} hilang')
+
+    if 'ensureSupabaseClient' in js and "xlsx:" in js and 'supabase:' in js:
+        ok('Lazy-load: Excel & Supabase via loadTmsScript')
+    else:
+        bad('Lazy-load library berat tidak dikonfigurasi')
+
+    if 'cdn.sheetjs.com/xlsx' not in html.split('</head>')[0]:
+        ok('Excel library tidak di-load di head (lazy)')
+    else:
+        warn('Excel masih di-load di head — startup lebih berat')
 
     if 'BATCH_IMPORT_FULL_ROLES' in js and 'BATCH_IMPORT_TSF_TYPES' in js and 'data-batch-type' in html:
         ok('Batch import: Owner/SPV/Specialist penuh, TSF hanya tool & demo')

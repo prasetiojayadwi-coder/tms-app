@@ -1,17 +1,17 @@
 {
   "benchmarks": {
     "allocateUniqueId_x100": {
-      "ms": 2.6,
+      "ms": 7.7,
       "out": {
         "unique": true
       }
     },
     "searchSparepartsPartial": {
-      "ms": 0.5,
+      "ms": 1.2,
       "out": 8
     },
     "sanitizeDatabase": {
-      "ms": 1.7,
+      "ms": 2.1,
       "out": true
     },
     "JSON.stringify_db": {
@@ -19,11 +19,11 @@
       "out": 126835
     },
     "renderSparepartMaster": {
-      "ms": 56.9,
+      "ms": 103.1,
       "out": 503
     },
     "renderSphLog": {
-      "ms": 8.4,
+      "ms": 19.8,
       "out": 100
     },
     "getEligibleSphTickets": {
@@ -31,24 +31,24 @@
       "out": 200
     },
     "hasEligibleCombinedSph": {
-      "ms": 0.3,
+      "ms": 0.4,
       "out": true
     }
   },
   "bottlenecks": [],
   "bugs": [],
   "ok": [
-    "allocateUniqueId_x100: 2.6ms OK",
-    "searchSparepartsPartial: 0.5ms OK",
-    "sanitizeDatabase: 1.7ms OK",
+    "allocateUniqueId_x100: 7.7ms OK",
+    "searchSparepartsPartial: 1.2ms OK",
+    "sanitizeDatabase: 2.1ms OK",
     "JSON.stringify_db: 0.8ms OK",
-    "renderSparepartMaster: 56.9ms OK",
-    "renderSphLog: 8.4ms OK",
+    "renderSparepartMaster: 103.1ms OK",
+    "renderSphLog: 19.8ms OK",
     "getEligibleSphTickets: 0.2ms OK",
-    "hasEligibleCombinedSph: 0.3ms OK"
+    "hasEligibleCombinedSph: 0.4ms OK"
   ],
-  "pageLoadMs": 4752,
-  "jsReadyMs": 4832,
+  "pageLoadMs": 3004,
+  "jsReadyMs": 3228,
   "meta": {
     "spareparts": 503,
     "serviceTickets": 200,

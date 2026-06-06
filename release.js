@@ -3,15 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '6.7.9',
-    build: 74,
+    version: '6.8.0',
+    build: 75,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'Service & Repair toolbar dirapikan + import batch unit customer.',
+    summary: 'Optimasi performa — startup lebih ringan, render lebih cepat.',
     changes: [
-        { icon: 'fa-screwdriver-wrench', text: 'Toolbar Service & Repair dirapikan — tombol konsisten & terkelompok' },
-        { icon: 'fa-file-import', text: 'Import Unit Excel + Template di halaman Service & Repair' },
-        { icon: 'fa-user-shield', text: 'Batch import role matrix — Owner/SPV/Specialist penuh, TSF tools & backup' },
-        { icon: 'fa-file-excel', text: 'Upload .xlsx — satu kolom per field' }
+        { icon: 'fa-bolt', text: 'Excel & Supabase lazy-load — tidak dimuat saat buka halaman login' },
+        { icon: 'fa-bell', text: 'Notifikasi di-debounce — badge cepat, list hanya saat panel dibuka' },
+        { icon: 'fa-table', text: 'Render Service Tickets dioptimasi (single-pass HTML)' },
+        { icon: 'fa-feather', text: 'Font Awesome async + font weight dikurangi' }
     ]
 };

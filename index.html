@@ -34,11 +34,10 @@
         @keyframes boot-spin { to { transform: rotate(360deg); } }
     </style>
     
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <script>window.TMS_CONFIG = window.TMS_CONFIG || {};</script>
     <script src="release.js"></script>
     <script src="config.deploy.js"></script>
@@ -2976,9 +2975,42 @@
             chart: 'https://cdn.jsdelivr.net/npm/chart.js',
             qrcode: 'https://unpkg.com/html5-qrcode',
             qrious: 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js',
-            pdf: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'
+            pdf: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+            xlsx: 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js',
+            supabase: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
         };
         const _tmsScriptPromises = {};
+        let _supabaseInitPromise = null;
+
+        async function ensureXlsxLib() {
+            if (typeof XLSX !== 'undefined') return true;
+            try {
+                await loadTmsScript('xlsx');
+                return typeof XLSX !== 'undefined';
+            } catch (e) {
+                console.warn('Gagal memuat library Excel:', e);
+                return false;
+            }
+        }
+
+        async function ensureSupabaseClient() {
+            if (supabaseClient) return supabaseClient;
+            if (isFileProtocol || !SUPABASE_URL || !SUPABASE_KEY) return null;
+            if (!_supabaseInitPromise) {
+                _supabaseInitPromise = loadTmsScript('supabase').then(() => {
+                    if (typeof supabase === 'undefined') throw new Error('supabase SDK tidak tersedia');
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                    return supabaseClient;
+                }).catch(e => {
+                    console.error('Gagal inisialisasi Supabase Client:', e);
+                    _supabaseInitPromise = null;
+                    supabaseClient = null;
+                    return null;
+                });
+            }
+            return _supabaseInitPromise;
+        }
+
         function loadTmsScript(key) {
             if (_tmsScriptPromises[key]) return _tmsScriptPromises[key];
             _tmsScriptPromises[key] = new Promise((resolve, reject) => {
@@ -2994,7 +3026,9 @@
 
         let _updateDataQueued = false;
         let _syncDebounceTimer = null;
-        let _imagesCleanedThisSession = false; 
+        let _imagesCleanedThisSession = false;
+        let _notifDebounceTimer = null;
+        let _notifLastBadge = -1; 
         
         // KREDENSIAL CLOUD SYNC SUPABASE (dari config.js — salin config.example.js jika belum ada)
         const _tmsCfg = (window.TMS_CONFIG && window.TMS_CONFIG.supabase) || {};
@@ -3088,18 +3122,9 @@
         // Skip Supabase jika dibuka via file:// (tidak ada origin, CORS akan selalu gagal)
         const isFileProtocol = window.location.protocol === 'file:';
 
-        if (!isFileProtocol && SUPABASE_URL && SUPABASE_KEY && typeof supabase !== 'undefined') {
-            try {
-                setTimeout(() => updateCloudStatusUI('connecting'), 100);
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            } catch(e) {
-                console.error("Gagal inisialisasi Supabase Client:", e);
-                supabaseClient = null;
-                setTimeout(() => updateCloudStatusUI('local'), 100);
-            }
-        } else {
-            setTimeout(() => updateCloudStatusUI('local'), 100);
-        }
+        setTimeout(() => {
+            updateCloudStatusUI((isFileProtocol || !SUPABASE_URL || !SUPABASE_KEY) ? 'local' : 'connecting');
+        }, 100);
 
         let db = {
             version: 1,
@@ -3139,7 +3164,7 @@
         };
         
         async function syncWithCloud(forceUpload = false) {
-            if (!supabaseClient) return;
+            if (!(await ensureSupabaseClient())) return;
             if (isSyncing) {
                 syncPending = true;
                 return;
@@ -3294,9 +3319,11 @@
             }
         }
 
-        function initRealtimeSync() {
+        async function initRealtimeSync() {
             stopOnlineHeartbeat();
-            if (!supabaseClient) {
+            if (!currentUser) return;
+            const client = await ensureSupabaseClient();
+            if (!client) {
                 updateCloudStatusUI('local');
                 updateOnlineStatusUI(null);
                 return;
@@ -4518,7 +4545,6 @@
         let previousRequestStates = null;
         let previousServiceTicketStates = null;
         loadDB(); if(db.messages) lastMsgCount = db.messages.length;
-        initRealtimeSync();
         
         // Periodically refresh online status UI and update currentUser.lastOnline in database
         setInterval(async () => {
@@ -4782,10 +4808,11 @@
                 loadDB();
 
                 // Coba sinkronisasi cloud (non-blocking, dengan timeout pendek)
-                if (supabaseClient) {
+                const cloudClient = await ensureSupabaseClient();
+                if (cloudClient) {
                     try {
                         const { data, error } = await Promise.race([
-                            Promise.resolve(supabaseClient.from('tms_sync').select('db_data, db_version').eq('id', 1).single()),
+                            Promise.resolve(cloudClient.from('tms_sync').select('db_data, db_version').eq('id', 1).single()),
                             new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000))
                         ]);
                         if (!error && data && data.db_data) {
@@ -5005,7 +5032,13 @@
                     <a href="#" onclick="switchTab('ts-handover')" id="nav-ts-handover" class="nav-link flex justify-between items-center px-8 py-4 text-[11px] font-black uppercase tracking-[0.15em] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white transition min-w-0"><div class="flex items-center gap-4 truncate"><i class="fa-solid fa-handshake w-4 text-center text-sm"></i> Physical Handover</div><span id="badge-ho" class="bg-gold-500 text-white dark:text-black text-[10px] px-2 py-0.5 rounded-md hidden shrink-0 shadow-[0_0_10px_rgba(234,179,8,0.5)]">0</span></a>`;
                 switchTab('ts-dash');
             }
-            updateOwnerDropdown(); checkNotifications(); renderChatUsers(); updateChatBadge(); initRealtimeSync(); initServiceNotifPolling(); syncBatchImportButtons();
+            updateOwnerDropdown(); syncBatchImportButtons();
+            checkNotifications();
+            requestAnimationFrame(() => {
+                renderChatUsers(); updateChatBadge(); initServiceNotifPolling();
+            });
+            if (canBatchImport()) ensureXlsxLib();
+            initRealtimeSync();
         }
 
         const BATCH_IMPORT_FULL_ROLES = ['owner', 'spv', 'ts_spec', 'ts_spec_avitum', 'ts_spec_ais'];
@@ -5220,11 +5253,24 @@
             checkNotifications();
         }
 
-        function checkNotifications() {
+        function checkNotifications(forceRebuild = false) {
+            if (!currentUser) return;
+            if (forceRebuild) {
+                _checkNotificationsImpl(true);
+                return;
+            }
+            clearTimeout(_notifDebounceTimer);
+            _notifDebounceTimer = setTimeout(() => _checkNotificationsImpl(false), 200);
+        }
+
+        function _checkNotificationsImpl(forceRebuild) {
             if(!currentUser) return;
             const notifList = document.getElementById('notif-list');
             if(!notifList) return;
-            notifList.innerHTML = '';
+            const dropdown = document.getElementById('notif-dropdown');
+            const panelOpen = dropdown && !dropdown.classList.contains('hidden');
+            const shouldRenderList = forceRebuild || panelOpen;
+            if (shouldRenderList) notifList.innerHTML = '';
             
             let alertCount = 0;
             const isRegionalSpv = currentUser.role === 'spv' && currentUser.group !== 'TSF/Gudang';
@@ -5472,27 +5518,35 @@
 
             allNotifs.sort((a, b) => b.time - a.time);
 
-            if (allNotifs.length > 0) {
-                allNotifs.forEach(n => {
-                    notifList.innerHTML += n.html;
-                });
-            } else {
-                notifList.innerHTML = `<div class="p-5 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">No notifications</div>`;
+            if (shouldRenderList) {
+                if (allNotifs.length > 0) {
+                    notifList.innerHTML = allNotifs.map(n => n.html).join('');
+                } else {
+                    notifList.innerHTML = `<div class="p-5 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">No notifications</div>`;
+                }
             }
 
             const badge = document.getElementById('notif-badge');
             if (badge) {
                 if (alertCount > 0) {
-                    badge.innerText = alertCount;
+                    if (_notifLastBadge !== alertCount) {
+                        badge.innerText = alertCount;
+                        _notifLastBadge = alertCount;
+                    }
                     badge.classList.remove('hidden');
                 } else {
                     badge.classList.add('hidden');
+                    _notifLastBadge = 0;
                 }
             }
             updateSvcNavBadge();
         }
 
-        function toggleNotifications() { document.getElementById('notif-dropdown').classList.toggle('hidden'); }
+        function toggleNotifications() {
+            const dd = document.getElementById('notif-dropdown');
+            dd.classList.toggle('hidden');
+            if (!dd.classList.contains('hidden')) checkNotifications(true);
+        }
 
         // ====================================================================
         // BADGE NOTIFIKASI LOCENG SERVICE CUSTOMER
@@ -9390,8 +9444,9 @@
                 return;
             }
 
-            filtered.forEach(s => {
-                const ts = db.users[s.assignedTsId] ? db.users[s.assignedTsId].name : 'Belum Ditunjuk';
+            const userMap = db.users || {};
+            container.innerHTML = filtered.map(s => {
+                const ts = userMap[s.assignedTsId] ? userMap[s.assignedTsId].name : 'Belum Ditunjuk';
                 const date = new Date(s.id).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'});
                 
                 let statusBadge = '';
@@ -9460,7 +9515,7 @@
                 
                 const prodBadge = s.unitProduct ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${s.unitProduct}</span>` : '';
 
-                container.innerHTML += `
+                return `
                     <tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
                         <td class="p-5 text-center"><input type="checkbox" value="${s.id}" class="service-ticket-checkbox w-4 h-4 rounded border-gray-300 accent-gold-500 cursor-pointer"></td>
                         <td class="p-5 font-mono text-[12px] font-bold text-gold-600 dark:text-gold-500 whitespace-nowrap">
@@ -9496,7 +9551,7 @@
                         </td>
                     </tr>
                 `;
-            });
+            }).join('');
         }
 
         function generateCustomerCode() {
@@ -9648,15 +9703,18 @@
         }
 
         function downloadExcelFile(filename, headers, rows, sheetName) {
-            const blob = buildExcelBlob(headers, rows, sheetName);
-            if (!blob) { showToast('Error', 'Excel library not loaded. Please refresh.', 'error'); return; }
-            const name = (filename || 'export.xlsx').replace(/\.xlsx?$/i, '') + '.xlsx';
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = name;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            ensureXlsxLib().then(ok => {
+                if (!ok) { showToast('Error', 'Excel library not loaded. Please refresh.', 'error'); return; }
+                const blob = buildExcelBlob(headers, rows, sheetName);
+                if (!blob) { showToast('Error', 'Excel library not loaded. Please refresh.', 'error'); return; }
+                const name = (filename || 'export.xlsx').replace(/\.xlsx?$/i, '') + '.xlsx';
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = name;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            });
         }
 
         const BATCH_IMPORT_SCHEMAS = {
@@ -9758,6 +9816,7 @@
             if (errEl) { errEl.classList.add('hidden'); errEl.innerHTML = ''; }
             if (btn) { btn.disabled = true; btn.innerText = 'Import Data'; }
             openModal('batchImportModal');
+            ensureXlsxLib();
         }
 
         function downloadBatchTemplate(type) {
@@ -9771,7 +9830,7 @@
             showToast('Template Ready', `${schema.filename} downloaded — satu kolom per field di Excel.`, 'success');
         }
 
-        function previewBatchImportFile(e) {
+        async function previewBatchImportFile(e) {
             const file = e.target.files && e.target.files[0];
             const schema = BATCH_IMPORT_SCHEMAS[_batchImportType];
             const errEl = document.getElementById('batch-import-error');
@@ -9788,7 +9847,7 @@
                 if (btn) btn.disabled = true;
                 return;
             }
-            if (typeof XLSX === 'undefined') {
+            if (!(await ensureXlsxLib())) {
                 if (errEl) { errEl.innerText = 'Excel library not loaded. Please refresh the page.'; errEl.classList.remove('hidden'); }
                 return;
             }
