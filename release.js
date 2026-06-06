@@ -3,15 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '6.8.5',
-    build: 80,
+    version: '6.8.6',
+    build: 81,
     date: '2026-06-06',
     title: 'System Update Available',
-    summary: 'Perbaikan sync HP↔PC: sparepart tampil, unit yatim dibersihkan.',
+    summary: 'Tampilan HP — toolbar & kartu tombol seragam, palet elegan monokrom.',
     changes: [
-        { icon: 'fa-mobile-screen', text: 'Sparepart Master: kartu mobile + sync cloud spareparts/SPH' },
-        { icon: 'fa-arrows-rotate', text: 'Merge database sekarang gabung spareparts antar perangkat' },
-        { icon: 'fa-broom', text: 'Unit tanpa customer (yatim) otomatis dibersihkan — statistik akurat' },
-        { icon: 'fa-trash', text: 'Hapus customer/unit/sparepart tercatat untuk sync antar HP & PC' }
+        { icon: 'fa-mobile-screen', text: 'Customer & Sparepart Master: grid toolbar rapi di HP' },
+        { icon: 'fa-palette', text: 'Tombol seragam — primary gelap/terang, outline & ghost netral' },
+        { icon: 'fa-layer-group', text: 'Aksi kartu mobile: Edit/Units/Delete tanpa warna-warni' },
+        { icon: 'fa-chart-simple', text: 'Statistik & judul section: tone netral di mobile' }
     ]
 };

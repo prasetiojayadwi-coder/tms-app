@@ -82,7 +82,72 @@
         .cust-mobile-tab-active { @apply bg-white dark:bg-lux-900 text-gray-900 dark:text-white shadow-sm; }
         .cust-mobile-tab-inactive { @apply text-gray-500 dark:text-lux-400; }
         @media (max-width: 767px) {
-            #view-customer-master .cust-touch-btn { min-height: 44px; }
+            #view-customer-master .cust-touch-btn,
+            #view-sparepart-master .cust-touch-btn { min-height: 44px; }
+
+            .tms-mob-toolbar { display: grid; gap: 8px; width: 100%; }
+            .tms-mob-toolbar--2 { grid-template-columns: 1fr 1fr; }
+            .tms-mob-toolbar--3 { grid-template-columns: 1fr 1fr 1fr; }
+            .tms-mob-toolbar--span2 { grid-column: span 2; }
+
+            .tms-mob-btn {
+                display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+                min-height: 44px; padding: 10px 12px; border-radius: 12px;
+                font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+                line-height: 1.2; white-space: nowrap; transition: background-color .15s, border-color .15s, color .15s;
+            }
+            .tms-mob-btn--primary {
+                background-color: #18181b; color: #fafafa; border: 1px solid #18181b;
+            }
+            .dark .tms-mob-btn--primary {
+                background-color: #e4e4e7; color: #18181b; border-color: #e4e4e7;
+            }
+            .tms-mob-btn--outline {
+                background-color: #fafafa; color: #3f3f46; border: 1px solid #d4d4d8;
+            }
+            .dark .tms-mob-btn--outline {
+                background-color: #18181b; color: #d4d4d8; border-color: #3f3f46;
+            }
+            .tms-mob-btn--ghost {
+                background-color: transparent; color: #52525b; border: 1px solid #e4e4e7;
+            }
+            .dark .tms-mob-btn--ghost {
+                color: #a1a1aa; border-color: #3f3f46; background-color: transparent;
+            }
+            .tms-mob-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+            .tms-mob-select-all {
+                display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+                min-height: 44px; padding: 10px 12px; border-radius: 12px;
+                border: 1px solid #e4e4e7; background: transparent; cursor: pointer; user-select: none;
+            }
+            .dark .tms-mob-select-all { border-color: #3f3f46; }
+
+            .tms-mob-card-actions {
+                display: flex; gap: 8px; margin-top: 12px; padding-top: 12px;
+                border-top: 1px solid #f4f4f5;
+            }
+            .dark .tms-mob-card-actions { border-top-color: #27272a; }
+            .tms-mob-card-btn {
+                flex: 1; min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+                border-radius: 10px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+                background-color: #f4f4f5; color: #3f3f46; border: 1px solid #e4e4e7;
+            }
+            .dark .tms-mob-card-btn {
+                background-color: #27272a; color: #d4d4d8; border-color: #3f3f46;
+            }
+
+            #view-customer-master .batch-import-btn,
+            #view-customer-master #btn-add-cust-unit,
+            #view-customer-master #btn-delete-cust-units,
+            #view-customer-master button[onclick="openCustomerModal()"],
+            #view-customer-master #btn-delete-customers,
+            #view-sparepart-master button[onclick="openSparepartModal()"],
+            #view-sparepart-master .batch-import-btn,
+            #view-sparepart-master button[onclick="exportSparepartsCSV()"] {
+                background-image: none !important;
+                box-shadow: none !important;
+            }
         }
         .cust-master-cb {
             accent-color: #eab308;
@@ -868,17 +933,17 @@
             <!-- MASTER DATA CUSTOMER & UNIT -->
             <section id="view-customer-master" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in max-w-7xl mx-auto w-full">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
-                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-blue-600 dark:text-blue-400"><i class="fa-solid fa-hospital mr-2"></i> Customer Master Data</h2>
+                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white max-md:tracking-wide"><i class="fa-solid fa-hospital mr-2 text-gray-500 dark:text-lux-400"></i> Customer Master Data</h2>
                     <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Manage hospital/customer data and medical unit records. Auto-linked to Customer Service & Repair module.</p>
                     <div class="grid grid-cols-3 gap-2 sm:gap-4 mt-4 sm:mt-5">
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Customers</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-total">0</p></div>
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Units</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="cust-stat-units">0</p></div>
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="cust-stat-active">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1 max-md:text-gray-900 max-md:dark:text-white" id="cust-stat-active">0</p></div>
                     </div>
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        <button onclick="openBatchImportModal('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
-                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="batch-import-btn cust-touch-btn flex-1 sm:flex-none bg-indigo-500 hover:bg-indigo-600 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
-                        <button onclick="downloadBatchTemplate('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn flex-1 sm:flex-none bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                    <div class="flex flex-wrap gap-2 mt-4 max-md:tms-mob-toolbar max-md:tms-mob-toolbar--2">
+                        <button onclick="openBatchImportModal('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline flex-1 sm:flex-none md:bg-indigo-600 md:hover:bg-indigo-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Customers</button>
+                        <button onclick="openBatchImportModal('customer-unit')" data-batch-type="customer-unit" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline flex-1 sm:flex-none md:bg-indigo-500 md:hover:bg-indigo-600 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Units</button>
+                        <button onclick="downloadBatchTemplate('customer')" data-batch-type="customer" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline max-md:tms-mob-toolbar--span2 flex-1 sm:flex-none md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-gray-700 md:dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
                     </div>
                 </div>
 
@@ -891,14 +956,16 @@
                     <div id="cust-panel-customers" class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl shadow-sm dark:shadow-xl flex flex-col min-h-[320px] md:min-h-[420px]">
                         <div class="p-4 sm:p-5 border-b border-gray-200 dark:border-lux-800 flex flex-col gap-3">
                             <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-building text-blue-500 mr-2"></i> Customer / Hospital Data</h3>
-                            <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap">
-                                <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 min-w-[180px] text-[12px]" placeholder="Search customer, PIC, city...">
-                                <label id="cust-select-all-wrap" class="hidden cust-touch-btn inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200 dark:border-lux-600 bg-gray-50 dark:bg-lux-800 cursor-pointer select-none">
-                                    <input type="checkbox" id="select-all-customers-bar" onchange="toggleSelectAllCustomers(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-white whitespace-nowrap">Pilih Semua</span>
-                                </label>
-                                <button onclick="openCustomerModal()" class="cust-touch-btn bg-blue-600 hover:bg-blue-700 text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add Customer</button>
-                                <button id="btn-delete-customers" onclick="deleteSelectedCustomers()" class="hidden cust-touch-btn bg-red-600 hover:bg-red-700 text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
+                            <div class="flex flex-col sm:flex-row gap-2 sm:items-center flex-wrap max-md:gap-2">
+                                <input type="text" id="search-customers" onkeyup="debouncedRenderCustomerMaster()" class="input-field flex-1 min-w-[180px] max-md:w-full text-[12px]" placeholder="Search customer, PIC, city...">
+                                <div class="flex flex-wrap gap-2 sm:items-center max-md:tms-mob-toolbar max-md:tms-mob-toolbar--3 max-md:w-full">
+                                    <label id="cust-select-all-wrap" class="hidden cust-touch-btn tms-mob-select-all md:inline-flex md:items-center md:gap-2 md:px-4 md:py-3 md:rounded-xl md:border md:border-gray-200 md:dark:border-lux-600 md:bg-gray-50 md:dark:bg-lux-800 cursor-pointer select-none">
+                                        <input type="checkbox" id="select-all-customers-bar" onchange="toggleSelectAllCustomers(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
+                                        <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
+                                    </label>
+                                    <button onclick="openCustomerModal()" class="cust-touch-btn tms-mob-btn tms-mob-btn--primary md:bg-blue-600 md:hover:bg-blue-700 md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add</button>
+                                    <button id="btn-delete-customers" onclick="deleteSelectedCustomers()" class="hidden cust-touch-btn tms-mob-btn tms-mob-btn--ghost md:bg-red-600 md:hover:bg-red-700 md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
+                                </div>
                             </div>
                         </div>
                         <div id="customers-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
@@ -917,13 +984,13 @@
                                 <h3 class="font-black text-[12px] uppercase tracking-widest text-gray-900 dark:text-white"><i class="fa-solid fa-microscope text-emerald-500 mr-2"></i> Customer Units</h3>
                                 <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1" id="cust-units-subtitle">Select a customer to view units</p>
                             </div>
-                            <div class="flex flex-wrap gap-2 items-center">
-                                <label id="cust-units-select-all-wrap" class="hidden cust-touch-btn inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200 dark:border-lux-600 bg-gray-50 dark:bg-lux-800 cursor-pointer select-none">
+                            <div class="flex flex-wrap gap-2 items-center max-md:tms-mob-toolbar max-md:tms-mob-toolbar--3 max-md:w-full">
+                                <label id="cust-units-select-all-wrap" class="hidden cust-touch-btn tms-mob-select-all md:inline-flex md:items-center md:gap-2 md:px-4 md:py-3 md:rounded-xl md:border md:border-gray-200 md:dark:border-lux-600 md:bg-gray-50 md:dark:bg-lux-800 cursor-pointer select-none">
                                     <input type="checkbox" id="select-all-cust-units-bar" onchange="toggleSelectAllCustomerUnits(this)" class="cust-master-cb w-4 h-4 rounded cursor-pointer">
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-700 dark:text-white whitespace-nowrap">Pilih Semua</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-600 dark:text-lux-300 whitespace-nowrap">Pilih Semua</span>
                                 </label>
-                                <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="cust-touch-btn flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add Unit</button>
-                                <button id="btn-delete-cust-units" onclick="deleteSelectedCustomerUnits()" class="hidden cust-touch-btn flex-1 sm:flex-none bg-red-600 hover:bg-red-700 text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
+                                <button id="btn-add-cust-unit" onclick="openCustomerUnitModal()" disabled class="cust-touch-btn tms-mob-btn tms-mob-btn--primary flex-1 sm:flex-none md:bg-emerald-600 md:hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1"></i> Add</button>
+                                <button id="btn-delete-cust-units" onclick="deleteSelectedCustomerUnits()" class="hidden cust-touch-btn tms-mob-btn tms-mob-btn--ghost flex-1 sm:flex-none md:bg-red-600 md:hover:bg-red-700 md:text-white font-black px-4 py-3 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
                             </div>
                         </div>
                         <div id="customer-units-cards-mobile" class="md:hidden divide-y divide-gray-100 dark:divide-lux-800/60 flex-1 overflow-y-auto custom-scrollbar"></div>
@@ -942,19 +1009,21 @@
             <!-- MASTER SPAREPART -->
             <section id="view-sparepart-master" class="app-view hidden flex-col gap-4 sm:gap-6 animate-fade-in max-w-7xl mx-auto w-full">
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-xl">
-                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-violet-600 dark:text-violet-400"><i class="fa-solid fa-gears mr-2"></i> Sparepart Master</h2>
+                    <h2 class="text-base sm:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-white max-md:tracking-wide"><i class="fa-solid fa-gears mr-2 text-gray-500 dark:text-lux-400"></i> Sparepart Master</h2>
                     <p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 font-medium">Central sparepart catalog for SPH quotations and repair tracking. Smart Fill links Art Number to Description & Price.</p>
                     <div class="grid grid-cols-3 gap-2 sm:gap-4 mt-4">
                         <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Total</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sp-stat-total">0</p></div>
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1" id="sp-stat-active">0</p></div>
-                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-widest">Discontinued</p><p class="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1" id="sp-stat-disc">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Active</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sp-stat-active">0</p></div>
+                        <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 sm:p-4 rounded-xl"><p class="text-[9px] sm:text-[10px] text-gray-500 dark:text-lux-400 font-bold uppercase tracking-widest">Discontinued</p><p class="text-xl sm:text-2xl font-black text-gray-900 dark:text-white mt-1" id="sp-stat-disc">0</p></div>
                     </div>
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field flex-1 min-w-[200px] text-[12px]" placeholder="Search Art Number, Description, Group...">
-                        <button onclick="openSparepartModal()" class="bg-violet-600 hover:bg-violet-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
-                        <button onclick="openBatchImportModal('sparepart')" data-batch-type="sparepart" class="batch-import-btn bg-indigo-600 hover:bg-indigo-700 text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import Excel</button>
-                        <button onclick="downloadBatchTemplate('sparepart')" data-batch-type="sparepart" class="batch-import-btn bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-gray-700 dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template Excel</button>
-                        <button onclick="exportSparepartsCSV()" class="bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-700 text-emerald-600 dark:text-emerald-500 font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor Excel</button>
+                    <div class="max-md:space-y-2 mt-4">
+                        <input type="text" id="search-spareparts" onkeyup="debouncedRenderSparepartMaster()" class="input-field w-full md:flex-1 md:min-w-[200px] text-[12px]" placeholder="Search Art Number, Description, Group...">
+                        <div class="flex flex-wrap gap-2 max-md:tms-mob-toolbar max-md:tms-mob-toolbar--2">
+                            <button onclick="openSparepartModal()" class="cust-touch-btn tms-mob-btn tms-mob-btn--primary md:bg-violet-600 md:hover:bg-violet-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-plus mr-1.5"></i> Add</button>
+                            <button onclick="openBatchImportModal('sparepart')" data-batch-type="sparepart" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-indigo-600 md:hover:bg-indigo-700 md:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-import mr-1.5"></i> Import</button>
+                            <button onclick="downloadBatchTemplate('sparepart')" data-batch-type="sparepart" class="batch-import-btn cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-gray-700 md:dark:text-white font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-download mr-1.5"></i> Template</button>
+                            <button onclick="exportSparepartsCSV()" class="cust-touch-btn tms-mob-btn tms-mob-btn--outline md:bg-gray-100 md:dark:bg-lux-800 md:border md:border-gray-200 md:dark:border-lux-700 md:text-emerald-600 md:dark:text-emerald-500 font-black px-4 py-2.5 rounded-xl text-[10px] uppercase tracking-widest whitespace-nowrap"><i class="fa-solid fa-file-excel mr-1.5"></i> Ekspor</button>
+                        </div>
                     </div>
                     <div class="flex gap-2 w-full overflow-x-auto pb-1 pt-3 custom-scrollbar">
                         <button onclick="setSparepartFilter('all')" id="flt-sp-all" class="sp-filter-btn px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-black rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">All</button>
@@ -10840,7 +10909,7 @@
                     cardsMobile.innerHTML += `<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
                         <div class="flex justify-between items-start gap-2">
                             <div class="min-w-0 flex-1">
-                                <p class="font-mono text-[11px] font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</p>
+                                <p class="font-mono text-[11px] font-bold text-gray-600 dark:text-lux-300">${sp.artNo}</p>
                                 <p class="font-bold text-[14px] text-gray-900 dark:text-white leading-snug mt-0.5">${sp.description || '-'}</p>
                                 <p class="text-[11px] font-mono text-gray-600 dark:text-lux-300 mt-1">Rp ${(sp.price || 0).toLocaleString('id-ID')}</p>
                             </div>
@@ -10849,9 +10918,9 @@
                                 <p class="text-[9px] font-black uppercase mt-2 ${stColors[sp.status] || ''}">${sp.status || 'active'}</p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 mt-3">
-                            <button onclick="openSparepartModal(${sp.id})" class="cust-touch-btn py-2.5 rounded-xl bg-violet-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                            <button onclick="deleteSparepart(${sp.id})" class="cust-touch-btn py-2.5 rounded-xl bg-red-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+                        <div class="tms-mob-card-actions">
+                            <button onclick="openSparepartModal(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                            <button onclick="deleteSparepart(${sp.id})" class="tms-mob-card-btn"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
                         </div>
                     </div>`;
                 }
@@ -11198,7 +11267,7 @@
                             <div class="flex justify-between items-start gap-3">
                                 <input type="checkbox" value="${c.id}" onchange="syncCustMasterSelectAllState('customers')" class="cust-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
                                 <div class="min-w-0 flex-1">
-                                    <p class="font-mono text-[10px] font-bold text-blue-600 dark:text-blue-400">${c.code || '-'}</p>
+                                    <p class="font-mono text-[10px] font-bold text-gray-500 dark:text-lux-400">${c.code || '-'}</p>
                                     <p class="font-bold text-[15px] text-gray-900 dark:text-white leading-snug">${c.name || '-'}</p>
                                     <p class="text-[11px] text-gray-600 dark:text-lux-400 mt-1"><i class="fa-solid fa-user mr-1 opacity-60"></i>${c.picName || '-'}</p>
                                     <p class="text-[11px] font-mono text-gray-500 dark:text-lux-500 mt-0.5">${c.contact || '-'}</p>
@@ -11206,9 +11275,9 @@
                                 </div>
                                 <span class="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-lux-800 text-[11px] font-black shrink-0">${unitCount} unit</span>
                             </div>
-                            <div class="grid grid-cols-2 gap-2 mt-3" onclick="event.stopPropagation()">
-                                <button onclick="openCustomerModal(${c.id})" class="cust-touch-btn py-2.5 rounded-xl bg-blue-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
-                                <button onclick="selectCustomerAndShowUnits(${c.id})" class="cust-touch-btn py-2.5 rounded-xl bg-emerald-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
+                            <div class="tms-mob-card-actions" onclick="event.stopPropagation()">
+                                <button onclick="openCustomerModal(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                                <button onclick="selectCustomerAndShowUnits(${c.id})" class="tms-mob-card-btn"><i class="fa-solid fa-microscope mr-1"></i>Units</button>
                             </div>
                         </div>`;
                 }
@@ -11312,9 +11381,9 @@
                                     <div class="mt-2">${custUnitStatusBadge(u.status || 'active')}</div>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-2 mt-3">
-                                <button onclick="openServiceModalForUnit(${u.id})" class="cust-touch-btn py-2.5 rounded-xl bg-gold-500 text-white dark:text-black text-[9px] font-black uppercase"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
-                                <button onclick="openCustomerUnitModal(${u.id})" class="cust-touch-btn py-2.5 rounded-xl bg-emerald-600 text-white text-[9px] font-black uppercase"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
+                            <div class="tms-mob-card-actions">
+                                <button onclick="openServiceModalForUnit(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-wrench mr-1"></i>Service</button>
+                                <button onclick="openCustomerUnitModal(${u.id})" class="tms-mob-card-btn"><i class="fa-solid fa-pen mr-1"></i>Edit</button>
                             </div>
                         </div>`;
                 }

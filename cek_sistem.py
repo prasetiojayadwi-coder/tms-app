@@ -235,6 +235,10 @@ def check_html_integrity():
         ok('Sync mobile: sparepart merge + kartu HP + unit orphan cleanup')
     else:
         bad('Sync mobile: sparepart merge atau tampilan HP tidak lengkap')
+    if 'tms-mob-btn--primary' in html and 'tms-mob-card-btn' in html and 'tms-mob-toolbar' in html:
+        ok('Mobile UI: toolbar & kartu tombol seragam (tms-mob)')
+    else:
+        bad('Mobile UI: tms-mob toolbar tidak lengkap')
 
     for cid in ('view-sparepart-master', 'view-sph-log', 'sphBuilderModal', 'sphDetailModal', 'sphCustomerPickModal'):
         if cid in html:
