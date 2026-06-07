@@ -145,9 +145,16 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_754():
+def test_release_version_755():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.5.4' in rel
+    assert '7.5.5' in rel
+
+
+def test_onsite_pickup_direct_confirm():
+    js = _js_bundle()
+    assert 'function executeOnsitePickup' in js
+    assert "s.repairLoc === 'onsite'" in js
+    assert 'executeOnsitePickup(id)' in js
 
 
 def test_pwa_files():

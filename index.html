@@ -3955,8 +3955,9 @@
             const n = Number(s.assignedTsId);
             return !isNaN(n) && n > 0 ? n : null;
         }
-        function syncCurrentUserFromDb() {
-            if (!currentUser) return;
+        function syncCurrentUserFromDb(opts) {
+            if (!currentUser) return false;
+            const logoutOnInvalid = !opts || opts.logoutOnInvalid !== false;
             loadDB();
             let fresh = getDbUser(currentUser.id);
             if (!fresh && currentUser.user) {
@@ -3965,12 +3966,13 @@
                 );
             }
             if (!fresh || fresh.status === 'suspended' || fresh.status === 'disabled' || fresh.status === 'rejected') {
-                if (typeof handleLogout === 'function') handleLogout();
-                return;
+                if (logoutOnInvalid && typeof handleLogout === 'function') handleLogout();
+                return false;
             }
             currentUser = { ...fresh, lastOnline: currentUser.lastOnline || fresh.lastOnline };
             if (currentUser.id != null) currentUser.id = Number(currentUser.id);
             persistCurrentUserSession();
+            return true;
         }
         function findPersonnelConflicts(fields, excludeId) {
             const conflicts = [];
@@ -9781,14 +9783,19 @@
                 if (!isDrawing) return;
                 e.preventDefault();
                 const rect = canvas.getBoundingClientRect();
-                let x, y;
+                if (!rect.width || !rect.height || !canvas.width || !canvas.height) return;
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                let clientX, clientY;
                 if (e.type.includes('touch')) {
-                    x = e.touches[0].clientX - rect.left;
-                    y = e.touches[0].clientY - rect.top;
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
                 } else {
-                    x = e.clientX - rect.left;
-                    y = e.clientY - rect.top;
+                    clientX = e.clientX;
+                    clientY = e.clientY;
                 }
+                const x = (clientX - rect.left) * scaleX;
+                const y = (clientY - rect.top) * scaleY;
                 ctx.lineTo(x, y);
                 ctx.stroke();
                 ctx.beginPath();
@@ -9809,6 +9816,11 @@
             canvas.addEventListener('touchend', endPosition);
             canvas.addEventListener('touchmove', draw, { passive: false });
 
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
             const clearBtn = document.getElementById(clearButtonId);
             if (clearBtn) {
                 clearBtn.onclick = () => {
@@ -9817,7 +9829,7 @@
                 };
             }
 
-            return {
+            const api = {
                 canvas: canvas,
                 ctx: ctx,
                 clear: () => {
@@ -9847,6 +9859,8 @@
                     ctx.drawImage(temp, 0, 0);
                 }
             };
+            api.resize();
+            return api;
         }
 
         let handoverGiverDraw, handoverReceiverDraw;
@@ -9968,13 +9982,16 @@
 
         function ticketPjMatchesCurrentUser(s) {
             if (!currentUser || !s || !isServiceFieldUser(currentUser)) return false;
-            syncCurrentUserFromDb();
+            syncCurrentUserFromDb({ logoutOnInvalid: false });
             const uid = Number(currentUser.id);
             if (!uid) return false;
             const cuUser = normUserKey(currentUser.user);
+            const cuName = normUserKey(currentUser.name);
             if (cuUser && normUserKey(s.assignedTsUser) === cuUser) return true;
             const resolved = resolveTicketAssignedTsId(s);
-            return resolved != null && Number(resolved) === uid;
+            if (resolved != null && Number(resolved) === uid) return true;
+            if (s.assignedTsName && cuName && normUserKey(s.assignedTsName) === cuName && Number(s.assignedTsId) === uid) return true;
+            return false;
         }
 
         function syncTicketPjFields(s, users) {
@@ -10024,10 +10041,15 @@
             const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
             const sid = String(id);
             const ex = extra ? ` data-svc-extra="${extra}"` : '';
-            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="window.runServiceTicketAction(this);return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
+        let _svcActionBusyUntil = 0;
+
         function runServiceTicketAction(btn) {
+            const now = Date.now();
+            if (now < _svcActionBusyUntil) return;
+            _svcActionBusyUntil = now + 600;
             if (!btn || !btn.dataset) {
                 showToast('Tombol error', 'Elemen aksi tidak valid. Refresh halaman.', 'error');
                 return;
@@ -13558,9 +13580,32 @@
             });
         }
 
+        function executeOnsitePickup(id) {
+            const s = findServiceTicket(id);
+            if (!s) return false;
+            s.status = 'picked_up';
+            s.onsiteConfirmedAt = new Date().toISOString();
+            s.onsiteConfirmedBy = currentUser ? currentUser.user : '';
+            s.history.unshift({
+                t: new Date().toISOString(),
+                m: `On-site repair dikonfirmasi oleh PJ ${currentUser.name} (@${currentUser.user}) di ${s.customerName}.`
+            });
+            addToHistory(`On-Site Confirm: ${s.noService} dikonfirmasi oleh ${currentUser.name}.`);
+            notifyServiceUpdate(s, 'picked_up');
+            saveDB();
+            updateData();
+            playNotificationSound();
+            showToast('On-Site Dikonfirmasi', `Tiket ${s.noService} aktif. Klik Quick Repair untuk mulai perbaikan.`, 'success');
+            return true;
+        }
+
         function actionServiceTicket(id, action) {
             loadDB();
-            syncCurrentUserFromDb();
+            syncCurrentUserFromDb({ logoutOnInvalid: false });
+            if (!currentUser) {
+                showToast('Sesi habis', 'Silakan login ulang.', 'error');
+                return;
+            }
             const s = findServiceTicket(id);
             if (!s) {
                 showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
@@ -13577,6 +13622,10 @@
                         ? ` Anda login sebagai ${currentUser.name} (@${currentUser.user}).`
                         : '';
                     showToast('Akses ditolak', `PJ tiket: ${pj}${pjUser}.${hint} Hanya PJ yang ditunjuk yang dapat mengerjakan.`, 'error');
+                    return;
+                }
+                if (s.repairLoc === 'onsite') {
+                    executeOnsitePickup(id);
                     return;
                 }
             }
@@ -13605,7 +13654,7 @@
         function openHandoverSignatureModal(id, action) {
             try {
             loadDB();
-            syncCurrentUserFromDb();
+            syncCurrentUserFromDb({ logoutOnInvalid: false });
             const s = findServiceTicket(id);
             if (!s) {
                 showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
