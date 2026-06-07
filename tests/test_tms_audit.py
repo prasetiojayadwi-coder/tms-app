@@ -145,11 +145,21 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_71010():
+def test_release_version_71011():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.10' in rel
-    assert re.search(r"build:\s*132", rel)
-    assert 'tms-cache-v132' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.11' in rel
+    assert re.search(r"build:\s*133", rel)
+    assert 'tms-cache-v133' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+
+
+def test_sph_log_notification_badge():
+    html = _html()
+    assert 'id="badge-sph-update"' in html
+    assert 'function updateSphNavBadge' in html
+    assert 'function markSphLogSeen' in html
+    # badge harus dibersihkan saat SPH Log dirender
+    rs = html[html.find('function renderSphLog'):html.find('function renderSphLog') + 200]
+    assert 'markSphLogSeen()' in rs
 
 
 def test_app_version_label_present():

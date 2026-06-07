@@ -8,23 +8,23 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.10',
+    version: '7.10.11',
 
-    build: 132,
+    build: 133,
 
     date: '2026-06-07',
 
-    title: 'Info Versi Aplikasi',
+    title: 'Notifikasi SPH Log',
 
-    summary: 'Versi aplikasi kini tampil permanen di sidebar — klik untuk lihat catatan pembaruan.',
+    summary: 'Menu SPH Log kini punya lonceng notifikasi saat ada SPH baru, hilang otomatis saat dibuka.',
 
     changes: [
 
-        { icon: 'fa-rocket', text: 'Label versi + build tampil permanen di bawah tombol Log Out (klik = lihat changelog)' },
+        { icon: 'fa-bell', text: 'SPH Log: lonceng notifikasi muncul saat ada SPH terbaru, hilang setelah menu dibuka' },
 
-        { icon: 'fa-bell', text: 'Banner pembaruan otomatis muncul saat ada versi baru agar user tahu' },
+        { icon: 'fa-rocket', text: 'Label versi + build permanen di sidebar (klik = lihat changelog)' },
 
-        { icon: 'fa-paper-plane', text: 'Issue On-Site SPH / Submit Quotation: tombol berfungsi (lanjutan)' },
+        { icon: 'fa-paper-plane', text: 'Issue On-Site SPH: tombol berfungsi (lanjutan)' },
 
         { icon: 'fa-eye', text: 'Angka QTY & HARGA baris SPH terlihat jelas (lanjutan)' },
 
