@@ -3997,6 +3997,10 @@
                     (normUserKey(x.name) === pjNameKey || normUserKey(x.user) === pjNameKey)
                 );
                 if (byName.length === 1) return Number(byName[0].id);
+                if (byName.length > 1 && pjUserKey) {
+                    const exact = byName.find(x => normUserKey(x.user) === pjUserKey);
+                    if (exact) return Number(exact.id);
+                }
             }
             const n = Number(s.assignedTsId);
             return !isNaN(n) && n > 0 ? n : null;
@@ -4261,7 +4265,13 @@
             // Migrate legacy product labels (AIS/AES) to standard categories
             const normProd = normalizeProductCategory;
             Object.values(target.users || {}).forEach(u => {
-                if (!u || !Array.isArray(u.products)) return;
+                if (!u) return;
+                if (u.id != null && Number(u.id) !== u.id) { u.id = Number(u.id); changed = true; }
+                if (u.role === 'ts' && !(u.jabatan || '').trim()) {
+                    u.jabatan = 'Technical Service';
+                    changed = true;
+                }
+                if (!Array.isArray(u.products)) return;
                 const migrated = [...new Set(u.products.map(normProd).filter(p => TMS_PRODUCT_CATEGORIES.includes(p)))];
                 if (!migrated.length) migrated.push(...TMS_PRODUCT_CATEGORIES);
                 if (JSON.stringify(migrated) !== JSON.stringify(u.products)) {
@@ -5413,6 +5423,7 @@
                     db.users[f.id] = currentUser;
                     saveDB();
                     persistCurrentUserSession();
+                    healServiceTicketsForCurrentUser();
                     showToast('Access Granted', 'Welcome, ' + currentUser.name + '!', 'success');
                     const ls = document.getElementById('login-screen');
                     ls.style.transition = 'opacity 0.5s ease';
@@ -5488,6 +5499,7 @@
             syncCurrentUserFromDb();
             if (!currentUser) return;
             loadDB();
+            healServiceTicketsForCurrentUser();
             if (typeof tmsRunIntegrityAndLog === 'function') tmsRunIntegrityAndLog(db);
             bindServiceTicketCardActions();
             const mobileLite = isTmsMobileView();
@@ -5630,9 +5642,13 @@
             currentUser.name = document.getElementById('prof-name').value;
             const passIn = (document.getElementById('prof-pass').value || '').trim();
             if (passIn) currentUser.pass = await hashPassword(passIn);
-            currentUser.nik = document.getElementById('prof-nik').value; currentUser.jabatan = document.getElementById('prof-jabatan').value; currentUser.email = document.getElementById('prof-email').value; currentUser.phone = document.getElementById('prof-phone').value; 
+            currentUser.nik = document.getElementById('prof-nik').value;
+            currentUser.jabatan = (document.getElementById('prof-jabatan').value || '').trim();
+            if (!currentUser.jabatan && currentUser.role === 'ts') currentUser.jabatan = 'Technical Service';
+            currentUser.email = document.getElementById('prof-email').value; currentUser.phone = document.getElementById('prof-phone').value; 
             currentUser.updatedAt = new Date().toISOString();
             db.users[currentUser.id] = currentUser; saveDB(); persistCurrentUserSession();
+            healServiceTicketsForCurrentUser();
             document.getElementById('nav-user-name').innerText = currentUser.name; document.getElementById('nav-user-initial').innerText = currentUser.name.charAt(0); showToast("Profile Updated", "Data updated successfully.", "success"); updateOwnerDropdown(); 
         }
 
@@ -7888,6 +7904,10 @@
                     if(isApproved) {
                         if(targetUser) {
                             targetUser.status = 'active';
+                            if (targetUser.role === 'ts' && !(targetUser.jabatan || '').trim()) {
+                                targetUser.jabatan = 'Technical Service';
+                            }
+                            relinkServiceTicketsForUser(targetUser);
                             addToHistory(`${authRole} (${currentUser.name}) menyetujui registrasi personel baru ${targetUser.name} (${targetUser.jabatan}) secara langsung.`, null);
                             showToast("Disetujui", "Personel baru aktif di sistem.", "success");
                         }
@@ -8113,6 +8133,8 @@
             } else {
                 passStored = await hashPassword(passRaw || '123456');
             }
+            let jabatanVal = (document.getElementById('add-tech-jabatan').value || '').trim();
+            if (!jabatanVal && roleVal === 'ts') jabatanVal = 'Technical Service';
             const data = { 
                 id: editMode ? currentEditId : allocateUniqueId(), 
                 user: userVal, 
@@ -8120,7 +8142,7 @@
                 role: roleVal, 
                 name: document.getElementById('add-tech-name').value, 
                 nik: nikVal, 
-                jabatan: document.getElementById('add-tech-jabatan').value, 
+                jabatan: jabatanVal, 
                 email: emailVal, 
                 phone: phoneVal, 
                 group: groupVal, 
@@ -8150,10 +8172,12 @@
                     addToHistory(`SPV ${currentUser.name.split(' ')[0]} mengajukan registrasi personel baru: ${data.name}.`, null);
                     showToast("Menunggu Persetujuan", "Registrasi personel dikirim ke Direktur.", "success");
                 } else {
+                    relinkServiceTicketsForUser(data);
                     addToHistory(`${currentUser.role.toUpperCase()} menambahkan personel aktif baru: ${data.name}.`, null);
                     showToast("Success", "Personel baru aktif di sistem.", "success");
                 }
             }
+            if (editMode && isActiveFieldTsUser(data)) relinkServiceTicketsForUser(data);
             saveDB(); updateOwnerDropdown(); updateData(); closeModal('techModal');
         }
 
@@ -10077,7 +10101,45 @@
 
         function ensureServiceTicketPjReady(s) {
             if (!s) return;
+            alignTicketPjToUserIfNamed(s);
             syncTicketPjFields(s);
+        }
+
+        function relinkServiceTicketsForUser(u) {
+            if (!u || !isActiveFieldTsUser(u)) return false;
+            const uid = Number(u.id);
+            if (!uid) return false;
+            const nameKey = normUserKey(u.name);
+            const userKey = normUserKey(u.user);
+            let changed = false;
+            (db.serviceTickets || []).forEach(s => {
+                if (!s) return;
+                const pjName = normUserKey(s.assignedTsName);
+                const pjUser = normUserKey(s.assignedTsUser);
+                const pointsToUser = (pjUser && pjUser === userKey) ||
+                    (pjName && (pjName === nameKey || pjName === userKey));
+                if (!pointsToUser) return;
+                if (Number(s.assignedTsId) !== uid) { s.assignedTsId = uid; changed = true; }
+                if (s.assignedTsName !== u.name) { s.assignedTsName = u.name; changed = true; }
+                if (s.assignedTsUser !== u.user) { s.assignedTsUser = u.user; changed = true; }
+            });
+            return changed;
+        }
+
+        function healServiceTicketsForCurrentUser() {
+            if (!currentUser || !isServiceFieldUser(currentUser)) return false;
+            loadDB();
+            let changed = relinkServiceTicketsForUser(currentUser);
+            (db.serviceTickets || []).forEach(s => {
+                if (!s) return;
+                if (alignTicketPjToUserIfNamed(s)) changed = true;
+                if (syncTicketPjFields(s)) changed = true;
+            });
+            if (changed) {
+                safeSaveLocalStorage();
+                if (supabaseClient) scheduleSyncWithCloud(true);
+            }
+            return changed;
         }
 
         function normalizeServiceTicketStatus(s) {
@@ -10136,7 +10198,8 @@
                     openServiceDeliveryModal: () => openServiceDeliveryModal(id),
                     showServiceDetail: () => showServiceDetail(id),
                     openServiceReceiptModal: () => openServiceReceiptModal(id),
-                    deleteServiceTicket: () => deleteServiceTicket(id)
+                    deleteServiceTicket: () => deleteServiceTicket(id),
+                    tmsOnsitePickup: () => window.tmsOnsitePickup(id)
                 };
                 if (runners[handler]) runners[handler]();
                 else showToast('Tombol error', `Handler "${handler}" tidak ditemukan.`, 'error');
@@ -10152,7 +10215,7 @@
             document._svcGlobalActionBound = true;
             document.addEventListener('click', (e) => {
                 const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete');
-                if (!btn) return;
+                if (!btn || !btn.dataset.svcHandler) return;
                 e.preventDefault();
                 e.stopPropagation();
                 runServiceTicketAction(btn);
@@ -10166,7 +10229,14 @@
         function isAssignedServiceTs(s) {
             if (!currentUser || !isServiceFieldUser(currentUser)) return false;
             ensureServiceTicketPjReady(s);
-            return ticketPjMatchesCurrentUser(s);
+            const match = ticketPjMatchesCurrentUser(s);
+            if (match && (Number(s.assignedTsId) !== Number(currentUser.id) || s.assignedTsUser !== currentUser.user)) {
+                s.assignedTsId = Number(currentUser.id);
+                s.assignedTsUser = currentUser.user;
+                s.assignedTsName = currentUser.name;
+                safeSaveLocalStorage();
+            }
+            return match;
         }
 
         function buildServiceTicketRow(s) {
@@ -10185,10 +10255,13 @@
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
                 if (isAssignedServiceTs(s)) {
                     if (s.repairLoc === 'onsite') {
-                        actionBtn = `<button type="button" class="tms-svc-btn tms-svc-btn--primary svc-ticket-action" onclick="event.stopPropagation();window.tmsOnsitePickup(${s.id});return false;"><i class="fa-solid fa-location-dot mr-1"></i>Konfirmasi On-Site</button>`;
+                        actionBtn = svcTicketBtn(s.id, 'tmsOnsitePickup', 'Konfirmasi On-Site', 'fa-location-dot', pri);
                     } else {
                         actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
                     }
+                } else if (isServiceFieldUser(currentUser)) {
+                    const pj = getTicketPjName(s) || 'belum ditunjuk';
+                    actionBtn = `<span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide">PJ: ${tmsEscHtml(pj)}</span>`;
                 }
             } else if (s.status === 'picked_up') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
@@ -10246,6 +10319,7 @@
 
         function renderServiceTickets(skipReload) {
             if (skipReload !== true) loadDB();
+            if (currentUser && isServiceFieldUser(currentUser)) healServiceTicketsForCurrentUser();
             const container = document.getElementById('service-tickets-container');
             const cardsMobile = document.getElementById('service-tickets-cards-mobile');
             if (!container) return;
@@ -13537,9 +13611,9 @@
                 unitName: document.getElementById('svc-unit-name').value,
                 unitSn: document.getElementById('svc-unit-sn').value || '-',
                 complaint: document.getElementById('svc-complaint').value,
-                assignedTsId: assignedTsId,
-                assignedTsName: assignedTs ? assignedTs.name : '',
-                assignedTsUser: assignedTs ? assignedTs.user : '',
+                assignedTsId: Number(assignedTs.id),
+                assignedTsName: assignedTs.name || '',
+                assignedTsUser: assignedTs.user || '',
                 repairLoc: (document.getElementById('svc-repair-loc').value || 'tsf').trim(),
                 unitPhotoBefore: unitPhotosBefore.length > 0 ? unitPhotosBefore : null,
                 status: 'registered',
