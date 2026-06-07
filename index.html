@@ -9256,13 +9256,16 @@
 
         // Utils
         function openModal(id) {
+            if (typeof tmsSvcDebugLog === 'function') tmsSvcDebugLog('openModal(): ' + id);
             const m = document.getElementById(id);
             if (!m || !m.children[0]) {
+                if (typeof tmsSvcDebugLog === 'function') tmsSvcDebugLog('  -> openModal GAGAL: elemen/children tidak ada (' + id + ')');
                 showToast('Form tidak tersedia', 'Muat ulang halaman lalu coba lagi.', 'error');
                 return;
             }
             m.classList.remove('hidden');
             m.classList.add('flex');
+            if (typeof tmsSvcDebugLog === 'function') tmsSvcDebugLog('  -> openModal OK (' + id + ') display=' + getComputedStyle(m).display + ' z=' + getComputedStyle(m).zIndex);
             setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10);
         } 
         function closeModal(id) { 

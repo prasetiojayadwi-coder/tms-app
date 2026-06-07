@@ -8,19 +8,19 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.4',
+    version: '7.10.5',
 
-    build: 126,
+    build: 127,
 
     date: '2026-06-07',
 
     title: 'System Update Available',
 
-    summary: 'Diagnostik on-screen untuk tombol Mulai Pekerjaan — tambahkan ?svcdebug=1 di URL.',
+    summary: 'Diagnostik modal: lacak openModal untuk Pilih Jalur Perbaikan (?svcdebug=1).',
 
     changes: [
 
-        { icon: 'fa-bug', text: 'Panel diagnostik klik (?svcdebug=1) untuk melacak persis di mana aksi berhenti' },
+        { icon: 'fa-bug', text: 'Log openModal: pastikan popup Pilih Jalur Perbaikan benar tampil (?svcdebug=1)' },
 
         { icon: 'fa-play', text: 'Mulai Pekerjaan: dispatch klik langsung & anti-dobel (lanjutan)' },
 
