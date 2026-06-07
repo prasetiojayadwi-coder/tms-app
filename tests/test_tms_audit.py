@@ -145,11 +145,11 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7105():
+def test_release_version_7106():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.5' in rel
-    assert re.search(r"build:\s*127", rel)
-    assert 'tms-cache-v127' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.6' in rel
+    assert re.search(r"build:\s*128", rel)
+    assert 'tms-cache-v128' in (ROOT / 'sw.js').read_text(encoding='utf-8')
 
 
 def test_svc_debug_probe_present():

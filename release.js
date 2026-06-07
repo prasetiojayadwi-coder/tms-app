@@ -8,19 +8,19 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.5',
+    version: '7.10.6',
 
-    build: 127,
+    build: 128,
 
     date: '2026-06-07',
 
     title: 'System Update Available',
 
-    summary: 'Diagnostik modal: lacak openModal untuk Pilih Jalur Perbaikan (?svcdebug=1).',
+    summary: 'Diagnostik visual modal: ukur opacity/ukuran/parent popup Pilih Jalur (?svcdebug=1).',
 
     changes: [
 
-        { icon: 'fa-bug', text: 'Log openModal: pastikan popup Pilih Jalur Perbaikan benar tampil (?svcdebug=1)' },
+        { icon: 'fa-bug', text: 'Cek visual openModal: opacity, ukuran, offsetParent untuk lacak popup tak terlihat' },
 
         { icon: 'fa-play', text: 'Mulai Pekerjaan: dispatch klik langsung & anti-dobel (lanjutan)' },
 

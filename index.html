@@ -9267,6 +9267,14 @@
             m.classList.add('flex');
             if (typeof tmsSvcDebugLog === 'function') tmsSvcDebugLog('  -> openModal OK (' + id + ') display=' + getComputedStyle(m).display + ' z=' + getComputedStyle(m).zIndex);
             setTimeout(() => { m.classList.remove('opacity-0'); m.children[0].classList.remove('scale-95'); }, 10);
+            if (typeof tmsSvcDebugLog === 'function') setTimeout(() => {
+                try {
+                    const r = m.getBoundingClientRect();
+                    const cs = getComputedStyle(m);
+                    const cc = getComputedStyle(m.children[0]);
+                    tmsSvcDebugLog('  -> cek visual ' + id + ': opacity=' + cs.opacity + ' vis=' + cs.visibility + ' ukuran=' + Math.round(r.width) + 'x' + Math.round(r.height) + ' offsetParent=' + (m.offsetParent ? 'ada' : 'NULL') + ' childOpacity=' + cc.opacity + ' parent=<' + (m.parentElement ? m.parentElement.tagName.toLowerCase() : '?') + '>');
+                } catch (e) { tmsSvcDebugLog('  -> cek visual error: ' + e.message); }
+            }, 120);
         } 
         function closeModal(id) { 
             const m = document.getElementById(id); 
