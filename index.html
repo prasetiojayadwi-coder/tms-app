@@ -11121,13 +11121,28 @@
             if (!items.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
             el.innerHTML = items.map((item, i) => {
                 const pickVal = String(item[pickKey] != null ? item[pickKey] : '').replace(/"/g, '&quot;');
-                const primary = tmsEscHtml(item.artNo || item.name || item.unitName || '-');
-                const secondary = tmsEscHtml(item.description || item.unitSn || item.contact || item.picName || '');
-                let meta = '';
-                if (item.price != null) meta = `Rp ${Number(item.price).toLocaleString('id-ID')}`;
-                else if (item.customerName) meta = tmsEscHtml(item.customerName);
-                else if (item.product) meta = tmsEscHtml(item.product);
-                return `<button type="button" class="tms-suggest-opt ${i === 0 ? 'is-active' : ''}" data-pick="${pickVal}" onmousedown="${pickFnName}(this.dataset.pick)"><span class="font-bold text-violet-600 dark:text-violet-400">${primary}</span>${secondary ? `<span class="text-gray-600 dark:text-lux-300"> — ${secondary}</span>` : ''}${meta ? `<span class="block text-[9px] font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">${meta}</span>` : ''}</button>`;
+                let inner = '';
+                if ('unitSn' in item && item.description) {
+                    const art = tmsEscHtml(item.artNo || '-');
+                    const desc = tmsEscHtml(item.description);
+                    const snRaw = item.unitSn != null ? String(item.unitSn).trim() : '';
+                    const sn = snRaw && snRaw !== '-' ? tmsEscHtml(snRaw) : '';
+                    inner = `<span class="font-bold text-violet-600 dark:text-violet-400">${art}</span><span class="text-gray-600 dark:text-lux-300"> — ${desc}</span>`;
+                    const metaParts = [];
+                    if (sn) metaParts.push(`<span class="text-amber-600 dark:text-amber-400 font-bold">SN: ${sn}</span>`);
+                    if (item.product) metaParts.push(tmsEscHtml(item.product));
+                    else if (item.customerName) metaParts.push(tmsEscHtml(item.customerName));
+                    if (metaParts.length) inner += `<span class="block text-[9px] font-mono mt-0.5">${metaParts.join('<span class="text-gray-400 dark:text-lux-500 mx-1">·</span>')}</span>`;
+                } else {
+                    const primary = tmsEscHtml(item.artNo || item.name || item.unitName || '-');
+                    const secondary = tmsEscHtml(item.description || item.unitSn || item.contact || item.picName || '');
+                    let meta = '';
+                    if (item.price != null) meta = `Rp ${Number(item.price).toLocaleString('id-ID')}`;
+                    else if (item.customerName) meta = tmsEscHtml(item.customerName);
+                    else if (item.product) meta = tmsEscHtml(item.product);
+                    inner = `<span class="font-bold text-violet-600 dark:text-violet-400">${primary}</span>${secondary ? `<span class="text-gray-600 dark:text-lux-300"> — ${secondary}</span>` : ''}${meta ? `<span class="block text-[9px] font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">${meta}</span>` : ''}`;
+                }
+                return `<button type="button" class="tms-suggest-opt ${i === 0 ? 'is-active' : ''}" data-pick="${pickVal}" onmousedown="${pickFnName}(this.dataset.pick)">${inner}</button>`;
             }).join('');
             el.classList.remove('hidden');
         }
@@ -12754,12 +12769,16 @@
 
         function formatSvcUnitPickLabel(u, custId) {
             if (!u) return '';
-            const sn = u.unitSn && u.unitSn !== '-' ? ` · SN ${u.unitSn}` : '';
-            const art = u.artNo && u.artNo !== '-' ? ` · Art ${u.artNo}` : '';
+            const art = u.artNo && u.artNo !== '-' ? String(u.artNo).trim() : '';
+            const desc = (u.unitName || 'Unit').trim();
+            const snRaw = u.unitSn != null ? String(u.unitSn).trim() : '';
+            const sn = snRaw && snRaw !== '-' ? snRaw : '';
             const st = u.status === 'in_service' ? ' [SERVICE]' : '';
             const svcN = getUnitServiceHistory(u.id, custId || u.customerId, u.artNo, u.unitSn).length;
             const hist = svcN ? ` · ${svcN}x svc` : '';
-            return `${u.unitName || 'Unit'}${sn}${art}${st}${hist}`;
+            let label = art ? `${art} — ${desc}` : desc;
+            if (sn) label += ` · SN ${sn}`;
+            return `${label}${st}${hist}`;
         }
 
         function populateServiceCustomerSelects() {
@@ -12823,10 +12842,11 @@
                     .slice(0, limit)
                     .map(u => ({
                         id: u.id,
-                        artNo: u.artNo || u.unitName,
+                        artNo: u.artNo || '-',
                         description: u.unitName,
                         unitSn: u.unitSn,
-                        customerName: u.product || '',
+                        product: u.product || '',
+                        customerName: `${u.product || ''}${u.status === 'in_service' ? ' · IN SERVICE' : ''}`,
                         score: 1
                     }));
             }
@@ -12850,7 +12870,8 @@
                         artNo: u.artNo || '-',
                         description: u.unitName,
                         unitSn: u.unitSn,
-                        customerName: `${u.product || ''}${u.status === 'in_service' ? ' · IN SERVICE' : ''}${svcN ? ` · ${svcN}x svc` : ''}`,
+                        product: u.product || '',
+                        customerName: `${u.status === 'in_service' ? 'IN SERVICE' : ''}${svcN ? `${u.status === 'in_service' ? ' · ' : ''}${svcN}x svc` : ''}`,
                         score
                     };
                 })

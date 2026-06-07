@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_761():
+def test_release_version_762():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.1' in rel
+    assert '7.6.2' in rel
 
 
 def test_onsite_pickup_direct_confirm():
@@ -167,6 +167,8 @@ def test_smart_fill_autocomplete():
     assert 'function searchCustomerUnitsForPick' in js
     assert 'svc-pick-customer-input' in js
     assert 'pickSvcMasterCustomer' in js
+    assert 'SN:' in js
+    assert "formatSvcUnitPickLabel(u, custId)" in js or 'function formatSvcUnitPickLabel' in js
     assert 'tms-suggest-dropdown' in js
     assert 'pickSphSuggestActive' in js
     assert 'onSvcCustNameInput' in js
