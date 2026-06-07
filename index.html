@@ -2128,8 +2128,18 @@
                 <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 p-4 rounded-xl mb-5">
                     <p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-3"><i class="fa-solid fa-link mr-1"></i> Load from Master Data (recommended)</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div><label class="input-label text-[10px]">Select Customer</label><select id="svc-pick-customer" class="input-field text-[12px]" onchange="onPickServiceCustomer()"><option value="">-- Manual / Enter New --</option></select></div>
-                        <div><label class="input-label text-[10px]">Select Customer Units</label><select id="svc-pick-unit" class="input-field text-[12px]" onchange="onPickServiceUnit()" disabled><option value="">-- Select customer first --</option></select></div>
+                        <div class="tms-suggest-wrap">
+                            <label class="input-label text-[10px]">Select Customer</label>
+                            <input type="text" id="svc-pick-customer-input" class="input-field text-[12px]" placeholder="Ketik nama / kode customer..." autocomplete="off" oninput="onSvcPickCustomerInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'pickcust')" onfocus="onSvcPickCustomerInput(this.value)" onblur="setTimeout(() => hideSvcSuggest('pickcust'), 180)">
+                            <div id="svc-suggest-pickcust" class="tms-suggest-dropdown hidden"></div>
+                            <p class="text-[9px] text-gray-400 dark:text-lux-500 mt-1">Cari dari ribuan customer — ketik min. 2 huruf</p>
+                        </div>
+                        <div class="tms-suggest-wrap">
+                            <label class="input-label text-[10px]">Select Customer Units</label>
+                            <input type="text" id="svc-pick-unit-input" class="input-field text-[12px]" placeholder="Pilih customer dulu..." autocomplete="off" disabled oninput="onSvcPickUnitInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'pickunit')" onfocus="onSvcPickUnitInput(this.value)" onblur="setTimeout(() => hideSvcSuggest('pickunit'), 180)">
+                            <div id="svc-suggest-pickunit" class="tms-suggest-dropdown hidden"></div>
+                            <p class="text-[9px] text-gray-400 dark:text-lux-500 mt-1">Cari unit by nama, Art No, atau SN</p>
+                        </div>
                     </div>
                 </div>
                 <div id="svc-smartfill-hint" class="hidden bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl mb-5">
@@ -12735,85 +12745,223 @@
             }
         }
 
+        function formatSvcCustomerPickLabel(c) {
+            if (!c) return '';
+            const code = (c.code || '').trim();
+            const name = (c.name || '').trim();
+            return code ? `${code} — ${name}` : name;
+        }
+
+        function formatSvcUnitPickLabel(u, custId) {
+            if (!u) return '';
+            const sn = u.unitSn && u.unitSn !== '-' ? ` · SN ${u.unitSn}` : '';
+            const art = u.artNo && u.artNo !== '-' ? ` · Art ${u.artNo}` : '';
+            const st = u.status === 'in_service' ? ' [SERVICE]' : '';
+            const svcN = getUnitServiceHistory(u.id, custId || u.customerId, u.artNo, u.unitSn).length;
+            const hist = svcN ? ` · ${svcN}x svc` : '';
+            return `${u.unitName || 'Unit'}${sn}${art}${st}${hist}`;
+        }
+
         function populateServiceCustomerSelects() {
             loadDB();
-            const custSel = document.getElementById('svc-pick-customer');
-            const unitSel = document.getElementById('svc-pick-unit');
-            if (!custSel) return;
-
-            const customers = (db.customers || [])
-                .filter(c => (c.status || 'active') === 'active')
-                .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-
-            custSel.innerHTML = '<option value="">-- Manual / Enter New --</option>';
-            customers.forEach(c => {
-                custSel.innerHTML += `<option value="${c.id}">${c.code} — ${c.name}</option>`;
-            });
-
-            if (unitSel) {
-                unitSel.innerHTML = '<option value="">-- Select customer first --</option>';
-                unitSel.disabled = true;
+            const custInp = document.getElementById('svc-pick-customer-input');
+            const unitInp = document.getElementById('svc-pick-unit-input');
+            if (custInp) custInp.value = '';
+            if (unitInp) {
+                unitInp.value = '';
+                unitInp.disabled = true;
+                unitInp.placeholder = 'Pilih customer dulu...';
             }
+            hideSvcSuggest('pickcust');
+            hideSvcSuggest('pickunit');
             document.getElementById('svc-linked-customer-id').value = '';
             document.getElementById('svc-linked-unit-id').value = '';
         }
 
-        function onPickServiceCustomer() {
+        function searchCustomersForPick(query, limit = 12) {
             loadDB();
-            const custId = parseInt(document.getElementById('svc-pick-customer').value) || null;
-            const unitSel = document.getElementById('svc-pick-unit');
-            document.getElementById('svc-linked-customer-id').value = custId || '';
-            document.getElementById('svc-linked-unit-id').value = '';
+            const q = (query || '').trim().toLowerCase();
+            if (!q || q.length < 2) return [];
+            return (db.customers || [])
+                .filter(c => c && (c.status || 'active') === 'active')
+                .map(c => {
+                    const name = (c.name || '').toLowerCase();
+                    const code = (c.code || '').toLowerCase();
+                    const contact = (c.contact || '').toLowerCase();
+                    let score = 0;
+                    if (name.startsWith(q)) score += 120;
+                    else if (name.includes(q)) score += 80;
+                    if (code.startsWith(q)) score += 110;
+                    else if (code.includes(q)) score += 70;
+                    if (contact.includes(q)) score += 30;
+                    if (!score) return null;
+                    return {
+                        id: c.id,
+                        artNo: c.code || c.name,
+                        description: c.name,
+                        customerName: [c.picName, c.contact].filter(Boolean).join(' · '),
+                        score
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, limit);
+        }
 
-            if (!custId) {
-                if (unitSel) {
-                    unitSel.innerHTML = '<option value="">-- Select customer first --</option>';
-                    unitSel.disabled = true;
+        function searchCustomerUnitsForPick(customerId, query, limit = 12) {
+            loadDB();
+            const cid = Number(customerId);
+            if (!cid) return [];
+            const raw = (query || '').trim();
+            const q = raw.toLowerCase();
+            const key = normArtKey(raw);
+            const sn = normSnKey(raw);
+            if (!raw || raw.length < 1) {
+                return (db.customerUnits || [])
+                    .filter(u => u && u.customerId === cid && (u.status || 'active') !== 'retired')
+                    .sort((a, b) => (a.unitName || '').localeCompare(b.unitName || ''))
+                    .slice(0, limit)
+                    .map(u => ({
+                        id: u.id,
+                        artNo: u.artNo || u.unitName,
+                        description: u.unitName,
+                        unitSn: u.unitSn,
+                        customerName: u.product || '',
+                        score: 1
+                    }));
+            }
+            return (db.customerUnits || [])
+                .filter(u => u && u.customerId === cid && (u.status || 'active') !== 'retired')
+                .map(u => {
+                    let score = 0;
+                    const name = (u.unitName || '').toLowerCase();
+                    const art = normArtKey(u.artNo);
+                    const unitSn = normSnKey(u.unitSn);
+                    if (name.startsWith(q)) score += 100;
+                    else if (name.includes(q)) score += 70;
+                    if (art.startsWith(key)) score += 95;
+                    else if (art.includes(key)) score += 65;
+                    if (unitSn.startsWith(sn)) score += 90;
+                    else if (unitSn.includes(sn)) score += 60;
+                    if (!score) return null;
+                    const svcN = getUnitServiceHistory(u.id, cid, u.artNo, u.unitSn).length;
+                    return {
+                        id: u.id,
+                        artNo: u.artNo || '-',
+                        description: u.unitName,
+                        unitSn: u.unitSn,
+                        customerName: `${u.product || ''}${u.status === 'in_service' ? ' · IN SERVICE' : ''}${svcN ? ` · ${svcN}x svc` : ''}`,
+                        score
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, limit);
+        }
+
+        function selectSvcMasterCustomer(custId, opts) {
+            loadDB();
+            const keepUnit = opts && opts.keepUnit;
+            const cid = custId ? Number(custId) : null;
+            const custInp = document.getElementById('svc-pick-customer-input');
+            const unitInp = document.getElementById('svc-pick-unit-input');
+            document.getElementById('svc-linked-customer-id').value = cid || '';
+            if (!keepUnit) {
+                document.getElementById('svc-linked-unit-id').value = '';
+                if (unitInp) { unitInp.value = ''; }
+            }
+
+            if (!cid) {
+                if (unitInp) {
+                    unitInp.disabled = true;
+                    unitInp.placeholder = 'Pilih customer dulu...';
                 }
                 return;
             }
 
-            const c = (db.customers || []).find(x => x.id === custId);
+            const c = (db.customers || []).find(x => x.id === cid);
             if (c) {
+                if (custInp) custInp.value = formatSvcCustomerPickLabel(c);
                 document.getElementById('svc-cust-name').value = c.name || '';
                 document.getElementById('svc-cust-pic').value = c.picName || '';
                 document.getElementById('svc-cust-contact').value = c.contact || '';
             }
-
-            const units = (db.customerUnits || [])
-                .filter(u => u.customerId === custId && (u.status || 'active') !== 'retired')
-                .sort((a, b) => (a.unitName || '').localeCompare(b.unitName || ''));
-
-            if (unitSel) {
-                unitSel.innerHTML = '<option value="">-- Pilih unit (opsional) --</option>';
-                units.forEach(u => {
-                    const sn = u.unitSn ? ` (${u.unitSn})` : '';
-                    const st = u.status === 'in_service' ? ' [SERVICE]' : '';
-                    const svcN = getUnitServiceHistory(u.id, custId, u.artNo, u.unitSn).length;
-                    const histTag = svcN ? ` · ${svcN}x svc` : '';
-                    unitSel.innerHTML += `<option value="${u.id}">${u.unitName}${sn}${st}${histTag}</option>`;
-                });
-                unitSel.disabled = false;
+            if (unitInp) {
+                unitInp.disabled = false;
+                unitInp.placeholder = 'Ketik nama unit, Art No, atau SN...';
             }
-            renderServiceHistoryHint(null, custId);
+            hideSvcSuggest('pickcust');
+            renderServiceHistoryHint(null, cid);
             checkServiceDuplicate();
         }
 
-        function onPickServiceUnit() {
+        function selectSvcMasterUnit(unitId) {
             loadDB();
-            const unitId = parseInt(document.getElementById('svc-pick-unit').value) || null;
-            document.getElementById('svc-linked-unit-id').value = unitId || '';
-            if (!unitId) {
-                renderServiceHistoryHint(null, parseInt(document.getElementById('svc-linked-customer-id').value) || null);
+            const uid = unitId ? Number(unitId) : null;
+            const unitInp = document.getElementById('svc-pick-unit-input');
+            document.getElementById('svc-linked-unit-id').value = uid || '';
+            if (!uid) {
+                renderServiceHistoryHint(null, parseInt(document.getElementById('svc-linked-customer-id').value, 10) || null);
                 return;
             }
-
-            const u = (db.customerUnits || []).find(x => x.id === unitId);
+            const u = (db.customerUnits || []).find(x => x.id === uid);
             if (!u) return;
-
+            if (unitInp) unitInp.value = formatSvcUnitPickLabel(u, u.customerId);
+            hideSvcSuggest('pickunit');
             fillServiceFormFromLinkedUnit(u);
             checkServiceDuplicate();
         }
+
+        function onPickServiceCustomer() {
+            const cid = parseInt(document.getElementById('svc-linked-customer-id').value, 10) || null;
+            selectSvcMasterCustomer(cid);
+        }
+
+        function onPickServiceUnit() {
+            const uid = parseInt(document.getElementById('svc-linked-unit-id').value, 10) || null;
+            selectSvcMasterUnit(uid);
+        }
+
+        function onSvcPickCustomerInput(val) {
+            clearTimeout(_svcSuggestTimer);
+            const q = (val || '').trim();
+            if (!q) {
+                selectSvcMasterCustomer(null);
+                hideSvcSuggest('pickcust');
+                return;
+            }
+            _svcSuggestTimer = setTimeout(() => {
+                const el = document.getElementById('svc-suggest-pickcust');
+                const results = searchCustomersForPick(q);
+                renderTmsSuggestDropdown(el, results, 'pickSvcMasterCustomer', 'id');
+                _svcSuggestActive = { kind: 'pickcust', elId: 'svc-suggest-pickcust', highlight: 0, onPick: pickSvcMasterCustomer };
+            }, 160);
+        }
+
+        function onSvcPickUnitInput(val) {
+            const cid = parseInt(document.getElementById('svc-linked-customer-id').value, 10) || null;
+            const unitInp = document.getElementById('svc-pick-unit-input');
+            if (!cid) {
+                if (unitInp) unitInp.disabled = true;
+                hideSvcSuggest('pickunit');
+                return;
+            }
+            clearTimeout(_svcSuggestTimer);
+            _svcSuggestTimer = setTimeout(() => {
+                const el = document.getElementById('svc-suggest-pickunit');
+                const results = searchCustomerUnitsForPick(cid, val);
+                renderTmsSuggestDropdown(el, results, 'pickSvcMasterUnit', 'id');
+                _svcSuggestActive = { kind: 'pickunit', elId: 'svc-suggest-pickunit', highlight: 0, onPick: pickSvcMasterUnit };
+            }, 160);
+        }
+
+        window.pickSvcMasterCustomer = function pickSvcMasterCustomer(idStr) {
+            selectSvcMasterCustomer(parseInt(idStr, 10) || null);
+        };
+
+        window.pickSvcMasterUnit = function pickSvcMasterUnit(idStr) {
+            selectSvcMasterUnit(parseInt(idStr, 10) || null);
+        };
 
         function getUnitServiceHistory(unitId, customerId, artNo, sn) {
             loadDB();
@@ -12852,17 +13000,10 @@
         }
 
         function applyServiceLinkedIds(customerId, unitId) {
-            const custSel = document.getElementById('svc-pick-customer');
-            const unitSel = document.getElementById('svc-pick-unit');
-            if (customerId && custSel) {
-                custSel.value = String(customerId);
-                onPickServiceCustomer();
-            }
-            if (unitId && unitSel) {
-                unitSel.value = String(unitId);
-                document.getElementById('svc-linked-unit-id').value = unitId;
-            }
+            if (customerId) selectSvcMasterCustomer(customerId, { keepUnit: !!unitId });
+            if (unitId) selectSvcMasterUnit(unitId);
             if (customerId) document.getElementById('svc-linked-customer-id').value = customerId;
+            if (unitId) document.getElementById('svc-linked-unit-id').value = unitId;
         }
 
         function fillServiceFormFromLinkedUnit(unit, customer) {
@@ -12971,7 +13112,10 @@
         }
 
         function hideSvcSuggest(kind) {
-            const map = { cust: 'svc-suggest-cust', art: 'svc-suggest-art', sn: 'svc-suggest-sn', unit: 'svc-suggest-unit' };
+            const map = {
+                cust: 'svc-suggest-cust', art: 'svc-suggest-art', sn: 'svc-suggest-sn', unit: 'svc-suggest-unit',
+                pickcust: 'svc-suggest-pickcust', pickunit: 'svc-suggest-pickunit'
+            };
             const el = document.getElementById(map[kind]);
             if (el) { el.classList.add('hidden'); el.innerHTML = ''; }
             if (_svcSuggestActive && _svcSuggestActive.kind === kind) _svcSuggestActive = null;
@@ -13387,7 +13531,8 @@
             const registerAnother = document.getElementById('svc-register-another').checked;
             if (registerAnother) {
                 // Clear only unit-specific fields (customer tetap terpilih)
-                document.getElementById('svc-pick-unit').value = '';
+                const unitPickInp = document.getElementById('svc-pick-unit-input');
+                if (unitPickInp) unitPickInp.value = '';
                 document.getElementById('svc-linked-unit-id').value = '';
                 document.getElementById('svc-unit-art-no').value = '';
                 document.getElementById('svc-unit-product').value = '';

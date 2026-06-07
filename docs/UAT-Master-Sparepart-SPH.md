@@ -231,7 +231,7 @@
 | UAT-024 | AC-22 | P2 | SPV | ☑ Pass ☐ Fail |
 | UAT-025 | AC-33, T-25 | P3 | SPV | ☑ Pass ☐ Fail |
 | UAT-026 | — | P2 | SPV | ☑ Pass ☐ Fail |
-| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ N/A |
+| UAT-027 | — | P2 | TSF | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ N/A |
 
 ### UAT-020 — SPH muncul di SPH Log (Pending PO)
 
@@ -740,7 +740,7 @@
 
 | ID | AC | P | Hasil |
 |----|----|---|-------|
-| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ **PARTIAL** (local sync OK) |
+| UAT-070 | AC-16, AC-35, T-27 | P2 | ☐ Pass ☐ Fail ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | ☐ N/A → **N/A** | | | | | ☐ N/A → **N/A** | ☐ N/A → **N/A** | ☐ N/A → **N/A** | | | ☑ **PARTIAL** (local sync OK) |
 | UAT-071 | BR-18 | P3 | TS | ☑ Pass ☐ Fail |
 
 ### UAT-070 — SPH & sparepart sync antar perangkat
