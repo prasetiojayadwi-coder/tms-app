@@ -4,9 +4,9 @@
 
   "app": "TMS Tool Management System",
 
-  "version": "7.10.6",
+  "version": "7.10.7",
 
-  "build": 128,
+  "build": 129,
 
   "auditCycles": 6,
 

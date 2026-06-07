@@ -8,19 +8,25 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.6',
+    version: '7.10.7',
 
-    build: 128,
+    build: 129,
 
     date: '2026-06-07',
 
-    title: 'System Update Available',
+    title: 'Perbaikan Penting',
 
-    summary: 'Diagnostik visual modal: ukur opacity/ukuran/parent popup Pilih Jalur (?svcdebug=1).',
+    summary: 'FIX: tag </div> hilang yang menyembunyikan 5 modal (Mulai Pekerjaan, TTD, Detail, Alihkan PJ, BAST).',
 
     changes: [
 
-        { icon: 'fa-bug', text: 'Cek visual openModal: opacity, ukuran, offsetParent untuk lacak popup tak terlihat' },
+        { icon: 'fa-wrench', text: 'FIX utama: </div> hilang di serviceDeliveryModal yang menelan 5 modal jadi tersembunyi' },
+
+        { icon: 'fa-play', text: 'Mulai Pekerjaan: popup Pilih Jalur Perbaikan kini tampil normal' },
+
+        { icon: 'fa-signature', text: 'TTD serah terima, Detail tiket, Alihkan PJ, BAST gabungan: kembali muncul' },
+
+        { icon: 'fa-shield-halved', text: 'Tambah test anti-kambuh keseimbangan tag <div> HTML' },
 
         { icon: 'fa-play', text: 'Mulai Pekerjaan: dispatch klik langsung & anti-dobel (lanjutan)' },
 

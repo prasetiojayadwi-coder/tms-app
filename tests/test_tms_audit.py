@@ -145,11 +145,47 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7106():
+def test_release_version_7107():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.6' in rel
-    assert re.search(r"build:\s*128", rel)
-    assert 'tms-cache-v128' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.7' in rel
+    assert re.search(r"build:\s*129", rel)
+    assert 'tms-cache-v129' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+
+
+def test_html_div_tags_balanced():
+    """Cegah kambuhnya bug </div> hilang yang menyembunyikan modal."""
+    html = _html()
+    stripped = re.sub(r'<script\b[^>]*>.*?</script>', '', html, flags=re.DOTALL | re.IGNORECASE)
+    stripped = re.sub(r'<style\b[^>]*>.*?</style>', '', stripped, flags=re.DOTALL | re.IGNORECASE)
+    stripped = re.sub(r'<!--.*?-->', '', stripped, flags=re.DOTALL)
+    opens = len(re.findall(r'<div\b', stripped))
+    closes = len(re.findall(r'</div>', stripped))
+    assert opens == closes, f"<div> tidak seimbang: {opens} dibuka vs {closes} ditutup"
+
+
+def test_service_modals_are_top_level():
+    """Modal alur service harus anak langsung <body> (depth div 0), bukan tersarang di modal lain."""
+    html = _html()
+    lines = html.splitlines()
+    depth = 0
+    body_started = False
+    modal_re = re.compile(r'<div id="([A-Za-z0-9_-]+)"[^>]*\bfixed inset-0')
+    must_be_top = {
+        'repairLocPickModal', 'handoverSignatureModal', 'reassignPjModal',
+        'serviceDetailModal', 'serviceBulkBastModal', 'serviceDeliveryModal',
+    }
+    seen = {}
+    for line in lines:
+        if '<body' in line:
+            body_started = True
+        if not body_started:
+            continue
+        m = modal_re.search(line)
+        if m and m.group(1) in must_be_top:
+            seen[m.group(1)] = depth
+        depth += len(re.findall(r'<div\b', line)) - len(re.findall(r'</div>', line))
+    for name in must_be_top:
+        assert seen.get(name) == 0, f"Modal {name} tidak di depth 0 (depth={seen.get(name)}) — tersarang di elemen tersembunyi"
 
 
 def test_svc_debug_probe_present():
