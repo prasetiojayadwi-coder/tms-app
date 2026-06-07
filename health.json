@@ -1,8 +1,8 @@
 {
   "status": "ok",
   "app": "TMS Tool Management System",
-  "version": "7.5.6",
-  "build": 108,
+  "version": "7.6.0",
+  "build": 109,
   "auditCycles": 3,
   "checks": [
     "pbkdf2-password",

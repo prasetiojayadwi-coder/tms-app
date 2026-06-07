@@ -518,7 +518,8 @@ def check_html_integrity():
             warn(f'File template belum ada atau kosong: {name}')
 
     for fn in (
-        'lookupSparepartByArtNo', 'searchSparepartsPartial', 'smartFillSphLine', 'showSphArtSuggestions',
+        'lookupSparepartByArtNo', 'searchSparepartsPartial', 'smartFillSphLine', 'smartFillSphLineByDesc',
+        'showSphSuggest', 'searchCustomersPartial', 'searchCustomerUnitsPartial', 'onSvcCustNameInput',
         'renderSphLog', 'showSphDetail', 'exportSphPdf', 'cancelSphDocument', 'openSphBuilderModal',
         'confirmSphCustomerPick', 'getCombinedSphCustomerGroups', 'openTsfQuickRepair',
         'configureQuotationModalForTicket', 'syncSphPoFromServiceTicket', 'canIssueSphForTicket',

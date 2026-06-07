@@ -194,6 +194,28 @@
         }
         .dark .tms-svc-btn--primary { background-color: #e4e4e7 !important; color: #18181b !important; border-color: #e4e4e7 !important; }
         .tms-svc-btn:hover, .tms-svc-btn--primary:hover { opacity: 0.9; }
+        .tms-suggest-wrap { position: relative; }
+        .tms-suggest-dropdown {
+            position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; z-index: 60;
+            background: #fff; border: 1px solid #e4e4e7; border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,.12); max-height: 12rem; overflow-y: auto;
+        }
+        .dark .tms-suggest-dropdown {
+            background: #18181b; border-color: #3f3f46; box-shadow: 0 12px 32px rgba(0,0,0,.45);
+        }
+        .tms-suggest-opt {
+            display: block; width: 100%; text-align: left; padding: 10px 12px;
+            font-size: 11px; border: none; background: transparent; cursor: pointer;
+            border-bottom: 1px solid #f4f4f5; color: inherit;
+        }
+        .dark .tms-suggest-opt { border-bottom-color: #27272a; }
+        .tms-suggest-opt:last-child { border-bottom: none; }
+        .tms-suggest-opt:hover, .tms-suggest-opt.is-active {
+            background: #f5f3ff;
+        }
+        .dark .tms-suggest-opt:hover, .dark .tms-suggest-opt.is-active {
+            background: rgba(91, 33, 182, 0.25);
+        }
         .tms-empty-state {
             padding: 2rem 1rem; text-align: center;
             font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
@@ -2121,10 +2143,10 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-                    <div class="md:col-span-2"><label class="input-label">Nama Rumah Sakit / Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-name" required class="input-field" placeholder="Enter hospital / clinic / company name..." oninput="smartFillServiceByCustomerName(this.value)"></div>
+                    <div class="md:col-span-2 tms-suggest-wrap"><label class="input-label">Nama Rumah Sakit / Customer <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-name" required class="input-field" placeholder="Ketik nama customer..." autocomplete="off" oninput="onSvcCustNameInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'cust')" onblur="setTimeout(() => hideSvcSuggest('cust'), 180)"><div id="svc-suggest-cust" class="tms-suggest-dropdown hidden"></div></div>
                     <div><label class="input-label">PIC Customer / RS <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-pic" required class="input-field" placeholder="PIC name..."></div>
                     <div><label class="input-label">No. HP PIC <span class="text-gold-500">*</span></label><input type="text" id="svc-cust-contact" required class="input-field" placeholder="PIC phone number..."></div>
-                    <div><label class="input-label">Art Number (Nomor Art)</label><input type="text" id="svc-unit-art-no" class="input-field font-mono" placeholder="Enter Art Number..." oninput="smartFillServiceByArtNo(this.value); checkServiceDuplicate();"></div>
+                    <div class="tms-suggest-wrap"><label class="input-label">Art Number (Nomor Art)</label><input type="text" id="svc-unit-art-no" class="input-field font-mono" placeholder="Ketik Art Number..." autocomplete="off" oninput="onSvcArtNoInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'art')" onblur="setTimeout(() => hideSvcSuggest('art'), 180)"><div id="svc-suggest-art" class="tms-suggest-dropdown hidden"></div></div>
                     <div><label class="input-label">Product <span class="text-gold-500">*</span></label>
                         <select id="svc-unit-product" required class="input-field">
                             <option value="" disabled selected>-- Select Product Category --</option>
@@ -2133,8 +2155,8 @@
                             <option value="Aesculap">Aesculap</option>
                         </select>
                     </div>
-                    <div><label class="input-label">Equipment Name / Unit Description <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-name" required class="input-field" placeholder="Contoh: Defibrillator, Syringe Pump..."></div>
-                    <div><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Enter equipment SN..." oninput="smartFillServiceBySn(this.value); checkServiceDuplicate();"></div>
+                    <div class="tms-suggest-wrap"><label class="input-label">Equipment Name / Unit Description <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-name" required class="input-field" placeholder="Ketik nama unit..." autocomplete="off" oninput="onSvcUnitNameInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'unit')" onblur="setTimeout(() => hideSvcSuggest('unit'), 180)"><div id="svc-suggest-unit" class="tms-suggest-dropdown hidden"></div></div>
+                    <div class="tms-suggest-wrap"><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Ketik SN..." autocomplete="off" oninput="onSvcSnInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'sn')" onblur="setTimeout(() => hideSvcSuggest('sn'), 180)"><div id="svc-suggest-sn" class="tms-suggest-dropdown hidden"></div></div>
                     <div class="md:col-span-2"><label class="input-label">Complaint / Equipment Issue Description <span class="text-gold-500">*</span></label><textarea id="svc-complaint" required rows="3" class="input-field" placeholder="Describe the issue or equipment damage complaint..."></textarea></div>
                     <div><label class="input-label">Select Field Technician for Pickup <span class="text-gold-500">*</span></label>
                         <select id="svc-assigned-ts" required class="input-field">
@@ -4995,7 +5017,7 @@
         }
         window.addEventListener('storage', handleStorageDbSync);
 
-        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _custUnitSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sparepartRenderLimit = 0; let _sparepartRenderGen = 0; const SPAREPART_PAGE_SIZE = { mobile: 60, desktop: 200 }; let _sphDetailActiveId = null; let _sphArtSuggestTimer = null; let _sphArtSuggestActive = null; let _sphCustPickData = null;
+        let currentUser = null; let activeTab = ''; let currentSpvToolFilter = 'all'; let currentTsToolboxFilter = 'all'; let currentTsRadarFilter = 'all'; let currentSparepartFilter = 'all'; let currentSphLogFilter = 'all'; let selectedCustomerId = null; let custMasterMobileTab = 'customers'; let _batchImportType = null; let _batchImportRows = []; let _sphQuoteLines = []; let _sphBuilderLines = []; let _sphBuilderTicketIds = []; let _svcHistoryIndex = null; let _custMasterSearchTimer = null; let _custUnitSearchTimer = null; let _sparepartSearchTimer = null; let _sphLogSearchTimer = null; let _sparepartRenderLimit = 0; let _sparepartRenderGen = 0; const SPAREPART_PAGE_SIZE = { mobile: 60, desktop: 200 }; let _sphDetailActiveId = null; let _sphSuggestTimer = null; let _sphSuggestActive = null; let _svcSuggestTimer = null; let _svcSuggestActive = null; let _sphCustPickData = null;
         const TMS_SPAREPART_GROUPS = ['Avitum', 'Hospital Care', 'Aesculap', 'General'];
         const TMS_SPAREPART_STATUSES = ['active', 'discontinued', 'obsolete'];
         let knownRequestIds = null;
@@ -11054,18 +11076,74 @@
             return (db.spareparts || []).find(sp => sp && normArtKey(sp.artNo) === key) || null;
         }
 
-        function searchSparepartsPartial(query, limit = 8) {
+        function scoreSparepartQuery(sp, raw, key) {
+            if (!sp || sp.status === 'obsolete') return 0;
+            const qLower = raw.toLowerCase();
+            const desc = (sp.description || '').toLowerCase();
+            const art = normArtKey(sp.artNo);
+            const grp = (sp.group || '').toLowerCase();
+            let score = 0;
+            if (desc.startsWith(qLower)) score += 120;
+            else if (desc.includes(qLower)) score += 80;
+            if (art.startsWith(key)) score += 100;
+            else if (art.includes(key)) score += 70;
+            if (grp.includes(qLower)) score += 20;
+            if (sp.status === 'active') score += 5;
+            return score;
+        }
+
+        function searchSparepartsPartial(query, limit = 10) {
             loadDB();
             const raw = (query || '').trim();
             const key = normArtKey(raw);
-            if (!key || key.length < 2) return [];
             const qLower = raw.toLowerCase();
-            return (db.spareparts || []).filter(sp => {
-                if (!sp || sp.status === 'obsolete') return false;
-                const art = normArtKey(sp.artNo);
-                const desc = (sp.description || '').toLowerCase();
-                return art.includes(key) || desc.includes(qLower);
-            }).slice(0, limit);
+            if (!raw || raw.length < 1) return [];
+            return (db.spareparts || [])
+                .map(sp => ({ sp, score: scoreSparepartQuery(sp, raw, key) }))
+                .filter(x => x.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, limit)
+                .map(x => x.sp);
+        }
+
+        function renderTmsSuggestDropdown(el, items, pickFnName, pickKey) {
+            if (!el) return;
+            if (!items.length) { el.classList.add('hidden'); el.innerHTML = ''; return; }
+            el.innerHTML = items.map((item, i) => {
+                const pickVal = String(item[pickKey] != null ? item[pickKey] : '').replace(/"/g, '&quot;');
+                const primary = tmsEscHtml(item.artNo || item.name || item.unitName || '-');
+                const secondary = tmsEscHtml(item.description || item.unitSn || item.contact || item.picName || '');
+                let meta = '';
+                if (item.price != null) meta = `Rp ${Number(item.price).toLocaleString('id-ID')}`;
+                else if (item.customerName) meta = tmsEscHtml(item.customerName);
+                else if (item.product) meta = tmsEscHtml(item.product);
+                return `<button type="button" class="tms-suggest-opt ${i === 0 ? 'is-active' : ''}" data-pick="${pickVal}" onmousedown="${pickFnName}(this.dataset.pick)"><span class="font-bold text-violet-600 dark:text-violet-400">${primary}</span>${secondary ? `<span class="text-gray-600 dark:text-lux-300"> — ${secondary}</span>` : ''}${meta ? `<span class="block text-[9px] font-mono text-emerald-600 dark:text-emerald-400 mt-0.5">${meta}</span>` : ''}</button>`;
+            }).join('');
+            el.classList.remove('hidden');
+        }
+
+        function handleTmsSuggestKeydown(e, state) {
+            if (!state) return;
+            const el = document.getElementById(state.elId);
+            if (!el || el.classList.contains('hidden')) return;
+            const opts = el.querySelectorAll('.tms-suggest-opt');
+            if (!opts.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                state.highlight = Math.min(state.highlight + 1, opts.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                state.highlight = Math.max(state.highlight - 1, 0);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const pick = opts[state.highlight];
+                if (pick && state.onPick) state.onPick(pick.dataset.pick);
+                return;
+            } else if (e.key === 'Escape') {
+                el.classList.add('hidden');
+                return;
+            } else return;
+            opts.forEach((o, i) => o.classList.toggle('is-active', i === state.highlight));
         }
 
         function generateSphNumber() {
@@ -11134,14 +11212,15 @@
             lines.forEach((line, idx) => {
                 container.innerHTML += `
                     <div class="grid grid-cols-12 gap-2 items-end bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-3 rounded-xl" data-sph-line="${idx}">
-                        <div class="col-span-12 sm:col-span-3 relative">
+                        <div class="col-span-12 sm:col-span-3 tms-suggest-wrap">
                             <label class="text-[8px] font-black uppercase text-gray-400">Art Number</label>
-                            <input type="text" autocomplete="off" class="input-field text-[11px] font-mono py-2" value="${line.artNo || ''}" oninput="smartFillSphLine('${containerId}', ${idx}, this.value)" onkeydown="handleSphArtKeydown(event, '${containerId}', ${idx})" onblur="setTimeout(() => hideSphArtSuggestions('${containerId}', ${idx}), 150)">
-                            <div id="sph-art-suggest-${containerId}-${idx}" class="hidden absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-700 rounded-xl shadow-xl max-h-48 overflow-y-auto custom-scrollbar"></div>
+                            <input type="text" autocomplete="off" class="input-field text-[11px] font-mono py-2" value="${(line.artNo || '').replace(/"/g, '&quot;')}" oninput="smartFillSphLine('${containerId}', ${idx}, this.value)" onkeydown="handleSphSuggestKeydown(event, '${containerId}', ${idx}, 'art')" onblur="setTimeout(() => hideSphSuggest('${containerId}', ${idx}), 180)">
+                            <div id="sph-suggest-art-${containerId}-${idx}" class="tms-suggest-dropdown hidden"></div>
                         </div>
-                        <div class="col-span-12 sm:col-span-4">
+                        <div class="col-span-12 sm:col-span-4 tms-suggest-wrap">
                             <label class="text-[8px] font-black uppercase text-gray-400">Description</label>
-                            <input type="text" class="input-field text-[11px] py-2" value="${line.description || ''}" oninput="updateSphLineField('${containerId}', ${idx}, 'description', this.value)">
+                            <input type="text" autocomplete="off" class="input-field text-[11px] py-2" value="${(line.description || '').replace(/"/g, '&quot;')}" oninput="smartFillSphLineByDesc('${containerId}', ${idx}, this.value)" onkeydown="handleSphSuggestKeydown(event, '${containerId}', ${idx}, 'desc')" onblur="setTimeout(() => hideSphSuggest('${containerId}', ${idx}), 180)">
+                            <div id="sph-suggest-desc-${containerId}-${idx}" class="tms-suggest-dropdown hidden"></div>
                         </div>
                         <div class="col-span-4 sm:col-span-2">
                             <label class="text-[8px] font-black uppercase text-gray-400">Harga</label>
@@ -11181,99 +11260,92 @@
             recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
         }
 
+        function applySparepartToSphLine(containerId, idx, sp) {
+            const lines = getSphLinesRef(containerId);
+            if (!lines[idx] || !sp) return false;
+            if (sp.status === 'obsolete') {
+                showToast('Blocked', `Sparepart ${sp.artNo} is obsolete and cannot be added to SPH.`, 'error');
+                return false;
+            }
+            if (sp.status === 'discontinued') showToast('Warning', `${sp.artNo} is discontinued — use with caution.`, 'error');
+            lines[idx].sparepartId = sp.id;
+            lines[idx].artNo = sp.artNo || '';
+            lines[idx].description = sp.description || '';
+            lines[idx].unitPrice = sp.price || 0;
+            calcSphLineSubtotal(lines[idx]);
+            hideSphSuggest(containerId, idx);
+            renderSphLineRows(containerId);
+            recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+            return true;
+        }
+
         function smartFillSphLine(containerId, idx, artNo) {
             const lines = getSphLinesRef(containerId);
             if (!lines[idx]) return;
             lines[idx].artNo = artNo;
             const sp = lookupSparepartByArtNo(artNo);
-            if (!sp) {
-                clearTimeout(_sphArtSuggestTimer);
-                _sphArtSuggestTimer = setTimeout(() => showSphArtSuggestions(containerId, idx, artNo), 200);
-                recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
+            if (sp) {
+                applySparepartToSphLine(containerId, idx, sp);
                 return;
             }
-            hideSphArtSuggestions(containerId, idx);
-            if (sp.status === 'obsolete') {
-                showToast('Blocked', `Sparepart ${sp.artNo} is obsolete and cannot be added to SPH.`, 'error');
-                lines[idx].artNo = '';
-                renderSphLineRows(containerId);
-                return;
-            }
-            if (sp.status === 'discontinued') showToast('Warning', `${sp.artNo} is discontinued — use with caution.`, 'error');
-            lines[idx].sparepartId = sp.id;
-            lines[idx].description = sp.description;
-            lines[idx].unitPrice = sp.price;
-            calcSphLineSubtotal(lines[idx]);
-            renderSphLineRows(containerId);
+            clearTimeout(_sphSuggestTimer);
+            _sphSuggestTimer = setTimeout(() => showSphSuggest(containerId, idx, artNo, 'art'), 180);
             recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
         }
 
-        function showSphArtSuggestions(containerId, idx, query) {
-            const el = document.getElementById(`sph-art-suggest-${containerId}-${idx}`);
-            if (!el) return;
-            const results = searchSparepartsPartial(query);
-            if (!results.length) { el.classList.add('hidden'); el.innerHTML = ''; _sphArtSuggestActive = null; return; }
-            el.innerHTML = results.map((sp, i) => {
-                const artEsc = (sp.artNo || '').replace(/"/g, '&quot;');
-                return `<button type="button" class="sph-art-opt block w-full text-left px-3 py-2 text-[11px] hover:bg-violet-100 dark:hover:bg-violet-950/40 border-b border-gray-100 dark:border-lux-800 last:border-0 ${i === 0 ? 'bg-violet-50 dark:bg-violet-950/20' : ''}" data-art="${artEsc}" onmousedown="pickSphArtSuggestion('${containerId}', ${idx}, this.dataset.art)"><span class="font-mono font-bold text-violet-600 dark:text-violet-400">${sp.artNo}</span> <span class="text-gray-500">— ${sp.description || '-'}</span></button>`;
-            }).join('');
-            el.classList.remove('hidden');
-            _sphArtSuggestActive = { containerId, idx, count: results.length, highlight: 0 };
-        }
-
-        function hideSphArtSuggestions(containerId, idx) {
-            const el = document.getElementById(`sph-art-suggest-${containerId}-${idx}`);
-            if (el) { el.classList.add('hidden'); el.innerHTML = ''; }
-            if (_sphArtSuggestActive && _sphArtSuggestActive.containerId === containerId && _sphArtSuggestActive.idx === idx) _sphArtSuggestActive = null;
-        }
-
-        function pickSphArtSuggestion(containerId, idx, artNo) {
-            hideSphArtSuggestions(containerId, idx);
+        function smartFillSphLineByDesc(containerId, idx, descVal) {
             const lines = getSphLinesRef(containerId);
             if (!lines[idx]) return;
-            lines[idx].artNo = artNo;
-            const sp = lookupSparepartByArtNo(artNo);
-            if (!sp) return;
-            if (sp.status === 'obsolete') {
-                showToast('Blocked', `Sparepart ${sp.artNo} is obsolete and cannot be added to SPH.`, 'error');
-                lines[idx].artNo = '';
-                renderSphLineRows(containerId);
+            lines[idx].description = descVal;
+            const exact = (db.spareparts || []).find(sp =>
+                sp && sp.status !== 'obsolete' && normUserKey(sp.description) === normUserKey(descVal)
+            );
+            if (exact) {
+                applySparepartToSphLine(containerId, idx, exact);
                 return;
             }
-            if (sp.status === 'discontinued') showToast('Warning', `${sp.artNo} is discontinued — use with caution.`, 'error');
-            lines[idx].sparepartId = sp.id;
-            lines[idx].description = sp.description;
-            lines[idx].unitPrice = sp.price;
-            calcSphLineSubtotal(lines[idx]);
-            renderSphLineRows(containerId);
+            clearTimeout(_sphSuggestTimer);
+            _sphSuggestTimer = setTimeout(() => showSphSuggest(containerId, idx, descVal, 'desc'), 180);
             recalcSphTotals(containerId === 'sph-builder-lines' ? 'sph-builder' : 'svc-quote');
         }
 
-        function handleSphArtKeydown(e, containerId, idx) {
-            if (!_sphArtSuggestActive || _sphArtSuggestActive.containerId !== containerId || _sphArtSuggestActive.idx !== idx) return;
-            const el = document.getElementById(`sph-art-suggest-${containerId}-${idx}`);
-            if (!el || el.classList.contains('hidden')) return;
-            const opts = el.querySelectorAll('.sph-art-opt');
-            if (!opts.length) return;
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                _sphArtSuggestActive.highlight = Math.min(_sphArtSuggestActive.highlight + 1, opts.length - 1);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                _sphArtSuggestActive.highlight = Math.max(_sphArtSuggestActive.highlight - 1, 0);
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                const pick = opts[_sphArtSuggestActive.highlight];
-                if (pick) pickSphArtSuggestion(containerId, idx, pick.dataset.art);
-                return;
-            } else if (e.key === 'Escape') {
-                hideSphArtSuggestions(containerId, idx);
-                return;
-            } else return;
-            opts.forEach((o, i) => {
-                o.classList.toggle('bg-violet-50', i === _sphArtSuggestActive.highlight);
-                o.classList.toggle('dark:bg-violet-950/20', i === _sphArtSuggestActive.highlight);
+        window.pickSphSuggestActive = function pickSphSuggestActive(artNo) {
+            if (!_sphSuggestActive) return;
+            pickSphSuggest(_sphSuggestActive.containerId, _sphSuggestActive.idx, artNo);
+        }
+
+        function showSphSuggest(containerId, idx, query, field) {
+            const el = document.getElementById(`sph-suggest-${field}-${containerId}-${idx}`);
+            if (!el) return;
+            const results = searchSparepartsPartial(query);
+            renderTmsSuggestDropdown(el, results, 'pickSphSuggestActive', 'artNo');
+            _sphSuggestActive = {
+                containerId, idx, field,
+                elId: `sph-suggest-${field}-${containerId}-${idx}`,
+                highlight: 0,
+                onPick: (artNo) => pickSphSuggest(containerId, idx, artNo)
+            };
+        }
+
+        function hideSphSuggest(containerId, idx) {
+            ['art', 'desc'].forEach(field => {
+                const el = document.getElementById(`sph-suggest-${field}-${containerId}-${idx}`);
+                if (el) { el.classList.add('hidden'); el.innerHTML = ''; }
             });
+            if (_sphSuggestActive && _sphSuggestActive.containerId === containerId && _sphSuggestActive.idx === idx) {
+                _sphSuggestActive = null;
+            }
+        }
+
+        function pickSphSuggest(containerId, idx, artNo) {
+            const sp = lookupSparepartByArtNo(artNo);
+            if (!sp) return;
+            applySparepartToSphLine(containerId, idx, sp);
+        }
+
+        function handleSphSuggestKeydown(e, containerId, idx, field) {
+            if (!_sphSuggestActive || _sphSuggestActive.containerId !== containerId || _sphSuggestActive.idx !== idx || _sphSuggestActive.field !== field) return;
+            handleTmsSuggestKeydown(e, _sphSuggestActive);
         }
 
         function recalcSphTotals(mode) {
@@ -12846,6 +12918,150 @@
             }
             document.getElementById('svc-complaint').value = last.complaint;
             showToast('Complaint Applied', 'Complaint from last service record applied successfully.', 'success');
+        }
+
+        function searchCustomersPartial(query, limit = 8) {
+            loadDB();
+            const q = (query || '').trim().toLowerCase();
+            if (!q || q.length < 2) return [];
+            return (db.customers || [])
+                .filter(c => c && (c.name || '').toLowerCase().includes(q))
+                .slice(0, limit);
+        }
+
+        function searchCustomerUnitsPartial(query, limit = 10) {
+            loadDB();
+            const raw = (query || '').trim();
+            const q = raw.toLowerCase();
+            const key = normArtKey(raw);
+            const sn = normSnKey(raw);
+            if (!q || q.length < 2) return [];
+            return (db.customerUnits || [])
+                .map(u => {
+                    if (!u) return null;
+                    const cust = (db.customers || []).find(c => c.id === u.customerId);
+                    let score = 0;
+                    const name = (u.unitName || '').toLowerCase();
+                    const art = normArtKey(u.artNo);
+                    const unitSn = normSnKey(u.unitSn);
+                    if (name.startsWith(q)) score += 100;
+                    else if (name.includes(q)) score += 70;
+                    if (art.startsWith(key)) score += 90;
+                    else if (art.includes(key)) score += 60;
+                    if (unitSn.startsWith(sn)) score += 85;
+                    else if (unitSn.includes(sn)) score += 55;
+                    if (!score) return null;
+                    return {
+                        id: u.id,
+                        artNo: u.artNo,
+                        description: u.unitName,
+                        unitName: u.unitName,
+                        unitSn: u.unitSn,
+                        product: u.product,
+                        customerId: u.customerId,
+                        customerName: cust ? cust.name : '',
+                        picName: cust ? cust.picName : '',
+                        contact: cust ? cust.contact : '',
+                        score
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b.score - a.score)
+                .slice(0, limit);
+        }
+
+        function hideSvcSuggest(kind) {
+            const map = { cust: 'svc-suggest-cust', art: 'svc-suggest-art', sn: 'svc-suggest-sn', unit: 'svc-suggest-unit' };
+            const el = document.getElementById(map[kind]);
+            if (el) { el.classList.add('hidden'); el.innerHTML = ''; }
+            if (_svcSuggestActive && _svcSuggestActive.kind === kind) _svcSuggestActive = null;
+        }
+
+        function handleSvcSuggestKeydown(e, kind) {
+            if (!_svcSuggestActive || _svcSuggestActive.kind !== kind) return;
+            handleTmsSuggestKeydown(e, _svcSuggestActive);
+        }
+
+        window.pickSvcCustomer = function pickSvcCustomer(idStr) {
+            hideSvcSuggest('cust');
+            loadDB();
+            const id = parseInt(idStr, 10);
+            const match = (db.customers || []).find(c => c.id === id);
+            if (!match) return;
+            document.getElementById('svc-cust-name').value = match.name || '';
+            document.getElementById('svc-cust-pic').value = match.picName || '';
+            document.getElementById('svc-cust-contact').value = match.contact || '';
+            applyServiceLinkedIds(match.id, null);
+            renderServiceHistoryHint(null, match.id);
+        }
+
+        window.pickSvcUnit = function pickSvcUnit(idStr) {
+            hideSvcSuggest('art');
+            hideSvcSuggest('sn');
+            hideSvcSuggest('unit');
+            loadDB();
+            const id = parseInt(idStr, 10);
+            const cu = (db.customerUnits || []).find(u => u.id === id);
+            if (!cu) return;
+            const cust = (db.customers || []).find(c => c.id === cu.customerId);
+            fillServiceFormFields({
+                customerId: cu.customerId,
+                customerUnitId: cu.id,
+                unitArtNo: cu.artNo,
+                unitProduct: cu.product,
+                unitName: cu.unitName,
+                unitSn: cu.unitSn,
+                picName: cust ? cust.picName : '',
+                customerName: cust ? cust.name : '',
+                customerContact: cust ? cust.contact : ''
+            });
+            checkServiceDuplicate();
+        }
+
+        function onSvcCustNameInput(val) {
+            smartFillServiceByCustomerName(val);
+            clearTimeout(_svcSuggestTimer);
+            _svcSuggestTimer = setTimeout(() => {
+                const el = document.getElementById('svc-suggest-cust');
+                const results = searchCustomersPartial(val);
+                renderTmsSuggestDropdown(el, results, 'pickSvcCustomer', 'id');
+                _svcSuggestActive = { kind: 'cust', elId: 'svc-suggest-cust', highlight: 0, onPick: pickSvcCustomer };
+            }, 180);
+        }
+
+        function onSvcArtNoInput(val) {
+            smartFillServiceByArtNo(val);
+            checkServiceDuplicate();
+            clearTimeout(_svcSuggestTimer);
+            _svcSuggestTimer = setTimeout(() => {
+                const el = document.getElementById('svc-suggest-art');
+                const results = searchCustomerUnitsPartial(val);
+                renderTmsSuggestDropdown(el, results, 'pickSvcUnit', 'id');
+                _svcSuggestActive = { kind: 'art', elId: 'svc-suggest-art', highlight: 0, onPick: pickSvcUnit };
+            }, 180);
+        }
+
+        function onSvcSnInput(val) {
+            smartFillServiceBySn(val);
+            checkServiceDuplicate();
+            clearTimeout(_svcSuggestTimer);
+            _svcSuggestTimer = setTimeout(() => {
+                const el = document.getElementById('svc-suggest-sn');
+                const results = searchCustomerUnitsPartial(val);
+                renderTmsSuggestDropdown(el, results, 'pickSvcUnit', 'id');
+                _svcSuggestActive = { kind: 'sn', elId: 'svc-suggest-sn', highlight: 0, onPick: pickSvcUnit };
+            }, 180);
+        }
+
+        function onSvcUnitNameInput(val) {
+            if (!val || val.trim().length < 2) { hideSvcSuggest('unit'); return; }
+            clearTimeout(_svcSuggestTimer);
+            _svcSuggestTimer = setTimeout(() => {
+                const el = document.getElementById('svc-suggest-unit');
+                const results = searchCustomerUnitsPartial(val);
+                renderTmsSuggestDropdown(el, results, 'pickSvcUnit', 'id');
+                _svcSuggestActive = { kind: 'unit', elId: 'svc-suggest-unit', highlight: 0, onPick: pickSvcUnit };
+            }, 180);
         }
 
         function smartFillServiceByCustomerName(val) {
