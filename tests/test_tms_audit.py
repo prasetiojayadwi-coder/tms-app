@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_764():
+def test_release_version_765():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.4' in rel
+    assert '7.6.5' in rel
 
 
 def test_onsite_pickup_direct_confirm():
@@ -160,8 +160,11 @@ def test_onsite_pickup_direct_confirm():
     assert "svcTicketBtn(s.id, 'tmsOnsitePickup'" in js
     assert 'function healServiceTicketsForCurrentUser' in js
     assert 'function relinkServiceTicketsForUser' in js
+    assert 'function healAllServiceTicketPj' in js
     assert 'relinkServiceTicketsForUser(data)' in js
     assert 'relinkServiceTicketsForUser(targetUser)' in js
+    assert 'relinkServiceTicketsForUser(u, target.serviceTickets)' in js
+    assert 'Tiket diselaraskan' in js
 
 
 def test_smart_fill_autocomplete():

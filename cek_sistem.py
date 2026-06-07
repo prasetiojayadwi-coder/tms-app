@@ -195,7 +195,7 @@ def check_html_integrity():
         else:
             bad(f'Master Data Customer: {cid} hilang')
 
-    for fn in ('renderCustomerMaster', 'debouncedRenderCustomerMaster', 'populateServiceCustomerSelects', 'searchCustomersForPick', 'searchCustomerUnitsForPick', 'selectSvcMasterCustomer', 'onSvcPickCustomerInput', 'onSvcPickUnitInput', 'onPickServiceCustomer', 'onPickServiceUnit', 'triggerServicePhotoPick', 'onServicePhotoPicked', 'relinkServiceTicketsForUser', 'healServiceTicketsForCurrentUser', 'getUnitServiceHistory', 'buildServiceHistoryIndex', 'openServiceModalForUnit', 'smartFillServiceByCustomerName', 'applyLastServiceComplaint'):
+    for fn in ('renderCustomerMaster', 'debouncedRenderCustomerMaster', 'populateServiceCustomerSelects', 'searchCustomersForPick', 'searchCustomerUnitsForPick', 'selectSvcMasterCustomer', 'onSvcPickCustomerInput', 'onSvcPickUnitInput', 'onPickServiceCustomer', 'onPickServiceUnit', 'triggerServicePhotoPick', 'onServicePhotoPicked', 'relinkServiceTicketsForUser', 'healAllServiceTicketPj', 'healServiceTicketsForCurrentUser', 'getUnitServiceHistory', 'buildServiceHistoryIndex', 'openServiceModalForUnit', 'smartFillServiceByCustomerName', 'applyLastServiceComplaint'):
         if f'function {fn}' in js:
             ok(f'Master Data Customer: {fn} ada')
         else:

@@ -4329,6 +4329,9 @@
                     }
                 }
             });
+            Object.values(target.users || {}).forEach(u => {
+                if (relinkServiceTicketsForUser(u, target.serviceTickets)) changed = true;
+            });
 
             if (changed) {
                 console.warn('TMS: Duplikat data dibersihkan otomatis.');
@@ -5423,8 +5426,11 @@
                     db.users[f.id] = currentUser;
                     saveDB();
                     persistCurrentUserSession();
-                    healServiceTicketsForCurrentUser();
+                    const pjHealed = healServiceTicketsForCurrentUser();
                     showToast('Access Granted', 'Welcome, ' + currentUser.name + '!', 'success');
+                    if (pjHealed && isServiceFieldUser(currentUser)) {
+                        setTimeout(() => showToast('Tiket diselaraskan', 'Penugasan PJ Anda diperbarui otomatis. Silakan lanjutkan tiket.', 'success'), 400);
+                    }
                     const ls = document.getElementById('login-screen');
                     ls.style.transition = 'opacity 0.5s ease';
                     ls.style.opacity = '0';
@@ -10105,14 +10111,14 @@
             syncTicketPjFields(s);
         }
 
-        function relinkServiceTicketsForUser(u) {
+        function relinkServiceTicketsForUser(u, tickets) {
             if (!u || !isActiveFieldTsUser(u)) return false;
             const uid = Number(u.id);
             if (!uid) return false;
             const nameKey = normUserKey(u.name);
             const userKey = normUserKey(u.user);
             let changed = false;
-            (db.serviceTickets || []).forEach(s => {
+            (tickets || db.serviceTickets || []).forEach(s => {
                 if (!s) return;
                 const pjName = normUserKey(s.assignedTsName);
                 const pjUser = normUserKey(s.assignedTsUser);
@@ -10122,6 +10128,20 @@
                 if (Number(s.assignedTsId) !== uid) { s.assignedTsId = uid; changed = true; }
                 if (s.assignedTsName !== u.name) { s.assignedTsName = u.name; changed = true; }
                 if (s.assignedTsUser !== u.user) { s.assignedTsUser = u.user; changed = true; }
+            });
+            return changed;
+        }
+
+        function healAllServiceTicketPj(tickets, users) {
+            const list = tickets || db.serviceTickets || [];
+            const map = users || db.users || {};
+            let changed = false;
+            Object.values(map).forEach(u => {
+                if (relinkServiceTicketsForUser(u, list)) changed = true;
+            });
+            list.forEach(s => {
+                if (!s) return;
+                if (syncTicketPjFields(s, map)) changed = true;
             });
             return changed;
         }
