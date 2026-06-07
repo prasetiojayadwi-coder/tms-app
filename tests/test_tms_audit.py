@@ -145,11 +145,18 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7108():
+def test_release_version_7109():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.8' in rel
-    assert re.search(r"build:\s*130", rel)
-    assert 'tms-cache-v130' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.9' in rel
+    assert re.search(r"build:\s*131", rel)
+    assert 'tms-cache-v131' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+
+
+def test_no_hidden_required_quote_details():
+    """svc-quote-details selalu hidden; tak boleh dijadikan required (memblok submit)."""
+    html = _html()
+    assert "quoteDetails.setAttribute('required'" not in html
+    assert "quoteDetails.removeAttribute('required')" in html
 
 
 def test_number_input_spinner_hidden():

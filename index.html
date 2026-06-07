@@ -83,7 +83,7 @@
         }
         .input-field[type="number"] {
             padding-left: 0.5rem; padding-right: 0.5rem;
-            -moz-appearance: textfield;
+            -moz-appearance: textfield; appearance: textfield;
         }
         .input-field[type="number"]::-webkit-outer-spin-button,
         .input-field[type="number"]::-webkit-inner-spin-button {
@@ -14990,7 +14990,9 @@
                 if (quotePriceContainer) quotePriceContainer.classList.remove('hidden');
                 if (quoteDocContainer) quoteDocContainer.classList.remove('hidden');
                 
-                if (quoteDetails) quoteDetails.setAttribute('required', 'required');
+                // svc-quote-details selalu tersembunyi (display:none) & tak pernah diisi user,
+                // jadi JANGAN dijadikan required — field required tersembunyi memblok submit diam-diam.
+                if (quoteDetails) quoteDetails.removeAttribute('required');
                 if (quotePrice) quotePrice.setAttribute('required', 'required');
                 
                 if (submitBtn) submitBtn.innerText = "Submit Damage Repair Quotation";
@@ -15004,13 +15006,17 @@
             const titleEl = document.getElementById('svc-quote-modal-title');
             const analysisField = document.getElementById('svc-tsf-analysis');
             const submitBtn = document.querySelector('#serviceQuotationModal button[type="submit"]');
+            const decisionSelect = document.getElementById('svc-tsf-decision');
             if (isOnsite) {
                 if (decisionWrap) decisionWrap.classList.add('hidden');
+                // Select TSF disembunyikan saat On-Site: lepas required agar tidak memblok submit.
+                if (decisionSelect) decisionSelect.removeAttribute('required');
                 if (analysisLabel) analysisLabel.innerHTML = 'On-Site Inspection Result <span class="text-gold-500">*</span>';
                 if (analysisField) analysisField.placeholder = 'Describe findings from on-site inspection...';
                 if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-file-invoice text-gold-500 mr-2"></i> On-Site Analysis & SPH';
-                if (submitBtn && document.getElementById('svc-tsf-decision')?.value !== 'unrepair') submitBtn.innerText = 'Issue On-Site SPH';
+                if (submitBtn && decisionSelect?.value !== 'unrepair') submitBtn.innerText = 'Issue On-Site SPH';
             } else {
+                if (decisionSelect) decisionSelect.setAttribute('required', 'required');
                 if (decisionWrap) decisionWrap.classList.remove('hidden');
                 if (analysisLabel) analysisLabel.innerHTML = 'TSF Advanced Inspection Result <span class="text-gold-500">*</span>';
                 if (analysisField) analysisField.placeholder = 'Describe component / module damage found at TSF workshop...';

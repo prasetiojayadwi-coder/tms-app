@@ -8,25 +8,25 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.8',
+    version: '7.10.9',
 
-    build: 130,
+    build: 131,
 
     date: '2026-06-07',
 
-    title: 'Perbaikan Tampilan',
+    title: 'Perbaikan Penting',
 
-    summary: 'FIX: angka QTY/HARGA di baris SPH kini terlihat (padding & spinner number dirapikan).',
+    summary: 'FIX: tombol Issue On-Site SPH kini bisa diklik (field required tersembunyi yang memblok submit).',
 
     changes: [
 
-        { icon: 'fa-eye', text: 'Angka QTY & HARGA di baris SPH kini terlihat: kolom Qty dilebarkan + rata tengah' },
+        { icon: 'fa-paper-plane', text: 'Issue On-Site SPH / Submit Quotation: tombol kini berfungsi (hapus required pada field tersembunyi)' },
 
-        { icon: 'fa-sliders', text: 'Input number: padding dikecilkan & panah spinner disembunyikan agar angka tak terpotong' },
+        { icon: 'fa-eye', text: 'Angka QTY & HARGA baris SPH terlihat: kolom Qty dilebarkan + rata tengah, spinner disembunyikan' },
 
         { icon: 'fa-wrench', text: 'Lanjutan: </div> hilang di serviceDeliveryModal yang menelan 5 modal' },
 
-        { icon: 'fa-shield-halved', text: 'Test anti-kambuh keseimbangan tag <div> HTML' },
+        { icon: 'fa-shield-halved', text: 'Test anti-kambuh: keseimbangan <div> & required field tersembunyi' },
 
         { icon: 'fa-play', text: 'Mulai Pekerjaan: dispatch klik langsung & anti-dobel (lanjutan)' },
 
