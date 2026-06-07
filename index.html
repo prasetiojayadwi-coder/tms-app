@@ -4316,6 +4316,19 @@
             (target.serviceTickets || []).forEach(s => {
                 if (!s) return;
                 if (s.status === 'pickup') { s.status = 'registered'; changed = true; }
+                if (s.registeredById != null && s.registeredByUser) {
+                    const reg = (() => {
+                        const users = target.users || {};
+                        const rid = Number(s.registeredById);
+                        return users[rid] || users[String(rid)] ||
+                            Object.values(users).find(u => u && normUserKey(u.user) === normUserKey(s.registeredByUser));
+                    })();
+                    if (reg && isActiveFieldTsUser(reg)) {
+                        if (Number(s.assignedTsId) !== Number(reg.id)) { s.assignedTsId = Number(reg.id); changed = true; }
+                        if (s.assignedTsName !== reg.name) { s.assignedTsName = reg.name; changed = true; }
+                        if (s.assignedTsUser !== reg.user) { s.assignedTsUser = reg.user; changed = true; }
+                    }
+                }
                 const resolved = resolveTicketAssignedTsId(s, target.users);
                 if (resolved != null && Number(s.assignedTsId) !== resolved) {
                     s.assignedTsId = resolved;
@@ -10101,6 +10114,8 @@
             const cuUser = normUserKey(currentUser.user);
             const cuName = normUserKey(currentUser.name);
             if (cuUser && normUserKey(s.assignedTsUser) === cuUser) return true;
+            if (s.registeredByUser && normUserKey(s.registeredByUser) === cuUser) return true;
+            if (s.registeredById != null && Number(s.registeredById) === uid) return true;
             const resolved = resolveTicketAssignedTsId(s);
             if (resolved != null && Number(resolved) === uid) return true;
             if (s.assignedTsName && cuName && normUserKey(s.assignedTsName) === cuName) return true;
@@ -10151,8 +10166,11 @@
                 if (!s) return;
                 const pjName = normUserKey(s.assignedTsName);
                 const pjUser = normUserKey(s.assignedTsUser);
+                const regUser = normUserKey(s.registeredByUser);
                 const pointsToUser = (pjUser && pjUser === userKey) ||
-                    (pjName && (pjName === nameKey || pjName === userKey));
+                    (pjName && (pjName === nameKey || pjName === userKey)) ||
+                    (regUser && regUser === userKey) ||
+                    (s.registeredById != null && Number(s.registeredById) === uid);
                 if (!pointsToUser) return;
                 if (Number(s.assignedTsId) !== uid) { s.assignedTsId = uid; changed = true; }
                 if (s.assignedTsName !== u.name) { s.assignedTsName = u.name; changed = true; }
@@ -10196,18 +10214,61 @@
             if (s.status === 'pickup') s.status = 'registered';
         }
 
+        function getActiveFieldTsList() {
+            loadDB();
+            const list = Object.values(db.users || {}).filter(u => isActiveFieldTsUser(u));
+            if (currentUser && isServiceFieldUser(currentUser)) {
+                syncCurrentUserFromDb({ logoutOnInvalid: false });
+                const uid = Number(currentUser.id);
+                if (uid && !list.some(u => u && Number(u.id) === uid)) {
+                    list.push({ ...currentUser, id: uid });
+                }
+            }
+            return list.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'id'));
+        }
+
         function populateServiceTsSelect() {
             const select = document.getElementById('svc-assigned-ts');
             if (!select) return;
-            let options = '<option value="" disabled selected>-- Pilih Teknisi Lapangan --</option>';
-            Object.values(db.users)
-                .filter(u => isActiveFieldTsUser(u))
-                .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'id'))
-                .forEach(u => {
-                    const label = (u.name || u.user) + (u.group ? ` (${u.group})` : '');
-                    options += `<option value="${u.id}">${tmsEscHtml(label)}</option>`;
-                });
+            let options = '<option value="" disabled>-- Pilih Teknisi Lapangan --</option>';
+            getActiveFieldTsList().forEach(u => {
+                const label = (u.name || u.user) + (u.group ? ` (${u.group})` : '');
+                options += `<option value="${u.id}">${tmsEscHtml(label)}</option>`;
+            });
             select.innerHTML = options;
+        }
+
+        function applyServiceModalTsPicker() {
+            const tsSelect = document.getElementById('svc-assigned-ts');
+            if (!tsSelect) return;
+            populateServiceTsSelect();
+            if (currentUser && isServiceFieldUser(currentUser)) {
+                syncCurrentUserFromDb({ logoutOnInvalid: false });
+                const uid = String(Number(currentUser.id));
+                if (uid && uid !== 'NaN') {
+                    if (!tsSelect.querySelector(`option[value="${uid}"]`)) {
+                        const label = (currentUser.name || currentUser.user) + (currentUser.group ? ` (${currentUser.group})` : '');
+                        tsSelect.innerHTML += `<option value="${uid}">${tmsEscHtml(label)}</option>`;
+                    }
+                    tsSelect.value = uid;
+                }
+                tsSelect.disabled = true;
+            } else {
+                tsSelect.value = '';
+                tsSelect.disabled = false;
+            }
+        }
+
+        function resolveServiceTicketAssignedTs() {
+            if (currentUser && isServiceFieldUser(currentUser)) {
+                syncCurrentUserFromDb({ logoutOnInvalid: false });
+                const fresh = getDbUser(currentUser.id);
+                const u = fresh || currentUser;
+                if (u && isActiveFieldTsUser(u)) return u;
+            }
+            const tsSelect = document.getElementById('svc-assigned-ts');
+            const assignedTsId = tsSelect ? (parseInt(tsSelect.value, 10) || null) : null;
+            return assignedTsId ? getDbUser(assignedTsId) : null;
         }
 
         function svcTicketBtn(id, handler, label, icon, primary, extra) {
@@ -13572,7 +13633,6 @@
 
         function openServiceModal() {
             loadDB();
-            populateServiceTsSelect();
             populateServiceCustomerSelects();
             document.getElementById('service-id').value = '';
             document.getElementById('svc-cust-name').value = '';
@@ -13587,14 +13647,7 @@
             if (hintBox) hintBox.classList.add('hidden');
             window._svcLastTicketHint = null;
             
-            const tsSelect = document.getElementById('svc-assigned-ts');
-            if (currentUser && isServiceFieldUser(currentUser)) {
-                tsSelect.value = currentUser.id;
-                tsSelect.disabled = true;
-            } else {
-                tsSelect.value = '';
-                tsSelect.disabled = false;
-            }
+            applyServiceModalTsPicker();
             
             const warningEl = document.getElementById('service-duplicate-warning');
             if (warningEl) warningEl.classList.add('hidden');
@@ -13622,14 +13675,11 @@
 
             const noSvc = generateServiceNumber();
             
-            const tsSelect = document.getElementById('svc-assigned-ts');
-            const assignedTsId = parseInt(tsSelect.value, 10) || null;
-            const assignedTs = getDbUser(assignedTsId);
+            const assignedTs = resolveServiceTicketAssignedTs();
             if (!assignedTs || !isActiveFieldTsUser(assignedTs)) {
                 showToast('Teknisi wajib', 'Pilih teknisi lapangan (PJ) yang ditugaskan menangani tiket ini.', 'error');
                 return;
             }
-
             // Read photo before (multiple)
             let unitPhotosBefore = [];
             const photoBeforeInput = document.getElementById('svc-unit-photo-before');
@@ -13677,6 +13727,9 @@
                 assignedTsId: Number(assignedTs.id),
                 assignedTsName: assignedTs.name || '',
                 assignedTsUser: assignedTs.user || '',
+                registeredById: currentUser ? Number(currentUser.id) : null,
+                registeredByUser: currentUser ? (currentUser.user || '') : '',
+                registeredByName: currentUser ? (currentUser.name || '') : '',
                 repairLoc: (document.getElementById('svc-repair-loc').value || 'tsf').trim(),
                 unitPhotoBefore: unitPhotosBefore.length > 0 ? unitPhotosBefore : null,
                 status: 'registered',

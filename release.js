@@ -3,14 +3,14 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '7.6.7',
-    build: 116,
+    version: '7.6.8',
+    build: 117,
     date: '2026-06-07',
     title: 'System Update Available',
-    summary: 'Teknisi lapangan baru langsung aktif — SPV tidak perlu tunggu approval Direktur.',
+    summary: 'Fix: teknisi yang buat tiket otomatis jadi PJ & bisa langsung mengerjakan.',
     changes: [
-        { icon: 'fa-user-check', text: 'Add Personnel role TS → status active langsung (bisa login)' },
-        { icon: 'fa-bolt', text: 'SPV onboard Razif/Reza → langsung PJ & kerjakan tiket' },
-        { icon: 'fa-shield', text: 'SPV/Owner/TSF/Specialist tetap butuh approval Direktur' }
+        { icon: 'fa-user-pen', text: 'Daftar Unit oleh teknisi → PJ dipaksa ke diri sendiri (bukan dropdown)' },
+        { icon: 'fa-link', text: 'registeredById/User — pembuat tiket selalu boleh mengerjakan' },
+        { icon: 'fa-wrench', text: 'Heal tiket lama: PJ diselaraskan ke pembuat teknisi' }
     ]
 };

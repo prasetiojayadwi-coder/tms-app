@@ -145,9 +145,20 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_767():
+def test_release_version_768():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.7' in rel
+    assert '7.6.8' in rel
+
+
+def test_technician_creator_is_pj():
+    js = _js_bundle()
+    assert 'function resolveServiceTicketAssignedTs' in js
+    assert 'function applyServiceModalTsPicker' in js
+    assert 'registeredById' in js
+    assert 'registeredByUser' in js
+    match = js[js.find('function ticketPjMatchesCurrentUser'):js.find('function syncTicketPjFields')]
+    assert 'registeredById' in match
+    assert 'registeredByUser' in match
 
 
 def test_field_technician_instant_active():
