@@ -327,7 +327,7 @@ def check_html_integrity():
     else:
         bad('Service Pickup: bindServiceTicketGlobalActions tidak ada')
     if 'function repairTicketAssignmentForCurrentUser' in js and 'function ticketPjMatchesCurrentUser' in js:
-        ok('Service PJ: auto-repair penugasan teknisi by username/ID')
+        ok('Service PJ: strict PJ match + sync penugasan dari data SPV')
     else:
         bad('Service PJ: auto-repair penugasan tidak lengkap')
     if 'function syncTicketPjFields' in js and 'function ensureServiceTicketPjReady' in js:

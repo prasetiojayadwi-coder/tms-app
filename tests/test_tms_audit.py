@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_751():
+def test_release_version_754():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.5.1' in rel
+    assert '7.5.4' in rel
 
 
 def test_pwa_files():
@@ -518,7 +518,20 @@ def test_service_pj_username_priority():
 
 def test_pickup_shows_login_username_hint():
     js = _js_bundle()
-    assert 'username PJ' in js or 'assignedTsUser' in js
+    assert 'Anda login sebagai' in js or 'assignedTsUser' in js
+
+
+def test_service_pj_strict_designated_technician():
+    js = _js_bundle()
+    match = js[js.find('function ticketPjMatchesCurrentUser'):js.find('function ticketPjMatchesCurrentUser') + 600]
+    assert 'resolveTicketAssignedTsId(s)' in match
+    assert 'assignedTsUser' in match
+    assert 'Number(resolved) === uid' in match
+    assert 'handoverOnsiteOnly' in js
+    resolve = js[js.find('function resolveTicketAssignedTsId'):js.find('function syncCurrentUserFromDb')]
+    assert 'userConflict' in resolve
+    assert 'byName.length === 1' in resolve
+    assert 'isActiveFieldTsUser(assignedTs)' in js
 
 
 def test_onsite_repair_pj_guard():

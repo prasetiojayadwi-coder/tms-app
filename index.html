@@ -3913,7 +3913,11 @@
             return Object.values(users).find(u => u && Number(u.id) === n) || null;
         }
         function isActiveFieldTsUser(u) {
-            return !!(u && u.role === 'ts' && u.status !== 'suspended' && u.status !== 'disabled');
+            if (!u || u.status === 'suspended' || u.status === 'disabled') return false;
+            if (u.status && u.status !== 'active') return false;
+            if (u.role === 'ts') return true;
+            const j = normUserKey(u.jabatan || '');
+            return j.includes('technical service') || j.includes('teknisi lapangan') || j === 'teknisi';
         }
         function resolveTicketAssignedTsId(s, users) {
             if (!s) return null;
@@ -3925,25 +3929,28 @@
                 if (map[String(id)]) return map[String(id)];
                 return Object.values(map).find(u => u && Number(u.id) === n) || null;
             };
-            // Username PJ paling andal — utamakan assignedTsUser daripada ID stale
-            if (s.assignedTsUser) {
-                const nk = normUserKey(s.assignedTsUser);
+            const pjUserKey = normUserKey(s.assignedTsUser);
+            const pjNameKey = normUserKey(s.assignedTsName);
+            const byId = getU(s.assignedTsId);
+            if (isActiveFieldTsUser(byId)) {
+                const idUser = normUserKey(byId.user);
+                const idName = normUserKey(byId.name);
+                const userConflict = pjUserKey && pjUserKey !== idUser && pjUserKey !== idName;
+                const nameConflict = pjNameKey && pjNameKey !== idName && pjNameKey !== idUser;
+                if (!userConflict && !nameConflict) return Number(byId.id);
+            }
+            if (pjUserKey) {
                 const byUser = Object.values(map).find(x =>
-                    isActiveFieldTsUser(x) && normUserKey(x.user) === nk
+                    isActiveFieldTsUser(x) && normUserKey(x.user) === pjUserKey
                 );
                 if (byUser) return Number(byUser.id);
             }
-            const byId = getU(s.assignedTsId);
-            if (isActiveFieldTsUser(byId)) return Number(byId.id);
-            const hints = [s.assignedTsName].filter(Boolean);
-            for (const hint of hints) {
-                const nk = normUserKey(hint);
-                if (!nk) continue;
-                const u = Object.values(map).find(x =>
+            if (pjNameKey) {
+                const byName = Object.values(map).filter(x =>
                     isActiveFieldTsUser(x) &&
-                    (normUserKey(x.name) === nk || normUserKey(x.user) === nk)
+                    (normUserKey(x.name) === pjNameKey || normUserKey(x.user) === pjNameKey)
                 );
-                if (u) return Number(u.id);
+                if (byName.length === 1) return Number(byName[0].id);
             }
             const n = Number(s.assignedTsId);
             return !isNaN(n) && n > 0 ? n : null;
@@ -9845,6 +9852,7 @@
         let handoverGiverDraw, handoverReceiverDraw;
         let svcGiverDraw, svcReceiverDraw;
         let bulkGiverDraw, bulkReceiverDraw;
+        let handoverOnsiteOnly = false;
 
         function initServiceSignatureCanvas() {
             svcGiverDraw = setupSignatureDrawing('svc-sig-canvas-giver', 'btn-clear-svc-giver');
@@ -9959,20 +9967,14 @@
         }
 
         function ticketPjMatchesCurrentUser(s) {
-            if (!currentUser || !s) return false;
+            if (!currentUser || !s || !isServiceFieldUser(currentUser)) return false;
+            syncCurrentUserFromDb();
             const uid = Number(currentUser.id);
+            if (!uid) return false;
             const cuUser = normUserKey(currentUser.user);
-            const resolved = resolveTicketAssignedTsId(s);
-            if (uid > 0 && resolved != null && uid === resolved) return true;
             if (cuUser && normUserKey(s.assignedTsUser) === cuUser) return true;
-            if (uid > 0 && Number(s.assignedTsId) === uid) return true;
-            // Legacy: tiket lama hanya punya assignedTsName (tanpa username)
-            if (!s.assignedTsUser && s.assignedTsName && cuUser) {
-                const pjName = normUserKey(s.assignedTsName);
-                if (pjName === normUserKey(currentUser.name)) return true;
-                if (pjName === cuUser) return true;
-            }
-            return false;
+            const resolved = resolveTicketAssignedTsId(s);
+            return resolved != null && Number(resolved) === uid;
         }
 
         function syncTicketPjFields(s, users) {
@@ -9991,26 +9993,12 @@
         }
 
         function repairTicketAssignmentForCurrentUser(s) {
-            if (!s || !currentUser || !isServiceFieldUser(currentUser)) return false;
-            if (!ticketPjMatchesCurrentUser(s)) return false;
-            const uid = Number(currentUser.id);
-            if (!uid) return false;
-            let changed = false;
-            if (Number(s.assignedTsId) !== uid) { s.assignedTsId = uid; changed = true; }
-            if (s.assignedTsName !== currentUser.name) { s.assignedTsName = currentUser.name; changed = true; }
-            if (normUserKey(s.assignedTsUser) !== normUserKey(currentUser.user)) {
-                s.assignedTsUser = currentUser.user;
-                changed = true;
-            }
-            return changed;
+            return syncTicketPjFields(s);
         }
 
         function ensureServiceTicketPjReady(s) {
             if (!s) return;
             syncTicketPjFields(s);
-            if (currentUser && isServiceFieldUser(currentUser)) {
-                repairTicketAssignmentForCurrentUser(s);
-            }
         }
 
         function normalizeServiceTicketStatus(s) {
@@ -10022,11 +10010,13 @@
             const select = document.getElementById('svc-assigned-ts');
             if (!select) return;
             let options = '<option value="" disabled selected>-- Pilih Teknisi Lapangan --</option>';
-            Object.values(db.users).forEach(u => {
-                if (u.role === 'ts' && u.status === 'active') {
-                    options += `<option value="${u.id}">${u.name} (${u.group})</option>`;
-                }
-            });
+            Object.values(db.users)
+                .filter(u => isActiveFieldTsUser(u))
+                .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'id'))
+                .forEach(u => {
+                    const label = (u.name || u.user) + (u.group ? ` (${u.group})` : '');
+                    options += `<option value="${u.id}">${tmsEscHtml(label)}</option>`;
+                });
             select.innerHTML = options;
         }
 
@@ -10034,7 +10024,7 @@
             const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
             const sid = String(id);
             const ex = extra ? ` data-svc-extra="${extra}"` : '';
-            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="window.runServiceTicketAction(this);return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
         function runServiceTicketAction(btn) {
@@ -10230,7 +10220,6 @@
                 if (!s) return;
                 normalizeServiceTicketStatus(s);
                 if (syncTicketPjFields(s)) assignmentFixed = true;
-                if (repairTicketAssignmentForCurrentUser(s)) assignmentFixed = true;
             });
             if (assignmentFixed) saveDB();
 
@@ -13027,7 +13016,7 @@
             window._svcLastTicketHint = null;
             
             const tsSelect = document.getElementById('svc-assigned-ts');
-            if (currentUser && currentUser.role === 'ts') {
+            if (currentUser && isServiceFieldUser(currentUser)) {
                 tsSelect.value = currentUser.id;
                 tsSelect.disabled = true;
             } else {
@@ -13063,6 +13052,10 @@
             const tsSelect = document.getElementById('svc-assigned-ts');
             const assignedTsId = parseInt(tsSelect.value, 10) || null;
             const assignedTs = getDbUser(assignedTsId);
+            if (!assignedTs || !isActiveFieldTsUser(assignedTs)) {
+                showToast('Teknisi wajib', 'Pilih teknisi lapangan (PJ) yang ditugaskan menangani tiket ini.', 'error');
+                return;
+            }
 
             // Read photo before (multiple)
             let unitPhotosBefore = [];
@@ -13116,7 +13109,7 @@
                 status: 'registered',
                 history: [{
                     t: new Date().toISOString(),
-                    m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) dan ditugaskan ke Teknisi Lapangan.`
+                    m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) dan ditugaskan ke PJ ${assignedTs.name} (@${assignedTs.user}).`
                 }],
                 updatedAt: new Date().toISOString()
             };
@@ -13567,6 +13560,7 @@
 
         function actionServiceTicket(id, action) {
             loadDB();
+            syncCurrentUserFromDb();
             const s = findServiceTicket(id);
             if (!s) {
                 showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
@@ -13575,15 +13569,14 @@
             ensureServiceTicketPjReady(s);
 
             if (action === 'pickup') {
-                let pjFixed = repairTicketAssignmentForCurrentUser(s);
-                if (syncTicketPjFields(s)) pjFixed = true;
-                if (pjFixed) saveDB();
-                if (!ticketPjMatchesCurrentUser(s)) {
+                if (syncTicketPjFields(s)) saveDB();
+                if (!isAssignedServiceTs(s)) {
                     const pj = getTicketPjName(s) || 'belum ditunjuk';
+                    const pjUser = s.assignedTsUser ? ` (@${s.assignedTsUser})` : '';
                     const hint = currentUser && currentUser.user
-                        ? ` Login sebagai "${normUserKey(s.assignedTsUser) || 'username PJ'}" (bukan nama tampilan).`
+                        ? ` Anda login sebagai ${currentUser.name} (@${currentUser.user}).`
                         : '';
-                    showToast('Akses ditolak', `PJ tiket: ${pj}.${hint} Hubungi SPV jika PJ salah.`, 'error');
+                    showToast('Akses ditolak', `PJ tiket: ${pj}${pjUser}.${hint} Hanya PJ yang ditunjuk yang dapat mengerjakan.`, 'error');
                     return;
                 }
             }
@@ -13612,12 +13605,14 @@
         function openHandoverSignatureModal(id, action) {
             try {
             loadDB();
+            syncCurrentUserFromDb();
             const s = findServiceTicket(id);
             if (!s) {
                 showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
                 return;
             }
 
+            handoverOnsiteOnly = false;
             document.getElementById('handover-sig-ticket-id').value = id;
             document.getElementById('handover-sig-action').value = action;
             document.getElementById('handover-sig-unit-name').innerText = formatServiceUnitTitle(s);
@@ -13653,20 +13648,24 @@
             if (action === 'pickup') {
                 if (s.repairLoc === 'onsite') {
                     title = "Konfirmasi On-Site Repair";
-                    statement = `Saya mengkonfirmasi kedatangan di lokasi customer (${s.customerName}) untuk perbaikan on-site unit di atas. Perbaikan dilakukan di tempat, tanpa pengiriman ke workshop TSF.`;
-                    giverLabel = "PIC Customer (Verifikasi)";
-                    receiverLabel = "Teknisi TMS (On-Site)";
+                    const pjName = currentUser ? currentUser.name : getTicketPjName(s);
+                    statement = `${pjName} mengkonfirmasi kedatangan di lokasi customer (${s.customerName}) untuk perbaikan on-site unit di atas. Bubuhkan tanda tangan Anda untuk memulai pekerjaan.`;
+                    receiverLabel = "Teknisi PJ (Konfirmasi On-Site)";
+                    handoverOnsiteOnly = true;
+                    if (giverCol) giverCol.classList.add('hidden');
+                    if (receiverCol) receiverCol.classList.remove('hidden');
+                    if (btnBack) btnBack.classList.add('hidden');
+                    if (btnSubmit) btnSubmit.innerText = "Sahkan & Mulai On-Site";
+                    handoverSigStep = 2;
                 } else {
                     title = "Tanda Tangan Pickup (RS \u2192 TS)";
                     statement = `Saya menyatakan bahwa unit perbaikan di atas telah diserahkan oleh perwakilan Customer/RS (${s.picName || s.customerName}) kepada Teknisi Lapangan TMS untuk dikirim ke workshop TSF.`;
                     giverLabel = "PIC Customer (Pengirim)";
                     receiverLabel = "Teknisi TMS (Penerima)";
+                    if (receiverCol) receiverCol.classList.add('hidden');
+                    if (btnSubmit) btnSubmit.innerText = "Lanjut ke Teknisi";
+                    handoverSigStep = 1;
                 }
-                
-                // Turn-by-turn: hide receiver initially
-                if (receiverCol) receiverCol.classList.add('hidden');
-                if (btnSubmit) btnSubmit.innerText = "Lanjut ke Teknisi";
-                handoverSigStep = 1;
             } else if (action === 'send_tsf') {
                 title = "Tanda Tangan Kirim ke Workshop (TS \u2192 TSF)";
                 statement = `Silakan bubuhkan tanda tangan digital Teknisi Lapangan untuk memvalidasi penyerahan unit perbaikan ke Workshop TSF.`;
@@ -13733,7 +13732,7 @@
                 return;
             }
 
-            if (action === 'pickup' && handoverSigStep === 1) {
+            if (action === 'pickup' && handoverSigStep === 1 && !handoverOnsiteOnly) {
                 if (!handoverGiverDraw || handoverGiverDraw.isBlank()) {
                     showToast("Tanda Tangan PIC Customer Wajib", "PIC Customer wajib menandatangani canvas.", "error");
                     return;
@@ -13757,7 +13756,7 @@
                 return;
             }
 
-            const needsGiver = (action === 'pickup' || action === 'send_tsf' || action === 'send_field');
+            const needsGiver = !handoverOnsiteOnly && (action === 'pickup' || action === 'send_tsf' || action === 'send_field');
             const needsReceiver = (action === 'pickup' || action === 'receive_tsf' || action === 'receive_field');
 
             if (needsGiver && (!handoverGiverDraw || handoverGiverDraw.isBlank())) {
@@ -13776,16 +13775,20 @@
                 s.status = 'picked_up';
                 s.signaturePickupGiver = sigGiver;
                 s.signaturePickupReceiver = sigReceiver;
-                s.signaturePickup = sigReceiver; // Fallback
+                s.signaturePickup = sigReceiver || sigGiver;
+                const onsiteMsg = handoverOnsiteOnly
+                    ? `On-site repair dikonfirmasi oleh PJ ${currentUser.name} di lokasi ${s.customerName}.`
+                    : `Unit diambil dari customer oleh Teknisi Lapangan. Serah terima divalidasi oleh tanda tangan digital pengirim (Customer) dan penerima (Teknisi).`;
                 s.history.unshift({
                     t: new Date().toISOString(),
-                    m: `Unit diambil dari customer oleh Teknisi Lapangan. Serah terima divalidasi oleh tanda tangan digital pengirim (Customer) dan penerima (Teknisi).`,
+                    m: onsiteMsg,
                     sigGiver: sigGiver,
                     sigReceiver: sigReceiver
                 });
-                addToHistory(`Service Unit Pickup: ${s.noService} diambil oleh ${currentUser.name}.`, null, sigReceiver);
+                addToHistory(`Service Unit Pickup: ${s.noService} diambil oleh ${currentUser.name}.`, null, sigReceiver || sigGiver);
                 notifyServiceUpdate(s, 'picked_up');
-                showToast("Unit Di-pickup", "Status berhasil diperbarui dan TTD disimpan.", "success");
+                showToast(handoverOnsiteOnly ? "On-Site Dikonfirmasi" : "Unit Di-pickup", "Status berhasil diperbarui dan TTD disimpan.", "success");
+                handoverOnsiteOnly = false;
             } else if (action === 'send_tsf') {
                 s.status = 'initial_analyzed';
                 s.signatureSendTsfGiver = sigGiver;
