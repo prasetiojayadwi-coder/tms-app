@@ -145,11 +145,17 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7103():
+def test_release_version_7104():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.3' in rel
-    assert re.search(r"build:\s*125", rel)
-    assert 'tms-cache-v125' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.4' in rel
+    assert re.search(r"build:\s*126", rel)
+    assert 'tms-cache-v126' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+
+
+def test_svc_debug_probe_present():
+    html = _html()
+    assert 'tmsSvcDebugLog' in html
+    assert 'svcdebug=1' in html
 
 
 def test_index_html_not_truncated():
@@ -235,7 +241,7 @@ def test_pj_pick_path_then_handover():
     assert 'repairLoc: null' in reg_block
     loc_block = js[js.find('function submitRepairLocPickup'):js.find('function actionServiceTicket')]
     assert 'openHandoverSignatureModal(id' in loc_block
-    pickup_block = js[js.find('function actionServiceTicket'):js.find('function actionServiceTicket') + 2400]
+    pickup_block = js[js.find('function actionServiceTicket'):js.find('function actionServiceTicket') + 3400]
     assert 'openRepairLocPickModal(id)' in pickup_block
     assert 'openHandoverSignatureModal(id, action)' in pickup_block
     assert 'executeWorkshopPickup' not in js

@@ -8,23 +8,21 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.3',
+    version: '7.10.4',
 
-    build: 125,
+    build: 126,
 
     date: '2026-06-07',
 
     title: 'System Update Available',
 
-    summary: 'Perbaikan tuntas tombol Mulai Pekerjaan — dispatch klik langsung & anti-dobel.',
+    summary: 'Diagnostik on-screen untuk tombol Mulai Pekerjaan — tambahkan ?svcdebug=1 di URL.',
 
     changes: [
 
-        { icon: 'fa-play', text: 'Mulai Pekerjaan: tombol panggil aksi langsung (tanpa delegasi rapuh)' },
+        { icon: 'fa-bug', text: 'Panel diagnostik klik (?svcdebug=1) untuk melacak persis di mana aksi berhenti' },
 
-        { icon: 'fa-hand-pointer', text: 'Hapus capture+stopPropagation yang bisa menelan klik' },
-
-        { icon: 'fa-bolt', text: 'Guard anti-dobel diperpendek 350ms agar klik berulang tetap responsif' },
+        { icon: 'fa-play', text: 'Mulai Pekerjaan: dispatch klik langsung & anti-dobel (lanjutan)' },
 
         { icon: 'fa-shield-halved', text: 'XSS: timeline service, SPH detail, riwayat unit — semua teks di-escape' },
 

@@ -10549,13 +10549,72 @@
             return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="runSvcAction('${sid}','${handler}',${exArg});return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
+        // --- On-screen diagnostic for service-ticket actions (mobile-friendly, no DevTools needed) ---
+        // Aktifkan dengan menambahkan ?svcdebug=1 di URL. Matikan dengan ?svcdebug=0 atau tombol "tutup".
+        function tmsSvcDebugEnabled() {
+            try {
+                const q = location.search || '';
+                if (/[?&]svcdebug=1/.test(q)) localStorage.setItem('tms_svc_debug', '1');
+                if (/[?&]svcdebug=0/.test(q)) localStorage.removeItem('tms_svc_debug');
+                return localStorage.getItem('tms_svc_debug') === '1';
+            } catch (e) { return false; }
+        }
+        function tmsSvcDebugLog(msg) {
+            if (!tmsSvcDebugEnabled()) return;
+            try {
+                let p = document.getElementById('tms-svc-debug');
+                if (!p) {
+                    p = document.createElement('div');
+                    p.id = 'tms-svc-debug';
+                    p.style.cssText = 'position:fixed;left:6px;right:6px;bottom:6px;max-height:42vh;overflow:auto;z-index:2147483647;background:rgba(0,0,0,.9);color:#39ff14;font:11px/1.45 monospace;padding:8px 10px;border-radius:10px;white-space:pre-wrap;box-shadow:0 8px 30px rgba(0,0,0,.5);';
+                    const head = document.createElement('div');
+                    head.style.cssText = 'color:#ffd400;font-weight:bold;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;gap:8px;';
+                    const ttl = document.createElement('span');
+                    const rel = (window.TMS_RELEASE && window.TMS_RELEASE.version) ? ('v' + window.TMS_RELEASE.version + ' b' + (window.TMS_RELEASE.build || '?')) : 'v?';
+                    ttl.textContent = 'SVC DEBUG · ' + rel;
+                    const close = document.createElement('button');
+                    close.textContent = 'tutup';
+                    close.style.cssText = 'background:#333;color:#fff;border:0;padding:3px 10px;border-radius:6px;font:bold 11px monospace;';
+                    close.onclick = function () { try { localStorage.removeItem('tms_svc_debug'); } catch (e) {} p.remove(); };
+                    head.appendChild(ttl); head.appendChild(close);
+                    p.appendChild(head);
+                    const body = document.createElement('div');
+                    body.id = 'tms-svc-debug-body';
+                    p.appendChild(body);
+                    (document.body || document.documentElement).appendChild(p);
+                }
+                const body = document.getElementById('tms-svc-debug-body');
+                const line = document.createElement('div');
+                line.textContent = '[' + new Date().toLocaleTimeString('id-ID') + '] ' + msg;
+                body.appendChild(line);
+                body.scrollTop = body.scrollHeight;
+            } catch (e) {}
+        }
+        window.tmsSvcDebugLog = tmsSvcDebugLog;
+
+        // Capture-phase witness: membuktikan apakah klik benar-benar sampai ke dokumen.
+        document.addEventListener('click', function (e) {
+            if (!tmsSvcDebugEnabled()) return;
+            const t = (e.target && e.target.closest)
+                ? e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete, .svc-ticket-reassign')
+                : null;
+            if (t) {
+                const ds = t.dataset || {};
+                tmsSvcDebugLog('KLIK terdeteksi: handler=' + ds.svcHandler + ' id=' + ds.svcId + ' extra=' + (ds.svcExtra || '') + ' | runSvcAction=' + (typeof runSvcAction) + ' actionServiceTicket=' + (typeof actionServiceTicket));
+            } else {
+                tmsSvcDebugLog('klik di luar tombol service: <' + (e.target && e.target.tagName ? e.target.tagName.toLowerCase() : '?') + '>');
+            }
+        }, true);
+
         // Single source of truth for service-ticket actions. Direct, no DOM/dataset/closest dependency.
         let _svcActionBusyUntil = 0;
         function runSvcAction(rawId, handler, extra) {
+            tmsSvcDebugLog('runSvcAction(): handler=' + handler + ' id=' + rawId + ' extra=' + (extra || ''));
             const now = Date.now();
-            if (now < _svcActionBusyUntil) return;
+            if (now < _svcActionBusyUntil) { tmsSvcDebugLog('  -> DIABAIKAN (busy guard, klik terlalu cepat)'); return; }
             _svcActionBusyUntil = now + 350;
             if (!rawId || !handler) {
+                tmsSvcDebugLog('  -> ERROR: data tiket tidak lengkap');
                 showToast('Tombol error', 'Data tiket tidak lengkap. Muat ulang halaman.', 'error');
                 return;
             }
@@ -10577,10 +10636,12 @@
                 tmsOnsitePickup: () => actionServiceTicket(id, 'pickup')
             };
             try {
-                if (typeof runners[handler] === 'function') runners[handler]();
-                else if (typeof window[handler] === 'function') window[handler](id, ex);
-                else showToast('Tombol error', `Aksi "${handler}" tidak dikenal. Muat ulang halaman.`, 'error');
+                if (typeof runners[handler] === 'function') { tmsSvcDebugLog('  -> jalankan runner: ' + handler); runners[handler](); }
+                else if (typeof window[handler] === 'function') { tmsSvcDebugLog('  -> jalankan window.' + handler); window[handler](id, ex); }
+                else { tmsSvcDebugLog('  -> ERROR: handler tidak dikenal: ' + handler); showToast('Tombol error', `Aksi "${handler}" tidak dikenal. Muat ulang halaman.`, 'error'); }
+                tmsSvcDebugLog('  -> selesai tanpa error');
             } catch (err) {
+                tmsSvcDebugLog('  -> EXCEPTION: ' + (err && err.message ? err.message : err));
                 console.error('runSvcAction:', handler, err);
                 showToast('Error', 'Gagal menjalankan aksi: ' + (err && err.message ? err.message : err), 'error');
             }
@@ -14536,21 +14597,26 @@
         window.submitRepairLocPickup = submitRepairLocPickup;
 
         function actionServiceTicket(id, action) {
+            tmsSvcDebugLog('actionServiceTicket(): id=' + id + ' action=' + action);
             loadDB();
             syncCurrentUserFromDb({ logoutOnInvalid: false });
             if (!currentUser) {
+                tmsSvcDebugLog('  -> sesi habis (currentUser null)');
                 showToast('Sesi habis', 'Silakan login ulang.', 'error');
                 return;
             }
             const s = findServiceTicket(id);
             if (!s) {
+                tmsSvcDebugLog('  -> tiket tidak ditemukan id=' + id);
                 showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
                 return;
             }
             ensureServiceTicketPjReady(s);
+            tmsSvcDebugLog('  -> user=' + currentUser.user + ' role=' + currentUser.role + ' status=' + s.status + ' repairLoc=' + (s.repairLoc || '-'));
 
             if (action === 'pickup') {
                 if (syncTicketPjFields(s)) saveDB();
+                tmsSvcDebugLog('  -> pickup: isAssignedServiceTs=' + isAssignedServiceTs(s) + ' isRepairLocSet=' + isRepairLocSet(s));
                 if (!isAssignedServiceTs(s)) {
                     const pj = getTicketPjName(s) || 'belum ditunjuk';
                     const pjUser = s.assignedTsUser ? ` (@${s.assignedTsUser})` : '';
