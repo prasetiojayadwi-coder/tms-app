@@ -3912,6 +3912,9 @@
             if (users[sk]) return users[sk];
             return Object.values(users).find(u => u && Number(u.id) === n) || null;
         }
+        function isActiveFieldTsUser(u) {
+            return !!(u && u.role === 'ts' && u.status !== 'suspended' && u.status !== 'disabled');
+        }
         function resolveTicketAssignedTsId(s, users) {
             if (!s) return null;
             const map = users || db.users || {};
@@ -3922,16 +3925,22 @@
                 if (map[String(id)]) return map[String(id)];
                 return Object.values(map).find(u => u && Number(u.id) === n) || null;
             };
-            let u = getU(s.assignedTsId);
-            if (u && u.role === 'ts' && u.status !== 'suspended' && u.status !== 'disabled') {
-                return Number(u.id);
+            // Username PJ paling andal — utamakan assignedTsUser daripada ID stale
+            if (s.assignedTsUser) {
+                const nk = normUserKey(s.assignedTsUser);
+                const byUser = Object.values(map).find(x =>
+                    isActiveFieldTsUser(x) && normUserKey(x.user) === nk
+                );
+                if (byUser) return Number(byUser.id);
             }
-            const hints = [s.assignedTsName, s.assignedTsUser].filter(Boolean);
+            const byId = getU(s.assignedTsId);
+            if (isActiveFieldTsUser(byId)) return Number(byId.id);
+            const hints = [s.assignedTsName].filter(Boolean);
             for (const hint of hints) {
                 const nk = normUserKey(hint);
                 if (!nk) continue;
-                u = Object.values(map).find(x =>
-                    x && x.role === 'ts' && x.status === 'active' &&
+                const u = Object.values(map).find(x =>
+                    isActiveFieldTsUser(x) &&
                     (normUserKey(x.name) === nk || normUserKey(x.user) === nk)
                 );
                 if (u) return Number(u.id);
@@ -9951,13 +9960,34 @@
 
         function ticketPjMatchesCurrentUser(s) {
             if (!currentUser || !s) return false;
-            const cuUser = normUserKey(currentUser.user);
             const uid = Number(currentUser.id);
+            const cuUser = normUserKey(currentUser.user);
+            const resolved = resolveTicketAssignedTsId(s);
+            if (uid > 0 && resolved != null && uid === resolved) return true;
+            if (cuUser && normUserKey(s.assignedTsUser) === cuUser) return true;
             if (uid > 0 && Number(s.assignedTsId) === uid) return true;
-            if (normUserKey(s.assignedTsUser) === cuUser) return true;
-            const tsUser = getDbUser(resolveTicketAssignedTsId(s) || s.assignedTsId);
-            if (tsUser && normUserKey(tsUser.user) === cuUser) return true;
+            // Legacy: tiket lama hanya punya assignedTsName (tanpa username)
+            if (!s.assignedTsUser && s.assignedTsName && cuUser) {
+                const pjName = normUserKey(s.assignedTsName);
+                if (pjName === normUserKey(currentUser.name)) return true;
+                if (pjName === cuUser) return true;
+            }
             return false;
+        }
+
+        function syncTicketPjFields(s, users) {
+            if (!s) return false;
+            const map = users || db.users || {};
+            const resolved = resolveTicketAssignedTsId(s, map);
+            if (resolved == null) return false;
+            const n = Number(resolved);
+            const u = map[n] || map[String(n)] || Object.values(map).find(x => x && Number(x.id) === n);
+            if (!u) return false;
+            let changed = false;
+            if (Number(s.assignedTsId) !== resolved) { s.assignedTsId = resolved; changed = true; }
+            if (s.assignedTsName !== u.name) { s.assignedTsName = u.name; changed = true; }
+            if (s.assignedTsUser !== u.user) { s.assignedTsUser = u.user; changed = true; }
+            return changed;
         }
 
         function repairTicketAssignmentForCurrentUser(s) {
@@ -9965,11 +9995,22 @@
             if (!ticketPjMatchesCurrentUser(s)) return false;
             const uid = Number(currentUser.id);
             if (!uid) return false;
-            if (Number(s.assignedTsId) === uid) return false;
-            s.assignedTsId = uid;
-            s.assignedTsName = currentUser.name;
-            s.assignedTsUser = currentUser.user;
-            return true;
+            let changed = false;
+            if (Number(s.assignedTsId) !== uid) { s.assignedTsId = uid; changed = true; }
+            if (s.assignedTsName !== currentUser.name) { s.assignedTsName = currentUser.name; changed = true; }
+            if (normUserKey(s.assignedTsUser) !== normUserKey(currentUser.user)) {
+                s.assignedTsUser = currentUser.user;
+                changed = true;
+            }
+            return changed;
+        }
+
+        function ensureServiceTicketPjReady(s) {
+            if (!s) return;
+            syncTicketPjFields(s);
+            if (currentUser && isServiceFieldUser(currentUser)) {
+                repairTicketAssignmentForCurrentUser(s);
+            }
         }
 
         function normalizeServiceTicketStatus(s) {
@@ -10050,11 +10091,7 @@
 
         function isAssignedServiceTs(s) {
             if (!currentUser || !isServiceFieldUser(currentUser)) return false;
-            const uid = Number(currentUser.id);
-            const resolved = resolveTicketAssignedTsId(s);
-            if (resolved != null && resolved > 0 && uid === resolved) return true;
-            const ts = getDbUser(s.assignedTsId);
-            if (ts && uid === Number(ts.id)) return true;
+            ensureServiceTicketPjReady(s);
             return ticketPjMatchesCurrentUser(s);
         }
 
@@ -10192,6 +10229,7 @@
             tickets.forEach(s => {
                 if (!s) return;
                 normalizeServiceTicketStatus(s);
+                if (syncTicketPjFields(s)) assignmentFixed = true;
                 if (repairTicketAssignmentForCurrentUser(s)) assignmentFixed = true;
             });
             if (assignmentFixed) saveDB();
@@ -13534,12 +13572,18 @@
                 showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
                 return;
             }
+            ensureServiceTicketPjReady(s);
 
             if (action === 'pickup') {
-                if (repairTicketAssignmentForCurrentUser(s)) saveDB();
-                if (!isAssignedServiceTs(s)) {
+                let pjFixed = repairTicketAssignmentForCurrentUser(s);
+                if (syncTicketPjFields(s)) pjFixed = true;
+                if (pjFixed) saveDB();
+                if (!ticketPjMatchesCurrentUser(s)) {
                     const pj = getTicketPjName(s) || 'belum ditunjuk';
-                    showToast('Akses ditolak', `PJ tiket: ${pj}. Login sebagai teknisi PJ atau hubungi SPV.`, 'error');
+                    const hint = currentUser && currentUser.user
+                        ? ` Login sebagai "${normUserKey(s.assignedTsUser) || 'username PJ'}" (bukan nama tampilan).`
+                        : '';
+                    showToast('Akses ditolak', `PJ tiket: ${pj}.${hint} Hubungi SPV jika PJ salah.`, 'error');
                     return;
                 }
             }
@@ -13822,6 +13866,11 @@
             loadDB();
             const s = findServiceTicket(id);
             if (!s) return;
+            ensureServiceTicketPjReady(s);
+            if (!isAssignedServiceTs(s)) {
+                showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat melanjutkan.', 'error');
+                return;
+            }
             document.getElementById('svc-analysis-id').value = id;
             document.getElementById('svc-analysis-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-analysis-no-service').innerText = s.noService;
@@ -14105,6 +14154,14 @@
         }
 
         function openOnsiteRepair(id) {
+            loadDB();
+            const s = findServiceTicket(id);
+            if (!s) return;
+            ensureServiceTicketPjReady(s);
+            if (!isAssignedServiceTs(s)) {
+                showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat melakukan perbaikan.', 'error');
+                return;
+            }
             setupServiceRepairModal(id, 'onsite');
         }
 

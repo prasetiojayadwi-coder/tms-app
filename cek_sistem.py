@@ -330,6 +330,15 @@ def check_html_integrity():
         ok('Service PJ: auto-repair penugasan teknisi by username/ID')
     else:
         bad('Service PJ: auto-repair penugasan tidak lengkap')
+    if 'function syncTicketPjFields' in js and 'function ensureServiceTicketPjReady' in js:
+        ok('Service PJ: syncTicketPjFields + ensureServiceTicketPjReady')
+    else:
+        bad('Service PJ: sync/ensure PJ tiket tidak lengkap')
+    pj_block = js[js.find('function resolveTicketAssignedTsId'):js.find('function resolveTicketAssignedTsId') + 1400] if 'function resolveTicketAssignedTsId' in js else ''
+    if pj_block and 'assignedTsUser' in pj_block and pj_block.find('assignedTsUser') < pj_block.find('getU(s.assignedTsId)'):
+        ok('Service PJ: resolve utamakan assignedTsUser (bukan ID stale)')
+    else:
+        bad('Service PJ: resolveTicketAssignedTsId belum utamakan username')
     if 'async function hashPassword' in js and 'async function verifyPassword' in js and 'function persistCurrentUserSession' in js:
         ok('Keamanan: hash password PBKDF2 + session tanpa pass')
     else:

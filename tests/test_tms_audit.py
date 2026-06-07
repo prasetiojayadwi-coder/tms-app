@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_75():
+def test_release_version_751():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.5' in rel
+    assert '7.5.1' in rel
 
 
 def test_pwa_files():
@@ -501,3 +501,28 @@ def test_session_restore_validates_user():
 def test_health_audit_cycles():
     data = json.loads((ROOT / 'health.json').read_text(encoding='utf-8'))
     assert data.get('auditCycles', 0) >= 3
+
+
+def test_service_pj_sync_functions():
+    js = _js_bundle()
+    for fn in ('syncTicketPjFields', 'ensureServiceTicketPjReady', 'isActiveFieldTsUser'):
+        assert f'function {fn}' in js
+
+
+def test_service_pj_username_priority():
+    js = _js_bundle()
+    block = js[js.find('function resolveTicketAssignedTsId'):js.find('function resolveTicketAssignedTsId') + 1200]
+    assert 'assignedTsUser' in block
+    assert block.find('assignedTsUser') < block.find('getU(s.assignedTsId)')
+
+
+def test_pickup_shows_login_username_hint():
+    js = _js_bundle()
+    assert 'username PJ' in js or 'assignedTsUser' in js
+
+
+def test_onsite_repair_pj_guard():
+    js = _js_bundle()
+    idx = js.find('function openOnsiteRepair')
+    block = js[idx:idx + 500]
+    assert 'isAssignedServiceTs' in block
