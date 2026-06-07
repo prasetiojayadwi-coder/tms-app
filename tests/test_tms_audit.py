@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_765():
+def test_release_version_766():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.5' in rel
+    assert '7.6.6' in rel
 
 
 def test_onsite_pickup_direct_confirm():
@@ -165,6 +165,9 @@ def test_onsite_pickup_direct_confirm():
     assert 'relinkServiceTicketsForUser(targetUser)' in js
     assert 'relinkServiceTicketsForUser(u, target.serviceTickets)' in js
     assert 'Tiket diselaraskan' in js
+    assert 'function formatServiceTicketActionFallback' in js
+    assert 'filter-service-pj' in (ROOT / 'index.html').read_text(encoding='utf-8')
+    assert 'Tiket Saya (PJ)' in (ROOT / 'index.html').read_text(encoding='utf-8')
 
 
 def test_smart_fill_autocomplete():

@@ -1274,10 +1274,20 @@
                     </div>
                 </div>
 
+                <div id="svc-ts-pj-hint" class="hidden bg-amber-50/80 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 mb-0">
+                    <p class="text-[10px] text-amber-800 dark:text-amber-300 font-bold leading-relaxed"><i class="fa-solid fa-circle-info text-amber-500 mr-1.5"></i> <strong>Teknisi lapangan hanya dapat mengerjakan tiket di mana Anda adalah PJ (Teknisi PJ).</strong> Tiket milik teknisi lain menampilkan label <em>PJ: [nama]</em> — bukan error, melainkan penugasan SPV.</p>
+                </div>
+
                 <!-- Filters & Search -->
                 <div class="bg-white dark:bg-lux-900 border border-gray-200 dark:border-lux-800 rounded-xl p-5 flex flex-col md:flex-row gap-4 shadow-sm">
                     <div class="flex-1 min-w-0">
                         <input type="text" id="search-service" onkeyup="renderServiceTickets()" class="input-field w-full" placeholder="Cari no. service, customer, unit, SN, teknisi...">
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <select id="filter-service-pj" onchange="renderServiceTickets()" class="input-field w-full md:max-w-[180px]">
+                            <option value="all">Semua Tiket</option>
+                            <option value="mine">Tiket Saya (PJ)</option>
+                        </select>
                     </div>
                     <div class="w-full md:w-auto">
                         <select id="filter-service-status" onchange="renderServiceTickets()" class="input-field w-full md:max-w-[200px]">
@@ -10074,6 +10084,7 @@
         function ticketPjMatchesCurrentUser(s) {
             if (!currentUser || !s || !isServiceFieldUser(currentUser)) return false;
             syncCurrentUserFromDb({ logoutOnInvalid: false });
+            syncTicketPjFields(s);
             alignTicketPjToUserIfNamed(s);
             const uid = Number(currentUser.id);
             if (!uid) return false;
@@ -10082,8 +10093,16 @@
             if (cuUser && normUserKey(s.assignedTsUser) === cuUser) return true;
             const resolved = resolveTicketAssignedTsId(s);
             if (resolved != null && Number(resolved) === uid) return true;
-            if (s.assignedTsName && cuName && normUserKey(s.assignedTsName) === cuName && Number(s.assignedTsId) === uid) return true;
+            if (s.assignedTsName && cuName && normUserKey(s.assignedTsName) === cuName) return true;
             return false;
+        }
+
+        function formatServiceTicketActionFallback(s) {
+            if (isServiceFieldUser(currentUser)) {
+                const pj = getTicketPjName(s) || s.assignedTsName || 'belum ditunjuk';
+                return `<span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide" title="Hanya PJ yang ditunjuk SPV yang dapat mengerjakan tiket ini"><i class="fa-solid fa-user-lock mr-1"></i>PJ: ${tmsEscHtml(pj)}</span>`;
+            }
+            return `<span class="text-[10px] text-gray-500 dark:text-lux-500 italic font-bold">Menunggu Giliran</span>`;
         }
 
         function syncTicketPjFields(s, users) {
@@ -10279,9 +10298,6 @@
                     } else {
                         actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
                     }
-                } else if (isServiceFieldUser(currentUser)) {
-                    const pj = getTicketPjName(s) || 'belum ditunjuk';
-                    actionBtn = `<span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide">PJ: ${tmsEscHtml(pj)}</span>`;
                 }
             } else if (s.status === 'picked_up') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
@@ -10334,7 +10350,9 @@
             }
             const descStr = s.unitName || 'Unit Customer';
             const prodBadge = s.unitProduct ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${tmsEscHtml(s.unitProduct)}</span>` : '';
-            return { ts, date, statusBadge, actionBtn, ownerDeleteBtn, descStr, prodBadge };
+            if (!actionBtn) actionBtn = formatServiceTicketActionFallback(s);
+            const isMine = isAssignedServiceTs(s);
+            return { ts, date, statusBadge, actionBtn, ownerDeleteBtn, descStr, prodBadge, isMine };
         }
 
         function renderServiceTickets(skipReload) {
@@ -10391,6 +10409,19 @@
 
             const query = (document.getElementById('search-service').value || '').toLowerCase().trim();
             const statusFilter = document.getElementById('filter-service-status').value;
+            const pjFilterEl = document.getElementById('filter-service-pj');
+            const pjFilter = pjFilterEl ? pjFilterEl.value : 'all';
+            const pjHint = document.getElementById('svc-ts-pj-hint');
+            if (pjHint) {
+                if (currentUser && isServiceFieldUser(currentUser)) pjHint.classList.remove('hidden');
+                else pjHint.classList.add('hidden');
+            }
+            if (pjFilterEl && currentUser && isServiceFieldUser(currentUser)) {
+                pjFilterEl.classList.remove('hidden');
+            } else if (pjFilterEl) {
+                pjFilterEl.classList.add('hidden');
+                pjFilterEl.value = 'all';
+            }
 
             let countReg = 0, countAnalysing = 0, countPo = 0, countRepair = 0, countDone = 0;
 
@@ -10436,7 +10467,8 @@
                                      unitSn.toLowerCase().includes(query) ||
                                      ts.toLowerCase().includes(query);
                 const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-                return matchesQuery && matchesStatus;
+                const matchesPj = pjFilter !== 'mine' || !isServiceFieldUser(currentUser) || ticketPjMatchesCurrentUser(s);
+                return matchesQuery && matchesStatus && matchesPj;
             });
 
             filtered.sort((a, b) => b.id - a.id);
@@ -10463,9 +10495,9 @@
                 const descStr = tmsEscHtml(row.descStr);
                 const unitMeta = tmsEscHtml(formatServiceUnitMeta(s));
                 const tsName = tmsEscHtml(row.ts);
-                const waitLbl = `<span class="text-[10px] text-gray-500 dark:text-lux-500 italic font-bold">Menunggu Giliran</span>`;
-                const actionCell = row.actionBtn || waitLbl;
-                tableRows.push(`<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
+                const actionCell = row.actionBtn;
+                const mineRowCls = row.isMine ? ' bg-gold-500/5 dark:bg-gold-500/10 ring-1 ring-inset ring-gold-500/20' : '';
+                tableRows.push(`<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition${mineRowCls}">
                         <td class="p-5 text-center"><input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
                         <td class="p-5 font-mono text-[12px] font-bold text-gray-900 dark:text-white whitespace-nowrap">
                             <div class="flex flex-col gap-1.5 items-start">
@@ -10507,7 +10539,8 @@
                     const mobActBtn = row.actionBtn
                         ? row.actionBtn.replace(/tms-svc-btn tms-svc-btn--primary svc-ticket-action/g, mobPriCls).replace(/tms-svc-btn svc-ticket-action/g, 'tms-card-btn svc-ticket-action')
                         : '';
-                    cardRows.push(`<div class="p-4 border-b border-gray-100 dark:border-lux-800/60">
+                    const mineCardCls = row.isMine ? ' ring-1 ring-inset ring-gold-500/25 bg-gold-500/5 dark:bg-gold-500/10' : '';
+                    cardRows.push(`<div class="p-4 border-b border-gray-100 dark:border-lux-800/60${mineCardCls}">
                         <div class="flex justify-between items-start gap-3">
                             <input type="checkbox" value="${s.id}" class="service-ticket-checkbox cust-master-cb w-5 h-5 rounded cursor-pointer shrink-0 mt-1" onclick="event.stopPropagation()">
                             <div class="min-w-0 flex-1">
@@ -10526,7 +10559,7 @@
                             ${s.status !== 'registered' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="openServiceReceiptModal" class="tms-card-btn svc-ticket-receipt" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid fa-print mr-1"></i>Tanda Terima</button>` : ''}
                             ${currentUser.role === 'owner' ? `<button type="button" data-svc-id="${s.id}" data-svc-handler="deleteServiceTicket" class="tms-card-btn tms-card-btn--danger svc-ticket-delete" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid fa-trash mr-1"></i>Hapus</button>` : ''}
                         </div>
-                        ${mobActBtn ? `<div class="svc-mob-actions">${mobActBtn}</div>` : `<p class="text-[10px] text-gray-400 dark:text-lux-500 italic mt-2 text-center">Menunggu giliran</p>`}
+                        ${mobActBtn ? `<div class="svc-mob-actions">${mobActBtn}</div>` : `<div class="mt-2 text-center">${row.actionBtn}</div>`}
                     </div>`);
                 }
             });
