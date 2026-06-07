@@ -109,6 +109,27 @@
         return uploadDb;
     }
 
+    var TMS_SAFE_DATA_URL_RE = /^data:(image\/(?:png|jpeg|jpg|gif|webp|svg\+xml)|application\/pdf);base64,[A-Za-z0-9+/=]+$/;
+
+    function tmsSafeDataUrl(url) {
+        if (!url || typeof url !== 'string') return '';
+        var trimmed = url.trim();
+        if (trimmed.length > 6 * 1024 * 1024) return '';
+        return TMS_SAFE_DATA_URL_RE.test(trimmed) ? trimmed : '';
+    }
+
+    function sanitizeDbForRestore(db) {
+        var restored = JSON.parse(JSON.stringify(db || {}));
+        if (restored.users && typeof restored.users === 'object') {
+            Object.keys(restored.users).forEach(function (k) {
+                var u = restored.users[k];
+                if (!u || typeof u !== 'object') return;
+                if (u.pass && !isPasswordHashed(u.pass)) delete u.pass;
+            });
+        }
+        return restored;
+    }
+
     global.TMS_PBKDF2_ITERS = TMS_PBKDF2_ITERS;
     global.tmsEscHtml = tmsEscHtml;
     global.tmsEscAttr = tmsEscAttr;
@@ -121,4 +142,6 @@
     global.getTmsSyncSecret = getTmsSyncSecret;
     global.cloneDbForCloudUpload = cloneDbForCloudUpload;
     global.tmsEscToolFields = tmsEscToolFields;
+    global.tmsSafeDataUrl = tmsSafeDataUrl;
+    global.sanitizeDbForRestore = sanitizeDbForRestore;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -8,6 +8,16 @@
         return String(v || '').trim().toLowerCase();
     }
 
+    function getDbUserById(db, id) {
+        if (id == null || id === '' || id === 0) return null;
+        var users = db.users || {};
+        var n = Number(id);
+        if (!isNaN(n) && users[n]) return users[n];
+        var sk = String(id);
+        if (users[sk]) return users[sk];
+        return Object.values(users).find(function (u) { return u && Number(u.id) === n; }) || null;
+    }
+
     function runDbIntegrityCheck(db) {
         const issues = [];
         if (!db || typeof db !== 'object') {
@@ -41,6 +51,13 @@
         (db.demoUnits || []).forEach(function (t) {
             if (t.ownerId > 0 && !db.users[t.ownerId]) {
                 issues.push({ level: 'low', code: 'ORPHAN_DEMO_OWNER', message: 'Demo ' + (t.noInv || t.id) + ' has orphan ownerId ' + t.ownerId });
+            }
+        });
+        (db.serviceTickets || []).forEach(function (s) {
+            if (!s) return;
+            var pjId = s.assignedTsId;
+            if (pjId != null && pjId !== '' && Number(pjId) > 0 && !getDbUserById(db, pjId)) {
+                issues.push({ level: 'medium', code: 'ORPHAN_SERVICE_PJ', message: 'Service ticket ' + (s.noService || s.id) + ' has orphan assignedTsId ' + pjId });
             }
         });
         if (typeof db.version !== 'number' && typeof db.version !== 'string') {

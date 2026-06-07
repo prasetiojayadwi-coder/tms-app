@@ -43,7 +43,7 @@ def test_security_module_loaded():
 
 def test_tms_security_exports():
     sec = (ROOT / 'js/tms-security.js').read_text(encoding='utf-8')
-    for sym in ('tmsEscHtml', 'hashPassword', 'cloneDbForCloudUpload', 'getTmsSyncSecret'):
+    for sym in ('tmsEscHtml', 'hashPassword', 'cloneDbForCloudUpload', 'getTmsSyncSecret', 'tmsSafeDataUrl', 'sanitizeDbForRestore'):
         assert sym in sec
 
 
@@ -145,9 +145,11 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7100():
+def test_release_version_7101():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.0' in rel
+    assert '7.10.1' in rel
+    assert re.search(r"build:\s*123", rel)
+    assert 'tms-cache-v123' in (ROOT / 'sw.js').read_text(encoding='utf-8')
 
 
 def test_pj_reassignment_flow():
@@ -162,6 +164,18 @@ def test_pj_reassignment_flow():
     assert "s.status === 'registered'" in block
     assert 's.repairLoc = null' in block
     assert 'canReassignServiceTicket(s)' in js
+    assert "tmsRequirePerm('REASSIGN_SERVICE_PJ'" in js
+    auth = (ROOT / 'js/tms-auth.js').read_text(encoding='utf-8')
+    assert 'REASSIGN_SERVICE_PJ' in auth
+
+
+def test_session_idle_and_restore_hardening():
+    js = _js_bundle()
+    assert 'tmsInitSessionIdleWatch' in js
+    assert 'sanitizeDbForRestore' in js
+    assert 'tmsSafeDataUrl' in js
+    integrity = (ROOT / 'js/tms-integrity.js').read_text(encoding='utf-8')
+    assert 'ORPHAN_SERVICE_PJ' in integrity
 
 
 def test_service_ticket_creator_roles():
@@ -172,6 +186,13 @@ def test_service_ticket_creator_roles():
     assert 'isServiceSpecRole(u)' in js[js.find('function canCreateServiceTicket'):js.find('function canActAsServicePj')]
     reg_btn = js[js.find('function renderServiceTickets'):js.find('function renderServiceTickets') + 3500]
     assert 'canCreateServiceTicket(currentUser)' in reg_btn
+
+
+def test_svc_ticket_btn_has_direct_onclick():
+    js = _js_bundle()
+    block = js[js.find('function svcTicketBtn'):js.find('function svcTicketBtn') + 600]
+    assert 'onclick="runServiceTicketAction(this)' in block
+    assert 'bindServiceTicketGlobalActions();' in js[js.find('function bindServiceTicketGlobalActions'):js.find('function bindServiceTicketGlobalActions') + 800]
 
 
 def test_pj_pick_path_then_handover():

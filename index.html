@@ -5607,6 +5607,7 @@
             if (loginForm) loginForm.reset();
             initRealtimeSync();
         }
+        window.handleLogout = handleLogout;
 
         function initAppUI() {
             syncCurrentUserFromDb();
@@ -5614,6 +5615,7 @@
             loadDB();
             healServiceTicketsForCurrentUser();
             if (typeof tmsRunIntegrityAndLog === 'function') tmsRunIntegrityAndLog(db);
+            if (typeof tmsInitSessionIdleWatch === 'function') tmsInitSessionIdleWatch();
             bindServiceTicketCardActions();
             const mobileLite = isTmsMobileView();
             const tabOpts = mobileLite ? { lite: true } : undefined;
@@ -9236,7 +9238,7 @@
                     const parsed = JSON.parse(e.target.result);
                     if (parsed.users && parsed.tools && parsed.demoUnits && parsed.requests && parsed.historyLog) {
                         if (confirm("Peringatan: Seluruh data lokal saat ini akan ditimpa dengan data cadangan ini. Lanjutkan?")) {
-                            db = parsed;
+                            db = typeof sanitizeDbForRestore === 'function' ? sanitizeDbForRestore(parsed) : parsed;
                             saveDB();
                             showToast("Database Dipulihkan", "Seluruh data berhasil diperbarui.", "success");
                             setTimeout(() => { window.location.reload(); }, 1500);
@@ -10255,6 +10257,7 @@
 
         function submitReassignPj(e) {
             e.preventDefault();
+            if (!tmsRequirePerm('REASSIGN_SERVICE_PJ', 'Mengalihkan PJ tiket service')) return;
             loadDB();
             syncCurrentUserFromDb({ logoutOnInvalid: false });
             const id = parseInt(document.getElementById('reassign-pj-ticket-id').value, 10);
@@ -10540,7 +10543,7 @@
             const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
             const sid = String(id);
             const ex = extra ? ` data-svc-extra="${extra}"` : '';
-            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
         let _svcActionBusyUntil = 0;
@@ -10597,6 +10600,7 @@
                 runServiceTicketAction(btn);
             }, true);
         }
+        bindServiceTicketGlobalActions();
 
         function bindServiceTicketCardActions() {
             bindServiceTicketGlobalActions();
@@ -12020,13 +12024,16 @@
 
         function buildCompressedDocPreviewHtml(dataUrl, label) {
             if (!dataUrl) return '';
-            if (dataUrl.startsWith('data:image/')) {
-                return `<div class="mt-2"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">${label}</p><img src="${dataUrl}" class="max-h-40 rounded-lg border border-gray-200 dark:border-lux-700" alt="${label}"></div>`;
+            const safeUrl = typeof tmsSafeDataUrl === 'function' ? tmsSafeDataUrl(dataUrl) : '';
+            if (!safeUrl) return '';
+            const safeLabel = tmsEscHtml(label);
+            if (safeUrl.startsWith('data:image/')) {
+                return `<div class="mt-2"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">${safeLabel}</p><img src="${safeUrl}" class="max-h-40 rounded-lg border border-gray-200 dark:border-lux-700" alt="${safeLabel}"></div>`;
             }
-            if (dataUrl.startsWith('data:application/pdf')) {
-                return `<div class="mt-2"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">${label}</p><embed src="${dataUrl}" type="application/pdf" class="w-full h-48 rounded-lg border border-gray-200 dark:border-lux-700"></div>`;
+            if (safeUrl.startsWith('data:application/pdf')) {
+                return `<div class="mt-2"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">${safeLabel}</p><embed src="${safeUrl}" type="application/pdf" class="w-full h-48 rounded-lg border border-gray-200 dark:border-lux-700"></embed></div>`;
             }
-            return `<p class="text-[10px] text-gray-500 mt-1">${label} attached.</p>`;
+            return `<p class="text-[10px] text-gray-500 mt-1">${safeLabel} attached.</p>`;
         }
 
         function showSphDetail(sphId) {
@@ -12040,21 +12047,21 @@
             const lines = d.lines || [];
             const partsTotal = lines.reduce((s, l) => s + (l.subtotal || 0), 0);
             const labor = d.laborAmount || 0;
-            let linesHtml = lines.length ? `<table class="w-full text-left text-[11px] border border-gray-200 dark:border-lux-800 rounded-xl overflow-hidden"><thead class="bg-gray-50 dark:bg-[#131316] text-[9px] uppercase tracking-widest text-gray-500"><tr><th class="p-2">Art No.</th><th class="p-2">Description</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Harga</th><th class="p-2 text-right">Subtotal</th></tr></thead><tbody>${lines.map(l => `<tr class="border-t border-gray-100 dark:border-lux-800"><td class="p-2 font-mono font-bold text-violet-600">${l.artNo || '-'}</td><td class="p-2">${l.description || '-'}</td><td class="p-2 text-right">${l.qty || 1}</td><td class="p-2 text-right font-mono">Rp ${(l.unitPrice || 0).toLocaleString('id-ID')}</td><td class="p-2 text-right font-mono font-bold">Rp ${(l.subtotal || 0).toLocaleString('id-ID')}</td></tr>`).join('')}</tbody></table>` : '<p class="text-[11px] text-gray-400 italic">No sparepart lines.</p>';
-            const ticketHtml = tickets.length ? tickets.map(t => `<button type="button" onclick="closeModal('sphDetailModal');showServiceDetail(${t.id})" class="block w-full text-left px-3 py-2 mb-1 bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-lg text-[11px] hover:bg-violet-50 dark:hover:bg-violet-950/20"><span class="font-mono font-bold text-gold-600">${t.noService}</span> — ${t.unitName} <span class="text-[10px] text-gray-500">(${t.status})</span></button>`).join('') : '<p class="text-[11px] text-gray-400 italic">No linked tickets.</p>';
-            const hist = (d.history || []).slice(0, 8).map(h => `<li class="text-[10px] text-gray-600 dark:text-lux-400"><span class="font-mono text-gray-400">${h.t ? new Date(h.t).toLocaleString('id-ID') : '-'}</span> — ${h.m || '-'}</li>`).join('') || '<li class="text-[10px] text-gray-400 italic">No history.</li>';
+            let linesHtml = lines.length ? `<table class="w-full text-left text-[11px] border border-gray-200 dark:border-lux-800 rounded-xl overflow-hidden"><thead class="bg-gray-50 dark:bg-[#131316] text-[9px] uppercase tracking-widest text-gray-500"><tr><th class="p-2">Art No.</th><th class="p-2">Description</th><th class="p-2 text-right">Qty</th><th class="p-2 text-right">Harga</th><th class="p-2 text-right">Subtotal</th></tr></thead><tbody>${lines.map(l => `<tr class="border-t border-gray-100 dark:border-lux-800"><td class="p-2 font-mono font-bold text-violet-600">${tmsEscHtml(l.artNo || '-')}</td><td class="p-2">${tmsEscHtml(l.description || '-')}</td><td class="p-2 text-right">${l.qty || 1}</td><td class="p-2 text-right font-mono">Rp ${(l.unitPrice || 0).toLocaleString('id-ID')}</td><td class="p-2 text-right font-mono font-bold">Rp ${(l.subtotal || 0).toLocaleString('id-ID')}</td></tr>`).join('')}</tbody></table>` : '<p class="text-[11px] text-gray-400 italic">No sparepart lines.</p>';
+            const ticketHtml = tickets.length ? tickets.map(t => `<button type="button" onclick="closeModal('sphDetailModal');showServiceDetail(${t.id})" class="block w-full text-left px-3 py-2 mb-1 bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 rounded-lg text-[11px] hover:bg-violet-50 dark:hover:bg-violet-950/20"><span class="font-mono font-bold text-gold-600">${tmsEscHtml(t.noService)}</span> — ${tmsEscHtml(t.unitName)} <span class="text-[10px] text-gray-500">(${tmsEscHtml(t.status)})</span></button>`).join('') : '<p class="text-[11px] text-gray-400 italic">No linked tickets.</p>';
+            const hist = (d.history || []).slice(0, 8).map(h => `<li class="text-[10px] text-gray-600 dark:text-lux-400"><span class="font-mono text-gray-400">${h.t ? new Date(h.t).toLocaleString('id-ID') : '-'}</span> — ${tmsEscHtml(h.m || '-')}</li>`).join('') || '<li class="text-[10px] text-gray-400 italic">No history.</li>';
             const poDocPreview = buildCompressedDocPreviewHtml(d.docPo, 'PO Document');
             const sphDocPreview = buildCompressedDocPreviewHtml(d.docSph, 'SPH Document');
-            const poBlock = d.poNumber ? `<div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 p-3 rounded-xl text-[11px]"><p class="font-black text-emerald-700 dark:text-emerald-400 uppercase text-[9px] mb-1">Purchase Order</p><p><strong>${d.poNumber}</strong> — Rp ${(d.poAmount || 0).toLocaleString('id-ID')} — ${d.poDate || '-'}</p>${poDocPreview}</div>` : '<p class="text-[11px] text-amber-600 font-bold">PO belum diterima.</p>';
+            const poBlock = d.poNumber ? `<div class="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 p-3 rounded-xl text-[11px]"><p class="font-black text-emerald-700 dark:text-emerald-400 uppercase text-[9px] mb-1">Purchase Order</p><p><strong>${tmsEscHtml(d.poNumber)}</strong> — Rp ${(d.poAmount || 0).toLocaleString('id-ID')} — ${tmsEscHtml(d.poDate || '-')}</p>${poDocPreview}</div>` : '<p class="text-[11px] text-amber-600 font-bold">PO belum diterima.</p>';
             document.getElementById('sph-detail-title').innerText = d.sphNo;
             document.getElementById('sph-detail-body').innerHTML = `
                 <div class="grid grid-cols-2 gap-3 text-[11px]">
-                    <div><p class="text-[9px] uppercase text-gray-400 font-black">Customer</p><p class="font-bold">${d.customerName || '-'}</p></div>
+                    <div><p class="text-[9px] uppercase text-gray-400 font-black">Customer</p><p class="font-bold">${tmsEscHtml(d.customerName || '-')}</p></div>
                     <div><p class="text-[9px] uppercase text-gray-400 font-black">Path</p><p class="font-bold">${pathLabel}</p></div>
                     <div><p class="text-[9px] uppercase text-gray-400 font-black">Status</p><p class="font-bold">${stLabel}</p></div>
                     <div><p class="text-[9px] uppercase text-gray-400 font-black">Total</p><p class="font-mono font-bold text-emerald-600">Rp ${(d.totalAmount || 0).toLocaleString('id-ID')}</p></div>
                 </div>
-                ${d.notes ? `<div class="text-[11px]"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">Inspection Notes</p><p class="italic text-gray-600 dark:text-lux-300">${d.notes}</p></div>` : ''}
+                ${d.notes ? `<div class="text-[11px]"><p class="text-[9px] uppercase text-gray-400 font-black mb-1">Inspection Notes</p><p class="italic text-gray-600 dark:text-lux-300">${tmsEscHtml(d.notes)}</p></div>` : ''}
                 <div><p class="text-[9px] uppercase text-gray-400 font-black mb-2">Sparepart Lines</p>${linesHtml}
                     <div class="flex justify-end gap-4 mt-2 text-[11px] font-mono"><span>Parts: Rp ${partsTotal.toLocaleString('id-ID')}</span><span>Labor: Rp ${labor.toLocaleString('id-ID')}</span></div></div>
                 ${poBlock}
@@ -13552,7 +13559,7 @@
             const statusLabels = { completed: 'Selesai', registered: 'Baru', cancelled: 'Batal' };
             hintEl.innerText = last.complaint || '(Tidak ada deskripsi keluhan tersimpan)';
             if (metaEl) {
-                metaEl.innerHTML = `<strong>${last.noService || '-'}</strong> · ${statusLabels[last.status] || last.status || '-'} · ${date} · Total ${history.length} riwayat service`;
+                metaEl.innerHTML = `<strong>${tmsEscHtml(last.noService || '-')}</strong> · ${tmsEscHtml(statusLabels[last.status] || last.status || '-')} · ${tmsEscHtml(date)} · Total ${history.length} riwayat service`;
             }
             box.classList.remove('hidden');
         }
@@ -16017,8 +16024,11 @@
             
             const sigWrapper = document.getElementById('svc-det-sig-wrapper');
             if (s.signature) {
-                sigWrapper.classList.remove('hidden');
-                document.getElementById('svc-det-sig-img').src = s.signature;
+                const safeSig = typeof tmsSafeDataUrl === 'function' ? tmsSafeDataUrl(s.signature) : '';
+                if (safeSig) {
+                    sigWrapper.classList.remove('hidden');
+                    document.getElementById('svc-det-sig-img').src = safeSig;
+                } else sigWrapper.classList.add('hidden');
             } else {
                 sigWrapper.classList.add('hidden');
             }
@@ -16064,37 +16074,42 @@
                     hour: '2-digit', minute: '2-digit'
                 });
                 let attachmentHtml = '';
-                if (h.sigGiver || h.sigReceiver) {
+                const safeSigGiver = typeof tmsSafeDataUrl === 'function' ? tmsSafeDataUrl(h.sigGiver) : '';
+                const safeSigReceiver = typeof tmsSafeDataUrl === 'function' ? tmsSafeDataUrl(h.sigReceiver) : '';
+                if (safeSigGiver || safeSigReceiver) {
                     attachmentHtml = `
                         <div class="mt-3 flex gap-3 p-2.5 bg-gray-50 dark:bg-[#0f0f11] rounded-xl border border-gray-200 dark:border-lux-800 w-max shadow-sm">
-                            ${h.sigGiver ? `
+                            ${safeSigGiver ? `
                             <div class="flex flex-col items-center">
                                 <p class="text-[7.5px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-wider mb-1"><i class="fa-solid fa-signature text-gold-500 mr-1"></i> Penyerah/Pemberi</p>
-                                <img src="${h.sigGiver}" class="h-8 bg-white dark:bg-transparent rounded px-1" alt="Signature Giver">
+                                <img src="${safeSigGiver}" class="h-8 bg-white dark:bg-transparent rounded px-1" alt="Signature Giver">
                             </div>
                             ` : ''}
-                            ${h.sigReceiver ? `
+                            ${safeSigReceiver ? `
                             <div class="flex flex-col items-center">
                                 <p class="text-[7.5px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-wider mb-1"><i class="fa-solid fa-signature text-gold-500 mr-1"></i> Penerima</p>
-                                <img src="${h.sigReceiver}" class="h-8 bg-white dark:bg-transparent rounded px-1" alt="Signature Receiver">
+                                <img src="${safeSigReceiver}" class="h-8 bg-white dark:bg-transparent rounded px-1" alt="Signature Receiver">
                             </div>
                             ` : ''}
                         </div>
                     `;
                 } else if (h.sig) {
-                    attachmentHtml = `
+                    const safeSig = typeof tmsSafeDataUrl === 'function' ? tmsSafeDataUrl(h.sig) : '';
+                    if (safeSig) {
+                        attachmentHtml = `
                         <div class="mt-3 p-2 bg-white dark:bg-[#0f0f11] rounded-xl border border-gray-200 dark:border-lux-800 w-max shadow-sm">
                             <p class="text-[8.5px] text-gray-400 dark:text-lux-500 font-black uppercase tracking-widest mb-1.5"><i class="fa-solid fa-signature text-gold-500 mr-1"></i> Signature</p>
-                            <img src="${h.sig}" class="h-10 bg-white dark:bg-transparent rounded px-1" alt="Signature">
+                            <img src="${safeSig}" class="h-10 bg-white dark:bg-transparent rounded px-1" alt="Signature">
                         </div>
                     `;
+                    }
                 }
                 timeline.innerHTML += `
                     <div class="relative pl-8">
                         <span class="absolute left-[-5px] top-1.5 w-3 h-3 rounded-full bg-gold-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span>
                         <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mb-1 font-bold">${timeStr} WIB</p>
                         <p class="text-[12.5px] text-gray-900 dark:text-white font-medium leading-relaxed bg-gray-50 dark:bg-[#18181b] border border-gray-200 dark:border-lux-800 p-3 rounded-xl mt-1">
-                            ${h.m}
+                            ${tmsEscHtml(h.m)}
                             ${attachmentHtml}
                         </p>
                     </div>

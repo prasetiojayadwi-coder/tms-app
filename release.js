@@ -1,17 +1,38 @@
-/**
- * TMS Release manifest — bump version & changelog on every deploy.
- * Service Worker cache version (sw.js) should match `build`.
- */
-window.TMS_RELEASE = {
-    version: '7.10.0',
-    build: 122,
-    date: '2026-06-07',
-    title: 'System Update Available',
-    summary: 'Alihkan PJ tiket service — Owner/SPV/Spec dengan audit trail & tanpa reset alur TSF.',
-    changes: [
-        { icon: 'fa-people-arrows', text: 'Ganti PJ: Owner, SPV, Technical Specialist (tiket belum selesai)' },
-        { icon: 'fa-clipboard-list', text: 'Alasan wajib + riwayat audit saat tiket sudah berjalan' },
-        { icon: 'fa-route', text: 'Tiket Terdaftar: PJ baru pilih ulang jalur Lapangan/TSF' },
-        { icon: 'fa-shield', text: 'Status/SPH/PO/TSF tidak di-reset — hanya penanggung jawab lapangan berganti' }
-    ]
-};
+/**
+
+ * TMS Release manifest — bump version & changelog on every deploy.
+
+ * Service Worker cache version (sw.js) should match `build`.
+
+ */
+
+window.TMS_RELEASE = {
+
+    version: '7.10.1',
+
+    build: 123,
+
+    date: '2026-06-07',
+
+    title: 'System Update Available',
+
+    summary: 'Fix tombol Mulai Pekerjaan + hardening keamanan XSS, data URL, idle session.',
+
+    changes: [
+
+        { icon: 'fa-play', text: 'Fix: tombol Mulai Pekerjaan — onclick langsung + event binding awal' },
+
+        { icon: 'fa-shield-halved', text: 'XSS: timeline service, SPH detail, riwayat unit — semua teks di-escape' },
+
+        { icon: 'fa-image', text: 'Tanda tangan & lampiran: hanya data:image/pdf yang valid' },
+
+        { icon: 'fa-clock', text: 'Auto logout setelah 4 jam tidak aktif' },
+
+        { icon: 'fa-database', text: 'Impor backup: password plain-text dihapus otomatis' },
+
+        { icon: 'fa-people-arrows', text: 'PJ reassignment tetap — guard permission matrix diperkuat' }
+
+    ]
+
+};
+
