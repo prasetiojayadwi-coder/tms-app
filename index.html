@@ -14176,6 +14176,35 @@
             });
         }
 
+        function executeWorkshopPickup(id) {
+            const s = findServiceTicket(id);
+            if (!s || !currentUser) return false;
+            const now = new Date().toISOString();
+            s.status = 'picked_up';
+            s.updatedAt = now;
+            s.pickupConfirmedAt = now;
+            s.pickupConfirmedBy = currentUser.user;
+            s.history.unshift({
+                t: now,
+                m: `Unit diambil oleh PJ ${currentUser.name} (@${currentUser.user}). TTD PIC dapat dilengkapi via menu Tanda Terima bila diperlukan.`
+            });
+            addToHistory(`Service Unit Pickup: ${s.noService} diambil oleh ${currentUser.name}.`);
+            notifyServiceUpdate(s, 'picked_up');
+            db.version = Math.max(db.version || 0, Date.now()) + 1;
+            invalidateServiceHistoryIndex();
+            const saved = safeSaveLocalStorage();
+            if (supabaseClient) scheduleSyncWithCloud(true);
+            renderServiceTickets(true);
+            playNotificationSound();
+            showToast('Unit Di-pickup', `Tiket ${s.noService} aktif. Klik Analisa Awal untuk lanjut.`, 'success');
+            if (!saved) {
+                showToast('Peringatan', 'Penyimpanan lokal penuh — pastikan CLOUD LIVE aktif.', 'error');
+            }
+            return true;
+        }
+
+        window.executeWorkshopPickup = executeWorkshopPickup;
+
         function executeOnsitePickup(id) {
             const s = findServiceTicket(id);
             if (!s || !currentUser) return false;
@@ -14257,6 +14286,8 @@
                     executeOnsitePickup(id);
                     return;
                 }
+                executeWorkshopPickup(id);
+                return;
             }
             if (action === 'receive_field' && !isAssignedServiceTs(s)) {
                 showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat menerima unit di lapangan.', 'error');
@@ -14539,8 +14570,9 @@
             s.updatedAt = new Date().toISOString();
             playNotificationSound();
             saveDB();
-            updateData();
             closeModal('handoverSignatureModal');
+            if (activeTab === 'customer-service') renderServiceTickets(true);
+            else updateData();
         }
 
         function openAnalysisModal(id) {

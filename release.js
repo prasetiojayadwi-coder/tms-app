@@ -3,14 +3,14 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '7.6.8',
-    build: 117,
+    version: '7.6.9',
+    build: 118,
     date: '2026-06-07',
     title: 'System Update Available',
-    summary: 'Fix: teknisi yang buat tiket otomatis jadi PJ & bisa langsung mengerjakan.',
+    summary: 'Fix Pickup Unit — teknisi lapangan tidak perlu TTD PIC untuk mulai kerja.',
     changes: [
-        { icon: 'fa-user-pen', text: 'Daftar Unit oleh teknisi → PJ dipaksa ke diri sendiri (bukan dropdown)' },
-        { icon: 'fa-link', text: 'registeredById/User — pembuat tiket selalu boleh mengerjakan' },
-        { icon: 'fa-wrench', text: 'Heal tiket lama: PJ diselaraskan ke pembuat teknisi' }
+        { icon: 'fa-truck-pickup', text: 'Pickup TSF Workshop: 1 klik langsung (tanpa modal TTD PIC)' },
+        { icon: 'fa-file-signature', text: 'TTD PIC opsional via menu Tanda Terima' },
+        { icon: 'fa-shield', text: 'Status pickup tidak revert setelah simpan' }
     ]
 };

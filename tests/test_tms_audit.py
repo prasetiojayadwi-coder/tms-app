@@ -145,9 +145,18 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_768():
+def test_release_version_769():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.8' in rel
+    assert '7.6.9' in rel
+
+
+def test_workshop_pickup_one_click():
+    js = _js_bundle()
+    assert 'function executeWorkshopPickup' in js
+    block = js[js.find('function actionServiceTicket'):js.find('function actionServiceTicket') + 2200]
+    assert 'executeWorkshopPickup(id)' in block
+    sig_block = js[js.find('function submitHandoverSignature'):js.find('function openAnalysisModal')]
+    assert 'renderServiceTickets(true)' in sig_block
 
 
 def test_technician_creator_is_pj():
