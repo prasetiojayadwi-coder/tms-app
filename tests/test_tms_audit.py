@@ -145,9 +145,22 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_769():
+def test_release_version_770():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.9' in rel
+    assert '7.7.0' in rel
+
+
+def test_repair_loc_by_technician():
+    js = _js_bundle()
+    assert 'function isRepairLocSet' in js
+    assert 'function openRepairLocPickModal' in js
+    assert 'function submitRepairLocPickup' in js
+    assert 'repairLocPickModal' in js
+    assert 'svc-repair-loc' not in js
+    reg_block = js[js.find('async function submitServiceTicket'):js.find('async function submitServiceTicket') + 4500]
+    assert 'repairLoc: null' in reg_block
+    pickup_block = js[js.find('function actionServiceTicket'):js.find('function actionServiceTicket') + 2400]
+    assert 'openRepairLocPickModal(id)' in pickup_block
 
 
 def test_workshop_pickup_one_click():
@@ -187,7 +200,8 @@ def test_onsite_pickup_direct_confirm():
     assert 'renderServiceTickets(true)' in js
     assert 'alignTicketPjToUserIfNamed' in js
     assert "tmsOnsitePickup: () => window.tmsOnsitePickup(id)" in js
-    assert "svcTicketBtn(s.id, 'tmsOnsitePickup'" in js
+    assert "svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit'" in js
+    assert "executeOnsitePickup(id)" in js[js.find('function submitRepairLocPickup'):js.find('function executeWorkshopPickup')]
     assert 'function healServiceTicketsForCurrentUser' in js
     assert 'function relinkServiceTicketsForUser' in js
     assert 'function healAllServiceTicketPj' in js

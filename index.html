@@ -2178,16 +2178,19 @@
                     <div class="tms-suggest-wrap"><label class="input-label">Equipment Name / Unit Description <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-name" required class="input-field" placeholder="Ketik nama unit..." autocomplete="off" oninput="onSvcUnitNameInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'unit')" onblur="setTimeout(() => hideSvcSuggest('unit'), 180)"><div id="svc-suggest-unit" class="tms-suggest-dropdown hidden"></div></div>
                     <div class="tms-suggest-wrap"><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Ketik SN..." autocomplete="off" oninput="onSvcSnInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'sn')" onblur="setTimeout(() => hideSvcSuggest('sn'), 180)"><div id="svc-suggest-sn" class="tms-suggest-dropdown hidden"></div></div>
                     <div class="md:col-span-2"><label class="input-label">Complaint / Equipment Issue Description <span class="text-gold-500">*</span></label><textarea id="svc-complaint" required rows="3" class="input-field" placeholder="Describe the issue or equipment damage complaint..."></textarea></div>
-                    <div><label class="input-label">Select Field Technician for Pickup <span class="text-gold-500">*</span></label>
+                    <div class="md:col-span-2"><label class="input-label">Select Field Technician for Pickup <span class="text-gold-500">*</span></label>
                         <select id="svc-assigned-ts" required class="input-field">
                             <!-- Populated with 'ts' role technicians -->
                         </select>
                     </div>
-                    <div><label class="input-label">Repair Location <span class="text-gold-500">*</span></label>
-                        <select id="svc-repair-loc" required class="input-field">
-                            <option value="tsf" selected>TSF Workshop (Bring to Workshop)</option>
-                            <option value="onsite">On-Site (Repair at Customer Location)</option>
-                        </select>
+                    <div class="md:col-span-2">
+                        <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/40 p-4 rounded-xl flex items-start gap-3">
+                            <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-base"></i>
+                            <div>
+                                <p class="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">Lokasi Perbaikan</p>
+                                <p class="text-[11px] text-gray-600 dark:text-lux-300 mt-1 leading-relaxed">Ditentukan oleh <strong>Teknisi PJ</strong> saat pickup unit — pilih <strong>TSF Workshop</strong> atau <strong>On-Site</strong> di lokasi customer.</p>
+                            </div>
+                        </div>
                     </div>
                     <div class="md:col-span-2">
                         <label class="input-label"><i class="fa-solid fa-camera mr-1.5 text-gold-500"></i> Unit Condition Photo (Before Repair)</label>
@@ -2621,6 +2624,45 @@
                             <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.15em] rounded-xl shadow-lg hover:bg-gold-600 transition whitespace-nowrap">Confirm Combined BAST</button>
                         </div>
                     </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Repair Location — ditentukan Teknisi PJ saat pickup -->
+    <div id="repairLocPickModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[450] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/40 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
+                <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-map-location-dot mr-2"></i> Pilih Lokasi Perbaikan</h3>
+                <button type="button" onclick="closeModal('repairLocPickModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitRepairLocPickup(event)" class="p-6 sm:p-8 flex flex-col gap-5">
+                <input type="hidden" id="repair-loc-pick-ticket-id">
+                <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 p-4 rounded-xl">
+                    <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase mb-1">Unit Customer</p>
+                    <p class="text-sm font-black text-gray-900 dark:text-white" id="repair-loc-pick-unit-name">-</p>
+                    <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase" id="repair-loc-pick-cust-info">-</p>
+                </div>
+                <p class="text-[11px] text-gray-600 dark:text-lux-300 leading-relaxed">Sebagai <strong>Teknisi PJ</strong>, tentukan jalur perbaikan untuk unit ini:</p>
+                <div class="space-y-3">
+                    <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-lux-700 hover:border-gold-500/60 cursor-pointer transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-500/5">
+                        <input type="radio" name="repair-loc-pick" value="tsf" class="mt-1 accent-gold-500" checked>
+                        <div>
+                            <p class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-wide"><i class="fa-solid fa-warehouse text-gold-500 mr-1.5"></i> TSF Workshop</p>
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">Unit dibawa ke workshop TSF untuk analisa &amp; perbaikan.</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-lux-700 hover:border-emerald-500/60 cursor-pointer transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/5">
+                        <input type="radio" name="repair-loc-pick" value="onsite" class="mt-1 accent-emerald-500">
+                        <div>
+                            <p class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-wide"><i class="fa-solid fa-location-dot text-emerald-500 mr-1.5"></i> On-Site</p>
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">Perbaikan langsung di lokasi customer (RS/klinik).</p>
+                        </div>
+                    </label>
+                </div>
+                <div class="flex gap-3 pt-2 border-t border-gray-200 dark:border-lux-800">
+                    <button type="button" onclick="closeModal('repairLocPickModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
+                    <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.12em] rounded-xl shadow-lg hover:bg-gold-600 transition">Konfirmasi &amp; Pickup</button>
                 </div>
             </form>
         </div>
@@ -10364,11 +10406,7 @@
             if (s.status === 'registered') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
                 if (isAssignedServiceTs(s)) {
-                    if (s.repairLoc === 'onsite') {
-                        actionBtn = svcTicketBtn(s.id, 'tmsOnsitePickup', 'Konfirmasi On-Site', 'fa-location-dot', pri);
-                    } else {
-                        actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
-                    }
+                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
                 }
             } else if (s.status === 'picked_up') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
@@ -11599,6 +11637,16 @@
 
         function getValidSphLines(lines) {
             return (lines || []).filter(l => (l.artNo || '').trim() && (l.description || '').trim());
+        }
+
+        function isRepairLocSet(s) {
+            return s && (s.repairLoc === 'tsf' || s.repairLoc === 'onsite');
+        }
+
+        function getRepairLocLabel(loc) {
+            if (loc === 'onsite') return 'On-Site (Perbaikan di Lokasi Customer)';
+            if (loc === 'tsf') return 'TSF Workshop (Bawa ke Workshop)';
+            return 'Belum ditentukan — PJ pilih saat pickup';
         }
 
         function isOnsiteRepairTicket(s) {
@@ -13730,12 +13778,12 @@
                 registeredById: currentUser ? Number(currentUser.id) : null,
                 registeredByUser: currentUser ? (currentUser.user || '') : '',
                 registeredByName: currentUser ? (currentUser.name || '') : '',
-                repairLoc: (document.getElementById('svc-repair-loc').value || 'tsf').trim(),
+                repairLoc: null,
                 unitPhotoBefore: unitPhotosBefore.length > 0 ? unitPhotosBefore : null,
                 status: 'registered',
                 history: [{
                     t: new Date().toISOString(),
-                    m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) dan ditugaskan ke PJ ${assignedTs.name} (@${assignedTs.user}).`
+                    m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) dan ditugaskan ke PJ ${assignedTs.name} (@${assignedTs.user}). Lokasi perbaikan ditentukan PJ saat pickup.`
                 }],
                 updatedAt: new Date().toISOString()
             };
@@ -14176,6 +14224,70 @@
             });
         }
 
+        function openRepairLocPickModal(id) {
+            loadDB();
+            syncCurrentUserFromDb({ logoutOnInvalid: false });
+            const s = findServiceTicket(id);
+            if (!s) {
+                showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
+            if (!isAssignedServiceTs(s)) {
+                showToast('Akses ditolak', `Hanya PJ (${getTicketPjName(s)}) yang dapat menentukan lokasi perbaikan.`, 'error');
+                return;
+            }
+            document.getElementById('repair-loc-pick-ticket-id').value = id;
+            document.getElementById('repair-loc-pick-unit-name').innerText = formatServiceUnitTitle(s);
+            document.getElementById('repair-loc-pick-cust-info').innerText = `${s.customerName} | SN: ${s.unitSn || '-'}`;
+            const tsfRadio = document.querySelector('input[name="repair-loc-pick"][value="tsf"]');
+            if (tsfRadio) tsfRadio.checked = true;
+            openModal('repairLocPickModal');
+        }
+        window.openRepairLocPickModal = openRepairLocPickModal;
+
+        function submitRepairLocPickup(e) {
+            e.preventDefault();
+            loadDB();
+            syncCurrentUserFromDb({ logoutOnInvalid: false });
+            if (!currentUser) {
+                showToast('Sesi habis', 'Silakan login ulang.', 'error');
+                return;
+            }
+            const id = parseInt(document.getElementById('repair-loc-pick-ticket-id').value, 10);
+            const locInput = document.querySelector('input[name="repair-loc-pick"]:checked');
+            const loc = locInput ? locInput.value : '';
+            if (!loc || !['tsf', 'onsite'].includes(loc)) {
+                showToast('Pilih lokasi', 'Tentukan TSF Workshop atau On-Site sebelum pickup.', 'error');
+                return;
+            }
+            const s = findServiceTicket(id);
+            if (!s) {
+                showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
+            if (!isAssignedServiceTs(s)) {
+                showToast('Akses ditolak', `Hanya PJ (${getTicketPjName(s)}) yang dapat menentukan lokasi perbaikan.`, 'error');
+                return;
+            }
+            if (s.status !== 'registered') {
+                showToast('Status tidak valid', 'Lokasi perbaikan hanya ditentukan saat pickup (status Terdaftar).', 'error');
+                closeModal('repairLocPickModal');
+                return;
+            }
+            s.repairLoc = loc;
+            s.repairLocSetAt = new Date().toISOString();
+            s.repairLocSetBy = currentUser.user;
+            s.history.unshift({
+                t: s.repairLocSetAt,
+                m: `Lokasi perbaikan ditentukan oleh PJ ${currentUser.name}: ${getRepairLocLabel(loc)}.`
+            });
+            saveDB();
+            closeModal('repairLocPickModal');
+            if (loc === 'onsite') executeOnsitePickup(id);
+            else executeWorkshopPickup(id);
+        }
+        window.submitRepairLocPickup = submitRepairLocPickup;
+
         function executeWorkshopPickup(id) {
             const s = findServiceTicket(id);
             if (!s || !currentUser) return false;
@@ -14280,6 +14392,10 @@
                         ? ` Anda login sebagai ${currentUser.name} (@${currentUser.user}).`
                         : '';
                     showToast('Akses ditolak', `PJ tiket: ${pj}${pjUser}.${hint} Hanya PJ yang ditunjuk yang dapat mengerjakan.`, 'error');
+                    return;
+                }
+                if (!isRepairLocSet(s)) {
+                    openRepairLocPickModal(id);
                     return;
                 }
                 if (s.repairLoc === 'onsite') {
