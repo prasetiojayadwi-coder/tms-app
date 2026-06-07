@@ -2182,14 +2182,19 @@
                     <div class="md:col-span-2">
                         <label class="input-label"><i class="fa-solid fa-camera mr-1.5 text-gold-500"></i> Unit Condition Photo (Before Repair)</label>
                         <div class="mt-1">
-                            <label for="svc-unit-photo-before" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-lux-600 rounded-xl cursor-pointer hover:border-gold-500 hover:bg-gold-50/10 transition">
-                                <div id="svc-photo-before-preview" class="flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500">
-                                    <i class="fa-solid fa-image text-2xl"></i>
-                                    <span class="text-[10px] font-bold uppercase tracking-widest">Click or drag photo here</span>
+                            <div class="flex flex-col items-center justify-center w-full min-h-28 border-2 border-dashed border-gray-300 dark:border-lux-600 rounded-xl p-3 hover:border-gold-500/60 transition">
+                                <div id="svc-photo-before-preview" class="flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500 text-center">
+                                    <i class="fa-solid fa-camera text-2xl text-gold-500/70"></i>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">Foto kondisi unit sebelum perbaikan</span>
+                                    <span class="text-[9px]">Ketuk <strong class="text-gold-500">Ambil Foto</strong> untuk buka kamera HP</span>
                                     <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
                                 </div>
-                            </label>
-                            <input id="svc-unit-photo-before" type="file" accept="image/*" multiple class="hidden" onchange="previewServicePhoto(this, 'svc-photo-before-preview')">
+                                <div class="flex flex-wrap gap-2 justify-center mt-3 w-full">
+                                    <button type="button" onclick="triggerServicePhotoPick('before','camera')" class="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-gold-500/15 border border-gold-500/40 text-gold-600 dark:text-gold-400 text-[10px] font-black uppercase tracking-wider hover:bg-gold-500/25 transition"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
+                                    <button type="button" onclick="triggerServicePhotoPick('before','gallery')" class="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-600 text-gray-600 dark:text-lux-300 text-[10px] font-black uppercase tracking-wider hover:bg-gray-200 dark:hover:bg-lux-700 transition"><i class="fa-solid fa-images"></i> Galeri</button>
+                                </div>
+                            </div>
+                            <input id="svc-unit-photo-before" type="file" accept="image/*" capture="environment" class="hidden" onchange="onServicePhotoPicked(this, 'svc-photo-before-preview')">
                         </div>
                     </div>
                 </div>
@@ -2470,14 +2475,19 @@
                     <div>
                         <label class="input-label"><i class="fa-solid fa-camera mr-1.5 text-emerald-500"></i> Unit Condition Photo (After Repair)</label>
                         <div class="mt-1">
-                            <label for="svc-unit-photo-after" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 dark:border-lux-600 rounded-xl cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/10 transition">
-                                <div id="svc-photo-after-preview" class="flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500">
-                                    <i class="fa-solid fa-image text-2xl"></i>
-                                    <span class="text-[10px] font-bold uppercase tracking-widest">Click or drag after-repair photo</span>
+                            <div class="flex flex-col items-center justify-center w-full min-h-28 border-2 border-dashed border-gray-300 dark:border-lux-600 rounded-xl p-3 hover:border-emerald-500/60 transition">
+                                <div id="svc-photo-after-preview" class="flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500 text-center">
+                                    <i class="fa-solid fa-camera text-2xl text-emerald-500/70"></i>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">Foto kondisi unit sesudah perbaikan</span>
+                                    <span class="text-[9px]">Ketuk <strong class="text-emerald-500">Ambil Foto</strong> untuk buka kamera HP</span>
                                     <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
                                 </div>
-                            </label>
-                            <input id="svc-unit-photo-after" type="file" accept="image/*" multiple class="hidden" onchange="previewServicePhoto(this, 'svc-photo-after-preview')">
+                                <div class="flex flex-wrap gap-2 justify-center mt-3 w-full">
+                                    <button type="button" onclick="triggerServicePhotoPick('after','camera')" class="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-wider hover:bg-emerald-500/25 transition"><i class="fa-solid fa-camera"></i> Ambil Foto</button>
+                                    <button type="button" onclick="triggerServicePhotoPick('after','gallery')" class="flex-1 min-w-[120px] flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-gray-100 dark:bg-lux-800 border border-gray-200 dark:border-lux-600 text-gray-600 dark:text-lux-300 text-[10px] font-black uppercase tracking-wider hover:bg-gray-200 dark:hover:bg-lux-700 transition"><i class="fa-solid fa-images"></i> Galeri</button>
+                                </div>
+                            </div>
+                            <input id="svc-unit-photo-after" type="file" accept="image/*" capture="environment" class="hidden" onchange="onServicePhotoPicked(this, 'svc-photo-after-preview')">
                         </div>
                     </div>
                 </div>
@@ -13457,6 +13467,7 @@
                 btnEl.classList.remove('opacity-50', 'cursor-not-allowed');
             }
             
+            clearServicePhotoPick('before');
             openModal('serviceModal');
         }
 
@@ -13562,16 +13573,7 @@
                 document.getElementById('svc-complaint').value = '';
                 onPickServiceCustomer();
                 
-                const photoInput = document.getElementById('svc-unit-photo-before');
-                if (photoInput) photoInput.value = '';
-                const previewDiv = document.getElementById('svc-photo-before-preview');
-                if (previewDiv) {
-                    previewDiv.innerHTML = `
-                        <i class="fa-solid fa-image text-2xl"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-widest">Click or drag photo here</span>
-                        <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
-                    `;
-                }
+                clearServicePhotoPick('before');
                 const warningEl = document.getElementById('service-duplicate-warning');
                 if (warningEl) warningEl.classList.add('hidden');
                 
@@ -14630,6 +14632,7 @@
                 if (hintEl) hintEl.classList.add('hidden');
                 if (submitBtn) submitBtn.innerText = 'Complete & Send to Field Technician';
             }
+            clearServicePhotoPick('after');
             openModal('serviceRepairModal');
             return true;
         }
@@ -15292,6 +15295,89 @@
         // ====================================================================
         // FITUR 2 — Foto Kondisi Unit: Preview & Simpan
         // ====================================================================
+        const _svcPhotoAccum = { before: null, after: null };
+
+        function servicePhotoKindFromPreviewId(previewContainerId) {
+            return previewContainerId && previewContainerId.includes('after') ? 'after' : 'before';
+        }
+
+        function getServicePhotoInputId(kind) {
+            return kind === 'after' ? 'svc-unit-photo-after' : 'svc-unit-photo-before';
+        }
+
+        function servicePhotoEmptyHtml(kind) {
+            const isAfter = kind === 'after';
+            const title = isAfter ? 'Foto kondisi unit sesudah perbaikan' : 'Foto kondisi unit sebelum perbaikan';
+            if (isAfter) {
+                return `
+                    <i class="fa-solid fa-camera text-2xl text-emerald-500/70"></i>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">${title}</span>
+                    <span class="text-[9px]">Ketuk <strong class="text-emerald-500">Ambil Foto</strong> untuk buka kamera HP</span>
+                    <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
+                `;
+            }
+            return `
+                <i class="fa-solid fa-camera text-2xl text-gold-500/70"></i>
+                <span class="text-[10px] font-bold uppercase tracking-widest">${title}</span>
+                <span class="text-[9px]">Ketuk <strong class="text-gold-500">Ambil Foto</strong> untuk buka kamera HP</span>
+                <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
+            `;
+        }
+
+        function clearServicePhotoPick(kind) {
+            const input = document.getElementById(getServicePhotoInputId(kind));
+            if (input) {
+                input.value = '';
+                input.setAttribute('capture', 'environment');
+            }
+            _svcPhotoAccum[kind] = null;
+            const previewId = kind === 'after' ? 'svc-photo-after-preview' : 'svc-photo-before-preview';
+            const container = document.getElementById(previewId);
+            if (container) {
+                container.className = 'flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500 text-center';
+                container.innerHTML = servicePhotoEmptyHtml(kind);
+            }
+        }
+
+        function triggerServicePhotoPick(kind, source) {
+            const input = document.getElementById(getServicePhotoInputId(kind));
+            if (!input) return;
+            input.value = '';
+            if (source === 'camera') {
+                input.setAttribute('capture', 'environment');
+                input.removeAttribute('multiple');
+            } else {
+                input.removeAttribute('capture');
+                input.setAttribute('multiple', 'multiple');
+            }
+            input.click();
+        }
+
+        function onServicePhotoPicked(input, previewContainerId) {
+            const kind = servicePhotoKindFromPreviewId(previewContainerId);
+            if (!input.files || !input.files.length) return;
+            let dt = _svcPhotoAccum[kind];
+            if (!dt) dt = new DataTransfer();
+            const fromCamera = input.hasAttribute('capture');
+            Array.from(input.files).forEach(file => {
+                if (file.size > 2 * 1024 * 1024) {
+                    showToast('File Terlalu Besar', `Ukuran file ${file.name} tidak boleh melebihi 2MB.`, 'error');
+                    return;
+                }
+                const dup = Array.from(dt.files).some(f => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified);
+                if (!dup) dt.items.add(file);
+            });
+            _svcPhotoAccum[kind] = dt;
+            try { input.files = dt.files; } catch (err) { /* Safari lama */ }
+            previewServicePhoto(input, previewContainerId);
+            if (fromCamera && dt.files.length) {
+                showToast('Foto ditambahkan', 'Ketuk Ambil Foto lagi jika perlu foto tambahan.', 'success');
+            }
+        }
+
+        window.triggerServicePhotoPick = triggerServicePhotoPick;
+        window.onServicePhotoPicked = onServicePhotoPicked;
+
         function previewServicePhoto(input, previewContainerId) {
             const container = document.getElementById(previewContainerId);
             if (!container) return;
@@ -15299,13 +15385,9 @@
             container.innerHTML = '';
             
             if (!input.files || input.files.length === 0) {
-                const isAfter = previewContainerId.includes('after');
-                const labelText = isAfter ? 'Click or drag after-repair photo' : 'Click or drag photo here';
-                container.innerHTML = `
-                    <i class="fa-solid fa-image text-2xl"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-widest">${labelText}</span>
-                    <span class="text-[9px]">JPG, PNG, WEBP (maks. 2MB)</span>
-                `;
+                const kind = servicePhotoKindFromPreviewId(previewContainerId);
+                container.className = 'flex flex-col items-center gap-1 text-gray-400 dark:text-lux-500 text-center';
+                container.innerHTML = servicePhotoEmptyHtml(kind);
                 return;
             }
 

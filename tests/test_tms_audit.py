@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_762():
+def test_release_version_763():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.2' in rel
+    assert '7.6.3' in rel
 
 
 def test_onsite_pickup_direct_confirm():
@@ -172,6 +172,17 @@ def test_smart_fill_autocomplete():
     assert 'tms-suggest-dropdown' in js
     assert 'pickSphSuggestActive' in js
     assert 'onSvcCustNameInput' in js
+
+
+def test_service_photo_camera_capture():
+    js = _js_bundle()
+    html = (ROOT / 'index.html').read_text(encoding='utf-8')
+    assert 'function triggerServicePhotoPick' in js
+    assert 'function onServicePhotoPicked' in js
+    assert "setAttribute('capture', 'environment')" in js
+    assert 'capture="environment"' in html
+    assert "triggerServicePhotoPick('before','camera')" in html
+    assert "triggerServicePhotoPick('after','camera')" in html
 
 
 def test_pwa_files():

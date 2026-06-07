@@ -3,14 +3,14 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '7.6.2',
-    build: 111,
+    version: '7.6.3',
+    build: 112,
     date: '2026-06-07',
     title: 'System Update Available',
-    summary: 'Dropdown unit menampilkan Art Number, Description, dan SN.',
+    summary: 'Foto kondisi unit — tombol Ambil Foto langsung buka kamera HP.',
     changes: [
-        { icon: 'fa-list', text: 'Saran unit: Art No — Description + baris SN (warna amber)' },
-        { icon: 'fa-tag', text: 'Label terpilih: format Art — Description · SN xxx' },
-        { icon: 'fa-magnifying-glass', text: 'Smart Fill customer & unit tetap seperti v7.6.1' }
+        { icon: 'fa-camera', text: 'Ambil Foto: capture kamera belakang HP (before & after repair)' },
+        { icon: 'fa-images', text: 'Galeri: pilih banyak foto dari album' },
+        { icon: 'fa-plus', text: 'Bisa ambil beberapa foto berturut dari kamera' }
     ]
 };
