@@ -1,6 +1,0 @@
-diag: on-screen probe untuk tombol Mulai Pekerjaan (?svcdebug=1)
-
-Tambah panel diagnostik on-screen yang melacak jalur klik tombol service
-(witness capture-phase, runSvcAction, actionServiceTicket pickup) agar bisa
-memastikan di perangkat user (HP, tanpa DevTools) di titik mana aksi berhenti
-dan apakah build terbaru benar-benar termuat. Bump v7.10.4 build 126.
