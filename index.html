@@ -5784,7 +5784,7 @@
                     if (currentUser && currentUser.role === 'ts') {
                         // TS hanya bisa transfer ke sesama TS
                         if (u.role !== 'ts') return;
-                        options += `<option value="${u.id}">[TEK] ${u.name} - ${u.jabatan} (${u.group})</option>`;
+                        options += `<option value="${u.id}">[TEK] ${tmsEscHtml(u.name)} - ${tmsEscHtml(u.jabatan)} (${tmsEscHtml(u.group)})</option>`;
                     } else {
                         // SPV/TSF/Owner/Specialist bisa ke semua TS, SPV, TSF, dan Specialist
                         if (u.role !== 'ts' && u.role !== 'spv' && u.role !== 'tsf' && u.role !== 'ts_spec' && u.role !== 'ts_spec_avitum' && u.role !== 'ts_spec_ais') return;
@@ -5792,7 +5792,7 @@
                         const rolePrefix = u.role === 'spv' ? '[SPV] ' : 
                                            (u.role === 'tsf' ? '[TSF] ' : 
                                            (u.role === 'ts_spec' || u.role === 'ts_spec_avitum' || u.role === 'ts_spec_ais' ? '[SPEC] ' : '[TEK] '));
-                        options += `<option value="${u.id}">${rolePrefix}${u.name} - ${u.jabatan} (${u.group})</option>`;
+                        options += `<option value="${u.id}">${rolePrefix}${tmsEscHtml(u.name)} - ${tmsEscHtml(u.jabatan)} (${tmsEscHtml(u.group)})</option>`;
                     }
                 }); 
                 select.innerHTML = options; 
@@ -5952,6 +5952,7 @@
             };
 
             const userReadNotifs = (currentUser && currentUser.readNotifications) || [];
+            const esc = typeof tmsEscHtml === 'function' ? tmsEscHtml : (v) => String(v == null ? '' : v);
 
             const checkItem = (item, typeStr) => {
                 if (currentUser.role === 'ts') {
@@ -5963,7 +5964,7 @@
                     }
                 }
                 
-                const loc = item.ownerId === 0 ? 'Gudang (Pool)' : (db.users[item.ownerId] ? `${db.users[item.ownerId].name} (${db.users[item.ownerId].group})` : 'Gudang (Pool)');
+                const loc = item.ownerId === 0 ? 'Gudang (Pool)' : (db.users[item.ownerId] ? `${esc(db.users[item.ownerId].name)} (${esc(db.users[item.ownerId].group)})` : 'Gudang (Pool)');
                 if(item.condition === 'Rusak' && (!item.maintenanceStatus || item.maintenanceStatus === 'Menunggu Tindakan')) { 
                     const notifId = `tool-damaged-${item.id}`;
                     if (!userReadNotifs.includes(notifId)) {
@@ -5971,8 +5972,8 @@
                         const html = `<div onclick="showToolDetail(${item.id}); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                             <div class="pr-6">
                                 <p class="text-[10px] text-red-600 dark:text-red-500 font-black uppercase mb-1"><i class="fa-solid fa-triangle-exclamation"></i> Alat Rusak</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Lokasi: ${loc}</span></p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${esc(item.desc || '-')}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${esc(item.noInv)} | ${esc(typeStr)}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Lokasi: ${loc}</span></p>
                             </div>
                             <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                 <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -5990,9 +5991,9 @@
                         const icon = calStat.text==='KADALUARSA' ? 'fa-calendar-xmark' : 'fa-calendar-check';
                         const html = `<div onclick="showToolDetail(${item.id}); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                             <div class="pr-6">
-                                <p class="text-[10px] ${color} font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> Kalibrasi ${calStat.text}</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${item.desc||'-'}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${item.noInv} | ${typeStr}<br><span class="text-gold-600 dark:text-gold-500 font-bold">${calStat.msg} (${item.calDate || '-'})</span></p>
+                                <p class="text-[10px] ${color} font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> Kalibrasi ${esc(calStat.text)}</p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${esc(item.desc || '-')}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${esc(item.noInv)} | ${esc(typeStr)}<br><span class="text-gold-600 dark:text-gold-500 font-bold">${esc(calStat.msg)} (${esc(item.calDate || '-')})</span></p>
                             </div>
                             <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                 <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -6022,8 +6023,8 @@
                                     const html = `<div onclick="switchTab('spv-approvals'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                         <div class="pr-6">
                                             <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-user-plus"></i> Verifikasi Personel</p>
-                                            <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Personel Baru: ${newPersonel.name}</p>
-                                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Peran: ${newPersonel.role.toUpperCase()} | Wilayah: ${newPersonel.group}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu Owner</span></p>
+                                            <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Personel Baru: ${esc(newPersonel.name)}</p>
+                                            <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Peran: ${esc(newPersonel.role.toUpperCase())} | Wilayah: ${esc(newPersonel.group)}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: Menunggu Owner</span></p>
                                         </div>
                                         <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                             <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -6051,7 +6052,7 @@
                             html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                 <div class="pr-6">
                                     <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Physical Handover: Peminjaman</p>
-                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${esc(t.desc)}</p>
                                     <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Butuh Tanda Terima Fisik</p>
                                 </div>
                                 <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
@@ -6065,8 +6066,8 @@
                             html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                 <div class="pr-6">
                                     <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Physical Handover: Pengembalian</p>
-                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
-                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${esc(t.desc)}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${esc(u.name)}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
                                 </div>
                                 <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                     <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -6077,7 +6078,7 @@
                             html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                 <div class="pr-6">
                                     <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Physical Handover: Peminjaman</p>
-                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${esc(t.desc)}</p>
                                     <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
                                 </div>
                                 <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
@@ -6091,7 +6092,7 @@
                             html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                 <div class="pr-6">
                                     <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Physical Handover: Peminjaman</p>
-                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${esc(t.desc)}</p>
                                     <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Status: Disetujui SPV - Silakan serah terima fisik</p>
                                 </div>
                                 <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
@@ -6103,8 +6104,8 @@
                             html = `<div onclick="switchTab('ts-handover'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                 <div class="pr-6">
                                     <p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase mb-1"><i class="fa-solid fa-handshake"></i> Physical Handover: Pengembalian</p>
-                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${t.desc}</p>
-                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Aset: ${esc(t.desc)}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${esc(u.name)}<br><span class="text-emerald-600 dark:text-emerald-500 font-bold">Status: Silakan terima alat di Gudang</span></p>
                                 </div>
                                 <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                     <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -6115,8 +6116,8 @@
                             html = `<div onclick="switchTab('spv-approvals'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                                 <div class="pr-6">
                                     <p class="text-[10px] text-blue-600 dark:text-blue-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Otorisasi Peminjaman/Pengembalian</p>
-                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu SPV: ${t.desc}</p>
-                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: pending_spv</span></p>
+                                    <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu SPV: ${esc(t.desc)}</p>
+                                    <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${esc(u.name)} (${esc(u.group)})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: pending_spv</span></p>
                                 </div>
                                 <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                     <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -6131,8 +6132,8 @@
                         html = `<div onclick="switchTab('spv-approvals'); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                             <div class="pr-6">
                                 <p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase mb-1"><i class="fa-solid fa-shield-halved"></i> Audit Otorisasi: ${reqTypeLabel}</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu: ${t.desc}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${u.name} (${u.group})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${r.status}</span></p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">Menunggu: ${esc(t.desc)}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">Pemohon: ${esc(u.name)} (${esc(u.group)})<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${esc(r.status)}</span></p>
                             </div>
                             <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                 <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -6175,8 +6176,8 @@
                         const html = `<div onclick="showServiceDetail(${t.id}); markNotifAsRead(null, '${notifId}'); toggleNotifications()" class="group relative p-3 border-b border-gray-200 dark:border-lux-800 hover:bg-gray-100 dark:hover:bg-lux-800 transition cursor-pointer">
                             <div class="pr-6">
                                 <p class="text-[10px] text-${color}-600 dark:text-${color}-500 font-black uppercase mb-1"><i class="fa-solid ${icon}"></i> ${label}</p>
-                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${t.unitName} — ${t.customerName}</p>
-                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${t.noService} | TS: ${tsUser.name}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${label}</span></p>
+                                <p class="text-[12px] text-gray-900 dark:text-white font-bold truncate">${esc(t.unitName)} — ${esc(t.customerName)}</p>
+                                <p class="text-[10px] text-gray-500 dark:text-lux-400 font-mono mt-1">${esc(t.noService)} | TS: ${esc(tsUser.name)}<br><span class="text-gold-600 dark:text-gold-500 font-bold">Status: ${esc(label)}</span></p>
                             </div>
                             <button onclick="markNotifAsRead(event, '${notifId}')" class="absolute top-3 right-3 w-5 h-5 rounded-full bg-gray-100 dark:bg-lux-800 text-gray-500 dark:text-lux-400 hover:bg-red-500 hover:text-white dark:hover:bg-red-600 flex items-center justify-center transition shadow-sm opacity-0 group-hover:opacity-100">
                                 <i class="fa-solid fa-xmark text-[10px]"></i>
@@ -10224,6 +10225,7 @@
         }
 
         function openReassignPjModal(id) {
+            if (!tmsRequirePerm('REASSIGN_SERVICE_PJ', 'Mengalihkan PJ tiket service')) return;
             loadDB();
             syncCurrentUserFromDb({ logoutOnInvalid: false });
             const s = findServiceTicket(id);

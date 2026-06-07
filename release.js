@@ -8,19 +8,23 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.1',
+    version: '7.10.2',
 
-    build: 123,
+    build: 124,
 
     date: '2026-06-07',
 
     title: 'System Update Available',
 
-    summary: 'Fix tombol Mulai Pekerjaan + hardening keamanan XSS, data URL, idle session.',
+    summary: 'Hardening notifikasi XSS + guard PJ modal + anti-truncation QA gate.',
 
     changes: [
 
-        { icon: 'fa-play', text: 'Fix: tombol Mulai Pekerjaan — onclick langsung + event binding awal' },
+        { icon: 'fa-bell', text: 'Notifikasi dashboard: escape semua field user-generated' },
+
+        { icon: 'fa-shield', text: 'Guard permission REASSIGN_SERVICE_PJ di openReassignPjModal' },
+
+        { icon: 'fa-vial', text: 'QA gate: deteksi index.html terpotong (regression Mulai Pekerjaan)' },
 
         { icon: 'fa-shield-halved', text: 'XSS: timeline service, SPH detail, riwayat unit — semua teks di-escape' },
 

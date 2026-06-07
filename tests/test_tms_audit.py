@@ -145,11 +145,32 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7101():
+def test_release_version_7102():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.1' in rel
-    assert re.search(r"build:\s*123", rel)
-    assert 'tms-cache-v123' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.2' in rel
+    assert re.search(r"build:\s*124", rel)
+    assert 'tms-cache-v124' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+
+
+def test_index_html_not_truncated():
+    html = _html()
+    assert len(html) > 900_000, 'index.html terlalu kecil — kemungkinan terpotong'
+    for sym in (
+        'function actionServiceTicket',
+        'function runServiceTicketAction',
+        'function initAppUI',
+        'function openRepairLocPickModal',
+        '</html>',
+    ):
+        assert sym in html
+    assert html.rstrip().endswith('</html>')
+
+
+def test_notification_xss_escaped():
+    js = _js_bundle()
+    block = js[js.find('function _checkNotificationsImpl'):js.find('function _checkNotificationsImpl') + 3500]
+    assert 'const esc = typeof tmsEscHtml' in block
+    assert 'esc(t.desc)' in block or 'esc(item.desc' in block
 
 
 def test_pj_reassignment_flow():
@@ -165,6 +186,8 @@ def test_pj_reassignment_flow():
     assert 's.repairLoc = null' in block
     assert 'canReassignServiceTicket(s)' in js
     assert "tmsRequirePerm('REASSIGN_SERVICE_PJ'" in js
+    open_block = js[js.find('function openReassignPjModal'):js.find('function openReassignPjModal') + 400]
+    assert "tmsRequirePerm('REASSIGN_SERVICE_PJ'" in open_block
     auth = (ROOT / 'js/tms-auth.js').read_text(encoding='utf-8')
     assert 'REASSIGN_SERVICE_PJ' in auth
 
