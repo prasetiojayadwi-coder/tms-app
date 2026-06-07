@@ -8,25 +8,25 @@
 
 window.TMS_RELEASE = {
 
-    version: '7.10.7',
+    version: '7.10.8',
 
-    build: 129,
+    build: 130,
 
     date: '2026-06-07',
 
-    title: 'Perbaikan Penting',
+    title: 'Perbaikan Tampilan',
 
-    summary: 'FIX: tag </div> hilang yang menyembunyikan 5 modal (Mulai Pekerjaan, TTD, Detail, Alihkan PJ, BAST).',
+    summary: 'FIX: angka QTY/HARGA di baris SPH kini terlihat (padding & spinner number dirapikan).',
 
     changes: [
 
-        { icon: 'fa-wrench', text: 'FIX utama: </div> hilang di serviceDeliveryModal yang menelan 5 modal jadi tersembunyi' },
+        { icon: 'fa-eye', text: 'Angka QTY & HARGA di baris SPH kini terlihat: kolom Qty dilebarkan + rata tengah' },
 
-        { icon: 'fa-play', text: 'Mulai Pekerjaan: popup Pilih Jalur Perbaikan kini tampil normal' },
+        { icon: 'fa-sliders', text: 'Input number: padding dikecilkan & panah spinner disembunyikan agar angka tak terpotong' },
 
-        { icon: 'fa-signature', text: 'TTD serah terima, Detail tiket, Alihkan PJ, BAST gabungan: kembali muncul' },
+        { icon: 'fa-wrench', text: 'Lanjutan: </div> hilang di serviceDeliveryModal yang menelan 5 modal' },
 
-        { icon: 'fa-shield-halved', text: 'Tambah test anti-kambuh keseimbangan tag <div> HTML' },
+        { icon: 'fa-shield-halved', text: 'Test anti-kambuh keseimbangan tag <div> HTML' },
 
         { icon: 'fa-play', text: 'Mulai Pekerjaan: dispatch klik langsung & anti-dobel (lanjutan)' },
 

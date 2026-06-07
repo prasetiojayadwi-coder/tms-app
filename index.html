@@ -81,6 +81,14 @@
             @apply w-full bg-white dark:bg-[#18181b] text-gray-900 dark:text-white border border-gray-300 dark:border-[#3f3f46] rounded-xl px-4 py-3.5 text-[0.875rem] font-semibold outline-none transition-all duration-300 shadow-sm dark:shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)];
             appearance: none; -webkit-appearance: none;
         }
+        .input-field[type="number"] {
+            padding-left: 0.5rem; padding-right: 0.5rem;
+            -moz-appearance: textfield;
+        }
+        .input-field[type="number"]::-webkit-outer-spin-button,
+        .input-field[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
         .pl-12 { padding-left: 3.5rem !important; }
         .pr-12 { padding-right: 3rem !important; }
         
@@ -11811,9 +11819,9 @@
                             <label class="text-[8px] font-black uppercase text-gray-400">Harga</label>
                             <input type="number" min="0" class="input-field text-[11px] font-mono py-2" value="${line.unitPrice || 0}" oninput="updateSphLineField('${containerId}', ${idx}, 'unitPrice', this.value)">
                         </div>
-                        <div class="col-span-3 sm:col-span-1">
+                        <div class="col-span-3 sm:col-span-2">
                             <label class="text-[8px] font-black uppercase text-gray-400">Qty</label>
-                            <input type="number" min="1" class="input-field text-[11px] py-2" value="${line.qty || 1}" oninput="updateSphLineField('${containerId}', ${idx}, 'qty', this.value)">
+                            <input type="number" min="1" class="input-field text-[11px] py-2 text-center" value="${line.qty || 1}" oninput="updateSphLineField('${containerId}', ${idx}, 'qty', this.value)">
                         </div>
                         <div class="col-span-3 sm:col-span-1 flex items-end">
                             <button type="button" onclick="removeSphLineRow('${containerId}', ${idx})" class="w-full py-2 rounded-lg bg-red-100 dark:bg-red-950/30 text-red-600 text-[10px] font-black"><i class="fa-solid fa-trash"></i></button>
