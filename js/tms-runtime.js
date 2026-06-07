@@ -66,6 +66,15 @@
         }
     }
 
+    function tmsIsRetryableError(err) {
+        if (!err) return false;
+        const code = err.code || err.status || '';
+        if (code === 'PGRST116' || code === 401 || code === 403 || code === '42501') return false;
+        const msg = String(err.message || err).toLowerCase();
+        return msg.includes('network') || msg.includes('fetch') || msg.includes('timeout')
+            || msg.includes('failed') || msg.includes('econn') || code === 500 || code === 502 || code === 503;
+    }
+
     async function tmsRetryAsync(fn, opts) {
         const max = (opts && opts.max) || TMS_SYNC_MAX_RETRIES;
         const baseDelay = (opts && opts.baseDelay) || 400;
@@ -75,11 +84,10 @@
                 return await fn(attempt);
             } catch (err) {
                 lastErr = err;
-                if (attempt < max - 1) {
-                    await new Promise(function (r) {
-                        setTimeout(r, baseDelay * Math.pow(2, attempt));
-                    });
-                }
+                if (!tmsIsRetryableError(err) || attempt >= max - 1) throw err;
+                await new Promise(function (r) {
+                    setTimeout(r, baseDelay * Math.pow(2, attempt));
+                });
             }
         }
         throw lastErr;
@@ -87,6 +95,7 @@
 
     global.TMS_SESSION_IDLE_MS = TMS_SESSION_IDLE_MS;
     global.tmsRequireRole = tmsRequireRole;
+    global.tmsIsRetryableError = tmsIsRetryableError;
     global.tmsRetryAsync = tmsRetryAsync;
     global.tmsInitRuntime = tmsInitRuntime;
 

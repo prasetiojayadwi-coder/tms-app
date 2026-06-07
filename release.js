@@ -3,15 +3,15 @@
  * Service Worker cache version (sw.js) should match `build`.
  */
 window.TMS_RELEASE = {
-    version: '7.4.0',
-    build: 101,
+    version: '7.5.0',
+    build: 102,
     date: '2026-06-07',
     title: 'System Update Available',
-    summary: 'Ultra audit hardening — auth guards, observability, backup aman, idle logout fix.',
+    summary: 'Iterative audit 3 siklus — TMS_PERM matrix, integrity check, XSS inventori, render batch.',
     changes: [
-        { icon: 'fa-shield-halved', text: 'Role guard: hapus aset, sparepart, customer, impor DB (owner only)' },
-        { icon: 'fa-clock', text: 'Fix sesi idle — auto logout via handleLogout + structured logging' },
-        { icon: 'fa-database', text: 'Backup/restore: ekspor tanpa password, impor dibatasi owner' },
-        { icon: 'fa-chart-line', text: 'js/tms-observability.js — error buffer + sync retry fetch' }
+        { icon: 'fa-shield-halved', text: 'js/tms-auth.js + js/tms-integrity.js — permission matrix & DB check' },
+        { icon: 'fa-lock', text: 'Guard customer/sparepart/personel + password edit tidak tampilkan hash' },
+        { icon: 'fa-bolt', text: 'Render SPV assets batch join + sync retry pintar (non-retryable skip)' },
+        { icon: 'fa-comment-slash', text: 'XSS inventori & approval pakai tmsEscToolFields di seluruh tabel' }
     ]
 };

@@ -99,7 +99,8 @@ def check_files():
         'index.html', 'manifest.json', 'sw.js', 'release.js', 'tms_pwa_icon.png',
         'Mulai_Server.bat', 'config.example.js', 'config.deploy.js',
         'Jalankan_Setup.bat', 'jalankan_setup.py', 'supabase_setup.sql',
-        'health.json', 'audit_score.py', 'js/tms-security.js', 'js/tms-observability.js', 'js/tms-runtime.js',
+        'health.json', 'audit_score.py', 'js/tms-security.js', 'js/tms-auth.js', 'js/tms-integrity.js',
+        'js/tms-observability.js', 'js/tms-runtime.js',
     ]
     for name in required:
         p = ROOT / name
@@ -386,7 +387,7 @@ def check_html_integrity():
         ok('Production: structured logging (tms-observability)')
     else:
         bad('Production: tms-observability tidak lengkap')
-    if "tmsRequireRole(['owner'], 'Impor database')" in js:
+    if "tmsRequirePerm('RESTORE_DB', 'Impor database')" in js or "tmsRequireRole(['owner'], 'Impor database')" in js:
         ok('Keamanan: impor database dibatasi owner')
     else:
         bad('Keamanan: restoreDatabase tanpa role guard owner')
@@ -394,7 +395,7 @@ def check_html_integrity():
         ok('Keamanan: backup database tanpa password plain')
     else:
         bad('Keamanan: backupDatabase belum sanitize password')
-    if "tmsRequireRole(['owner', 'tsf'], 'Menghapus aset inventori')" in js:
+    if "tmsRequirePerm('DELETE_ASSET'" in js or "tmsRequireRole(['owner', 'tsf'], 'Menghapus aset inventori')" in js:
         ok('Keamanan: hapus aset dibatasi owner/tsf')
     else:
         bad('Keamanan: deleteItem tool/demo tanpa role guard')
@@ -403,6 +404,34 @@ def check_html_integrity():
         ok('Reliabilitas: idle timeout memanggil handleLogout')
     else:
         bad('Reliabilitas: idle timeout tidak memanggil handleLogout')
+    if 'TMS_PERM' in js and 'tmsRequirePerm' in js and 'js/tms-auth.js' in html:
+        ok('Arsitektur: modul js/tms-auth.js + TMS_PERM matrix')
+    else:
+        bad('Arsitektur: js/tms-auth.js atau TMS_PERM hilang')
+    if 'runDbIntegrityCheck' in js and 'tmsRunIntegrityAndLog' in js:
+        ok('Reliabilitas: DB integrity check saat initAppUI')
+    else:
+        bad('Reliabilitas: runDbIntegrityCheck tidak dipanggil')
+    if "tmsRequirePerm('MANAGE_PERSONNEL'" in js and 'isPasswordHashed(u.pass)' in js:
+        ok('Keamanan: submitTech/openFormModal guard + password edit aman')
+    else:
+        bad('Keamanan: submitTech guard atau password edit tidak aman')
+    if 'const tf = tmsEscToolFields(t)' in js:
+        ok('Keamanan XSS: inventori tools/demo pakai tmsEscToolFields')
+    else:
+        bad('Keamanan XSS: tmsEscToolFields belum dipakai di render inventori')
+    if 'sc.innerHTML = filtered.map(t =>' in js:
+        ok('Performa: render SPV assets batch join (bukan innerHTML += loop)')
+    else:
+        bad('Performa: render SPV assets masih innerHTML += per baris')
+    if 'tmsIsRetryableError' in (ROOT / 'js/tms-runtime.js').read_text(encoding='utf-8'):
+        ok('Reliabilitas: sync retry pintar (skip non-retryable)')
+    else:
+        bad('Reliabilitas: tmsIsRetryableError tidak ada')
+    if "tmsRequirePerm('MANAGE_CUSTOMER'" in js:
+        ok('Keamanan: customer CRUD dibatasi owner/spv')
+    else:
+        bad('Keamanan: submitCustomer tanpa TMS_PERM guard')
     dyn_calls = set()
     for m in re.finditer(r'onclick=\\"([a-zA-Z_$][\w$]*)\s*\(', js):
         dyn_calls.add(m.group(1))

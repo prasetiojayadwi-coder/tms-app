@@ -83,8 +83,8 @@ def test_session_without_password():
 
 def test_role_guard_delete_personnel():
     js = _js_bundle()
-    assert 'tmsRequireRole' in js
-    assert "tmsRequireRole(['owner', 'spv']" in js
+    assert 'tmsRequirePerm' in js
+    assert "tmsRequirePerm('DELETE_PERSONNEL'" in js
 
 
 def test_single_storage_listener():
@@ -145,9 +145,9 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_74():
+def test_release_version_75():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.4' in rel
+    assert '7.5' in rel
 
 
 def test_pwa_files():
@@ -411,7 +411,7 @@ def test_idle_logout_uses_handle_logout():
 
 def test_restore_database_owner_only():
     js = _js_bundle()
-    assert "tmsRequireRole(['owner'], 'Impor database')" in js
+    assert "tmsRequirePerm('RESTORE_DB', 'Impor database')" in js
 
 
 def test_backup_sanitizes_passwords():
@@ -424,17 +424,17 @@ def test_backup_sanitizes_passwords():
 
 def test_delete_asset_role_guard():
     js = _js_bundle()
-    assert "tmsRequireRole(['owner', 'tsf'], 'Menghapus aset inventori')" in js
+    assert "tmsRequirePerm('DELETE_ASSET', 'Menghapus aset inventori')" in js
 
 
 def test_delete_sparepart_role_guard():
     js = _js_bundle()
-    assert "tmsRequireRole(['owner', 'spv', 'ts_spec'" in js
+    assert "tmsRequirePerm('DELETE_SPAREPART'" in js
 
 
 def test_toggle_user_lock_role_guard():
     js = _js_bundle()
-    assert "tmsRequireRole(['owner', 'spv'], 'Mengunci/membuka akun personel')" in js
+    assert "tmsRequirePerm('LOCK_PERSONNEL', 'Mengunci/membuka akun personel')" in js
 
 
 def test_sync_fetch_retry():
@@ -446,3 +446,58 @@ def test_sync_fetch_retry():
 def test_tms_esc_tool_fields():
     sec = (ROOT / 'js/tms-security.js').read_text(encoding='utf-8')
     assert 'tmsEscToolFields' in sec
+
+
+def test_tms_auth_module():
+    assert (ROOT / 'js/tms-auth.js').exists()
+    js = _js_bundle()
+    assert 'TMS_PERM' in js
+    assert 'tmsRequirePerm' in js
+
+
+def test_tms_integrity_module():
+    assert (ROOT / 'js/tms-integrity.js').exists()
+    js = _js_bundle()
+    assert 'tmsRunIntegrityAndLog' in js
+    assert 'runDbIntegrityCheck' in js
+
+
+def test_submit_tech_perm_guard():
+    js = _js_bundle()
+    assert "tmsRequirePerm('MANAGE_PERSONNEL', 'Menyimpan data personel')" in js
+
+
+def test_edit_personnel_no_hash_in_password_field():
+    js = _js_bundle()
+    assert 'isPasswordHashed(u.pass)' in js
+
+
+def test_inventory_render_uses_esc_tool_fields():
+    js = _js_bundle()
+    assert 'const tf = tmsEscToolFields(t)' in js
+
+
+def test_customer_manage_perm_guard():
+    js = _js_bundle()
+    assert "tmsRequirePerm('MANAGE_CUSTOMER'" in js
+
+
+def test_spv_assets_batch_render():
+    js = _js_bundle()
+    assert 'sc.innerHTML = filtered.map(t =>' in js
+
+
+def test_sync_retry_smart():
+    rt = (ROOT / 'js/tms-runtime.js').read_text(encoding='utf-8')
+    assert 'tmsIsRetryableError' in rt
+
+
+def test_session_restore_validates_user():
+    html = _html()
+    assert 'syncCurrentUserFromDb();' in html
+    assert 'if (!currentUser) return;' in html
+
+
+def test_health_audit_cycles():
+    data = json.loads((ROOT / 'health.json').read_text(encoding='utf-8'))
+    assert data.get('auditCycles', 0) >= 3

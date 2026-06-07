@@ -1,15 +1,18 @@
 {
   "status": "ok",
   "app": "TMS Tool Management System",
-  "version": "7.4.0",
-  "build": 101,
+  "version": "7.5.0",
+  "build": 102,
+  "auditCycles": 3,
   "checks": [
     "pbkdf2-password",
     "xss-escape",
-    "session-idle-timeout",
+    "tms-perm-matrix",
+    "db-integrity-check",
+    "session-restore-validate",
     "cloud-upload-sanitized",
     "backup-sanitized",
-    "sync-retry",
+    "sync-retry-smart",
     "role-guards",
     "structured-logging",
     "ci-qa-gate"

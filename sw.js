@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tms-cache-v101';
+const CACHE_NAME = 'tms-cache-v102';
 const CORE_ASSETS = [
   './',
   'index.html',
@@ -6,6 +6,8 @@ const CORE_ASSETS = [
   'config.deploy.js',
   'config.example.js',
   'js/tms-security.js',
+  'js/tms-auth.js',
+  'js/tms-integrity.js',
   'js/tms-observability.js',
   'js/tms-runtime.js',
   'health.json',

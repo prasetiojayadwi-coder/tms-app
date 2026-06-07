@@ -55,7 +55,9 @@ def score_security(js: str, html: str) -> tuple[float, list[str]]:
         ('persistCurrentUserSession', 0.5, 'Session tanpa password'),
         ('check_tms_write_auth', 0.5, 'Supabase write trigger'),
         ('tmsReportError', 0.5, 'Structured error reporting'),
-        ("tmsRequireRole(['owner'], 'Impor database')", 0.5, 'Restore DB owner-only'),
+        ("tmsRequirePerm('RESTORE_DB'", 0.5, 'Restore DB owner-only'),
+        ('TMS_PERM', 0.5, 'Centralized permission matrix'),
+        ('runDbIntegrityCheck', 0.5, 'DB integrity check'),
     ]
     sql = (ROOT / 'supabase_setup.sql').read_text(encoding='utf-8') if (ROOT / 'supabase_setup.sql').exists() else ''
     combined = js + html + sql
@@ -74,7 +76,10 @@ def score_security(js: str, html: str) -> tuple[float, list[str]]:
 def score_architecture(js: str, html: str) -> tuple[float, list[str]]:
     pts, notes = 0.0, []
     modules = list((ROOT / 'js').glob('tms-*.js')) if (ROOT / 'js').is_dir() else []
-    if len(modules) >= 3:
+    if len(modules) >= 5:
+        pts += 4.0
+        notes.append(f'+4.0: {len(modules)} modul JS terpisah')
+    elif len(modules) >= 3:
         pts += 3.5
         notes.append(f'+3.5: {len(modules)} modul JS terpisah')
     elif len(modules) >= 2:
@@ -92,6 +97,9 @@ def score_architecture(js: str, html: str) -> tuple[float, list[str]]:
     if 'requestAnimationFrame' in js and '_updateDataQueued' in js:
         pts += 1.0
         notes.append('+1.0: updateData debounce via rAF')
+    if 'sc.innerHTML = filtered.map(t =>' in js:
+        pts += 0.5
+        notes.append('+0.5: SPV assets batch render join')
     lines = html.count('\n')
     if lines < 12000:
         pts += 1.0

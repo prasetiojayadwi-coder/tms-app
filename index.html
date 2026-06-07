@@ -45,6 +45,8 @@
     <script src="config.deploy.js"></script>
     <script src="config.js" onerror="void 0"></script>
     <script src="js/tms-security.js"></script>
+    <script src="js/tms-auth.js"></script>
+    <script src="js/tms-integrity.js"></script>
     <script src="js/tms-observability.js"></script>
     <script src="js/tms-runtime.js"></script>
     
@@ -5040,6 +5042,9 @@
                 }
             }
             document.addEventListener("DOMContentLoaded", () => {
+                loadDB();
+                syncCurrentUserFromDb();
+                if (!currentUser) return;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-wrapper').classList.remove('hidden');
                 initAppUI();
@@ -5417,6 +5422,9 @@
 
         function initAppUI() {
             syncCurrentUserFromDb();
+            if (!currentUser) return;
+            loadDB();
+            if (typeof tmsRunIntegrityAndLog === 'function') tmsRunIntegrityAndLog(db);
             bindServiceTicketCardActions();
             const mobileLite = isTmsMobileView();
             const tabOpts = mobileLite ? { lite: true } : undefined;
@@ -6603,8 +6611,9 @@
             if(filteredTools.length === 0) scTools.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">No special tools found</td></tr>`;
             
             filteredTools.forEach(t => {
+                const tf = tmsEscToolFields(t);
                 const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
-                let ownerHtml = ownerUser ? `${ownerUser.name}` : 'Gudang (Pool)';
+                let ownerHtml = ownerUser ? `${tmsEscHtml(ownerUser.name)}` : 'Gudang (Pool)';
                 if (ownerUser && ownerUser.email) {
                     let emailSubject = `[TMS Koordinasi] Tanya Kepemilikan Alat Ukur - ${t.noInv}`;
                     let emailBody = `Halo ${ownerUser.name},\n\nSaya melihat di sistem TMS bahwa Anda saat ini memegang alat ukur berikut:\n\n- Nama Alat: ${t.desc}\n- No. Inventaris: ${t.noInv}\n- No. Seri: ${t.sn || '-'}\n\nSaya ingin menanyakan perihal ketersediaan alat tersebut untuk koordinasi peminjaman/serah terima. Terima kasih.\n\nSalam,\n${currentUser.name}`;
@@ -6614,9 +6623,9 @@
                 const isMine = t.ownerId === currentUser.id;
                 const calStat = getCalibrationStatus(t.calDate);
                 const condColor = t.condition === 'Rusak' ? 'text-red-600 dark:text-red-500' : 'text-emerald-600 dark:text-emerald-400';
-                const reasonText = t.reason ? t.reason : 'Standby';
-                const subCatBadge = t.subCategory ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 ml-1 inline-block whitespace-nowrap">${t.subCategory}</span>` : '';
-                const maintBadge = t.maintenanceStatus ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 ml-1 inline-block whitespace-nowrap">${t.maintenanceStatus}</span>` : '';
+                const reasonText = tmsEscHtml(t.reason ? t.reason : 'Standby');
+                const subCatBadge = t.subCategory ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 ml-1 inline-block whitespace-nowrap">${tmsEscHtml(t.subCategory)}</span>` : '';
+                const maintBadge = t.maintenanceStatus ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 ml-1 inline-block whitespace-nowrap">${tmsEscHtml(t.maintenanceStatus)}</span>` : '';
                 
                 const activeReq = db.requests.find(r => r.toolId === t.id && (r.status === 'pending_spv' || r.status === 'pending_tsf' || r.status === 'approved'));
                 
@@ -6634,17 +6643,18 @@
                 }
                 else btn = `<button onclick="initRequest(${t.id})" class="px-5 py-2.5 border border-gray-300 dark:border-lux-600 hover:border-gold-500 text-gray-900 dark:text-white hover:text-gold-600 dark:hover:text-gold-500 rounded-lg text-[10px] uppercase tracking-[0.15em] font-black transition shadow-sm whitespace-nowrap">Pinjam Alat</button>`;
                 
-                scTools.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block text-gold-600 dark:text-gold-500 font-bold">${t.noInv}</span><span class="block text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-wider font-semibold bg-gray-100 dark:bg-lux-800 px-2 py-0.5 rounded w-max border border-gray-200 dark:border-lux-800" title="Artikel No">${t.artNo || '-'}</span></td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${t.desc||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1">${t.merk||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.tipe||'-'}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
+                scTools.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block text-gold-600 dark:text-gold-500 font-bold">${tf.noInv}</span><span class="block text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-wider font-semibold bg-gray-100 dark:bg-lux-800 px-2 py-0.5 rounded w-max border border-gray-200 dark:border-lux-800" title="Artikel No">${tf.artNo}</span></td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${tf.desc}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1">${tf.merk}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${tf.sn}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${tf.tipe}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${tmsEscHtml(t.condition)}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
             });
 
             if(allDemos.length === 0) scDemo.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-500 dark:text-lux-500 text-[11px] font-bold uppercase tracking-widest">No backup units found</td></tr>`;
             allDemos.forEach(t => {
-                const owner = t.ownerId === 0 ? 'Gudang (Pool)' : (db.users[t.ownerId] ? db.users[t.ownerId].name : 'Tidak Diketahui');
+                const tf = tmsEscToolFields(t);
+                const owner = t.ownerId === 0 ? 'Gudang (Pool)' : (db.users[t.ownerId] ? tmsEscHtml(db.users[t.ownerId].name) : 'Tidak Diketahui');
                 const isMine = t.ownerId === currentUser.id;
                 const calStat = getCalibrationStatus(t.calDate);
                 const condColor = t.condition === 'Rusak' ? 'text-red-600 dark:text-red-500' : 'text-emerald-600 dark:text-emerald-400';
-                const reasonText = t.reason ? t.reason : 'Standby';
-                const maintBadge = t.maintenanceStatus ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 ml-1 inline-block whitespace-nowrap">${t.maintenanceStatus}</span>` : '';
+                const reasonText = tmsEscHtml(t.reason ? t.reason : 'Standby');
+                const maintBadge = t.maintenanceStatus ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 ml-1 inline-block whitespace-nowrap">${tmsEscHtml(t.maintenanceStatus)}</span>` : '';
                 
                 const activeReq = db.requests.find(r => r.toolId === t.id && (r.status === 'pending_spv' || r.status === 'pending_tsf' || r.status === 'approved'));
                 
@@ -6662,14 +6672,14 @@
                 }
                 else btn = `<button onclick="initRequest(${t.id})" class="px-5 py-2.5 border border-gray-300 dark:border-lux-600 hover:border-gold-500 text-gray-900 dark:text-white hover:text-gold-600 dark:hover:text-gold-500 rounded-lg text-[10px] uppercase tracking-[0.15em] font-black transition shadow-sm whitespace-nowrap">Pinjam Alat</button>`;
                 
-                scDemo.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[12px]"><span class="block">${t.noInv}</span><span class="block text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-wider font-semibold bg-gray-100 dark:bg-lux-800 px-2 py-0.5 rounded w-max border border-gray-200 dark:border-lux-800" title="Artikel No">${t.artNo || '-'}</span></td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${t.desc||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||''} ${t.tipe||''}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
+                scDemo.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition"><td class="p-5 text-emerald-600 dark:text-emerald-400 font-mono font-bold text-[12px]"><span class="block">${tf.noInv}</span><span class="block text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase tracking-wider font-semibold bg-gray-100 dark:bg-lux-800 px-2 py-0.5 rounded w-max border border-gray-200 dark:border-lux-800" title="Artikel No">${tf.artNo}</span></td><td class="p-5"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words min-w-[150px] max-w-[250px]">${tf.desc}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${tf.sn}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${tf.merk} ${tf.tipe}</p></td><td class="p-5"><p class="text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${owner}</p><p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 break-words max-w-[150px] italic">${reasonText}</p></td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${tmsEscHtml(t.condition)}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span>${maintBadge}</td><td class="p-5 text-right"><div class="flex flex-col items-end gap-2">${btn}<button onclick="showToolHistory(${t.id})" class="text-[9px] text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white uppercase font-bold tracking-widest transition whitespace-nowrap mt-1"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Riwayat</button></div></td></tr>`;
             });
         }
 
         function renderTsHandover() {
             const sel = document.getElementById('ho-select-tool'); sel.innerHTML = '<option value="" disabled selected>Select asset to hand over...</option>';
-            db.tools.filter(t => t.ownerId === currentUser.id && t.status === 'good').forEach(t => { sel.innerHTML += `<option value="${t.id}">${t.desc} (${t.noInv})</option>`; });
-            db.demoUnits.filter(t => t.ownerId === currentUser.id && t.status === 'good').forEach(t => { sel.innerHTML += `<option value="${t.id}">${t.desc} (${t.noInv})</option>`; });
+            db.tools.filter(t => t.ownerId === currentUser.id && t.status === 'good').forEach(t => { const tf = tmsEscToolFields(t); sel.innerHTML += `<option value="${t.id}">${tf.desc} (${tf.noInv})</option>`; });
+            db.demoUnits.filter(t => t.ownerId === currentUser.id && t.status === 'good').forEach(t => { const tf = tmsEscToolFields(t); sel.innerHTML += `<option value="${t.id}">${tf.desc} (${tf.noInv})</option>`; });
             
             const inc = document.getElementById('ts-incoming-requests'); inc.innerHTML = '';
             
@@ -6695,7 +6705,9 @@
                     label = `Disetujui dari: ${source}`;
                 }
                 
-                inc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gold-300 dark:border-gold-500/40 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-bold uppercase tracking-widest mb-1.5">${label}</p><p class="font-black text-[14px] text-gray-900 dark:text-white truncate">${t.desc}</p></div><button onclick="openHandoverModal(${r.id})" class="w-full md:w-auto shrink-0 bg-gold-500 text-white dark:text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition">Confirm Signature</button></div>`;
+                const tf = tmsEscToolFields(t);
+                const safeLabel = tmsEscHtml(label);
+                inc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gold-300 dark:border-gold-500/40 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-bold uppercase tracking-widest mb-1.5">${safeLabel}</p><p class="font-black text-[14px] text-gray-900 dark:text-white truncate">${tf.desc}</p></div><button onclick="openHandoverModal(${r.id})" class="w-full md:w-auto shrink-0 bg-gold-500 text-white dark:text-black px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] shadow-[0_0_15px_rgba(234,179,8,0.3)] hover:bg-gold-600 transition">Confirm Signature</button></div>`;
             });
         }
 
@@ -6873,9 +6885,10 @@
                 syncSpvAssetSelectAllState();
                 return;
             }
-            filtered.forEach(t => {
+            sc.innerHTML = filtered.map(t => {
+                const tf = tmsEscToolFields(t);
                 const ownerUser = t.ownerId === 0 ? null : db.users[t.ownerId];
-                let ownerHtml = ownerUser ? `${ownerUser.name}` : 'Gudang (Pool)';
+                let ownerHtml = ownerUser ? `${tmsEscHtml(ownerUser.name)}` : 'Gudang (Pool)';
                 if (ownerUser && ownerUser.email) {
                     const calStat = getCalibrationStatus(t.calDate);
                     let emailSubject = `[Peringatan TMS] Perawatan / Kalibrasi Alat Ukur - ${t.noInv}`;
@@ -6885,18 +6898,18 @@
                 }
                 const condColor = t.condition === 'Rusak' ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400';
                 const calStat = getCalibrationStatus(t.calDate);
-                const subCatBadge = t.subCategory ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${t.subCategory}</span>` : '';
-                const maintBadge = t.maintenanceStatus ? `<br><span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 mt-1 inline-block whitespace-nowrap">${t.maintenanceStatus}</span>` : '';
+                const subCatBadge = t.subCategory ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${tmsEscHtml(t.subCategory)}</span>` : '';
+                const maintBadge = t.maintenanceStatus ? `<br><span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-blue-600 dark:text-blue-500 border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 mt-1 inline-block whitespace-nowrap">${tmsEscHtml(t.maintenanceStatus)}</span>` : '';
 
                 const isInProcess = hasActiveRequest(t.id);
                 const distBtnHtml = isInProcess
                     ? `<button disabled class="tms-icon-btn opacity-40 cursor-not-allowed" title="Sedang dalam proses aktif"><i class="fa-solid fa-lock text-[10px]"></i></button>`
                     : `<button onclick="openDistributeModal(${t.id}, 'tool')" class="tms-icon-btn" title="Distribusikan"><i class="fa-solid fa-paper-plane text-[10px]"></i></button>`;
 
-                sc.innerHTML += `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
+                return `<tr class="border-b border-gray-100 dark:border-lux-800/60 hover:bg-gray-50 dark:hover:bg-lux-800/30 transition">
                     <td class="p-5 text-center"><input type="checkbox" value="${t.id}" onchange="syncSpvAssetSelectAllState()" class="spv-asset-checkbox cust-master-cb w-4 h-4 rounded cursor-pointer"></td>
-                    <td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block font-bold">${t.noInv}</span><span class="text-gray-500 dark:text-lux-400 text-[10px] whitespace-nowrap">${t.artNo||'-'}</span></td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${t.desc||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.merk||'-'}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${t.sn||'-'}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${t.tipe||'-'}</p></td><td class="p-5 text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${t.condition}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span><br>${subCatBadge}${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="tms-icon-btn" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="tms-icon-btn" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button><button onclick="openFormModal('tool', ${t.id})" class="tms-icon-btn" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button><button onclick="deleteItem('tool', ${t.id})" class="tms-icon-btn tms-icon-btn--danger" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button></div></td></tr>`;
-            });
+                    <td class="p-5 text-gray-900 dark:text-white font-mono text-[12px]"><span class="block font-bold">${tf.noInv}</span><span class="text-gray-500 dark:text-lux-400 text-[10px] whitespace-nowrap">${tf.artNo}</span></td><td class="p-5 min-w-[200px]"><p class="font-bold text-[13px] text-gray-900 dark:text-white break-words">${tf.desc}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${tf.merk}</p></td><td class="p-5"><p class="font-bold font-mono text-[12px] text-gray-900 dark:text-white whitespace-nowrap">${tf.sn}</p><p class="text-[11px] text-gray-500 dark:text-lux-400 mt-1 whitespace-nowrap">${tf.tipe}</p></td><td class="p-5 text-[12px] font-bold text-gray-700 dark:text-lux-300 uppercase tracking-wider whitespace-nowrap">${ownerHtml}</td><td class="p-5"><p class="font-black text-[11px] uppercase tracking-wider ${condColor} mb-2 whitespace-nowrap">${tmsEscHtml(t.condition)}</p><span class="px-2 py-0.5 rounded border text-[9px] font-black uppercase inline-block whitespace-nowrap ${calStat.badge}">${calStat.text}</span><br>${subCatBadge}${maintBadge}</td><td class="p-5 text-center"><div class="flex justify-center gap-2">${distBtnHtml}<button onclick="showToolDetail(${t.id})" class="tms-icon-btn" title="Detail Info"><i class="fa-solid fa-circle-info text-[10px]"></i></button><button onclick="showToolHistory(${t.id})" class="tms-icon-btn" title="Riwayat"><i class="fa-solid fa-clock-rotate-left text-[10px]"></i></button><button onclick="openFormModal('tool', ${t.id})" class="tms-icon-btn" title="Edit"><i class="fa-solid fa-pen text-[10px]"></i></button><button onclick="deleteItem('tool', ${t.id})" class="tms-icon-btn tms-icon-btn--danger" title="Hapus"><i class="fa-solid fa-trash text-[10px]"></i></button></div></td></tr>`;
+            }).join('');
             syncSpvAssetSelectAllState();
         }
 
@@ -7162,11 +7175,14 @@
                 if(!t || !u) return;
 
                 if(r.reqType === 'borrow') {
-                    rc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase tracking-widest mb-1.5">Permohonan Peminjaman</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-gray-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 mb-2 truncate">Pemohon: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p><p class="text-[11px] text-gray-500 dark:text-lux-500 italic border-l-2 border-gray-300 dark:border-lux-700 pl-3 break-words">"${tmsEscHtml(r.note)}"</p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/10 border border-gold-500/30 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition whitespace-nowrap">Izinkan</button></div></div>`;
+                    const tf = tmsEscToolFields(t);
+                    rc.innerHTML += `<div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-800 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-gold-600 dark:text-gold-500 font-black uppercase tracking-widest mb-1.5">Permohonan Peminjaman</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${tf.desc}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-gray-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${tf.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 mb-2 truncate">Pemohon: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p><p class="text-[11px] text-gray-500 dark:text-lux-500 italic border-l-2 border-gray-300 dark:border-lux-700 pl-3 break-words">"${tmsEscHtml(r.note)}"</p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/10 border border-gold-500/30 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.3)] transition whitespace-nowrap">Izinkan</button></div></div>`;
                 } else if(r.reqType === 'return') {
-                    rc.innerHTML += `<div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1.5">Pengembalian ke Gudang</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-emerald-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Oleh: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition whitespace-nowrap">Terima ke Gudang</button></div></div>`;
+                    const tf = tmsEscToolFields(t);
+                    rc.innerHTML += `<div class="bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-widest mb-1.5">Pengembalian ke Gudang</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${tf.desc}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-emerald-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${tf.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Oleh: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Tolak</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white text-emerald-600 dark:text-emerald-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition whitespace-nowrap">Terima ke Gudang</button></div></div>`;
                 } else if (r.reqType === 'verify_tool') {
-                    rc.innerHTML += `<div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-1.5">Verifikasi Pendaftaran Aset Baru</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${t.desc||'-'}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-blue-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${t.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Didaftarkan oleh TS: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Hapus</button><button onclick="openFormModal('${r.toolType}', ${t.id})" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/5 border border-gold-500/20 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] transition whitespace-nowrap bg-white dark:bg-transparent">Revisi Data</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(59,130,246,0.25)] transition whitespace-nowrap">Verifikasi Aktif</button></div></div>`;
+                    const tf = tmsEscToolFields(t);
+                    rc.innerHTML += `<div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-inner"><div class="min-w-0"><p class="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mb-1.5">Verifikasi Pendaftaran Aset Baru</p><p class="font-black text-[15px] text-gray-900 dark:text-white mb-1 truncate">${tf.desc}</p><p class="text-[10px] text-gray-500 dark:text-lux-500 border border-blue-200 dark:border-lux-700 px-2 py-0.5 rounded font-mono inline-block mb-2 bg-white dark:bg-transparent">${tf.noInv}</p><p class="text-[12px] font-medium text-gray-600 dark:text-lux-400 truncate">Didaftarkan oleh TS: <span class="font-bold text-gray-900 dark:text-white">${tmsEscHtml(u.name)}</span></p></div><div class="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto mt-4 sm:mt-0"><button onclick="initAuthApprove(${r.id}, false)" class="flex-1 sm:flex-none px-5 py-2.5 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500 hover:text-white text-rose-600 dark:text-rose-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(244,63,94,0.25)] transition whitespace-nowrap">Hapus</button><button onclick="openFormModal('${r.toolType}', ${t.id})" class="flex-1 sm:flex-none px-5 py-2.5 bg-gold-500/5 border border-gold-500/20 hover:bg-gold-500 hover:text-black text-gold-600 dark:text-gold-500 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(234,179,8,0.2)] transition whitespace-nowrap bg-white dark:bg-transparent">Revisi Data</button><button onclick="initAuthApprove(${r.id}, true)" class="flex-1 sm:flex-none px-5 py-2.5 bg-blue-500/10 border border-blue-500/30 hover:bg-blue-600 hover:text-white text-blue-600 dark:text-blue-400 font-extrabold rounded-xl text-[10px] uppercase tracking-widest hover:shadow-[0_0_15px_rgba(59,130,246,0.25)] transition whitespace-nowrap">Verifikasi Aktif</button></div></div>`;
                 }
             });
         }
@@ -7850,11 +7866,13 @@
         function openFormModal(type, id = null) {
             editMode = (id !== null); currentEditId = id;
             if(type === 'tech') {
+                if (!tmsRequirePerm('MANAGE_PERSONNEL', 'Mengelola data personel')) return;
                 document.getElementById('tech-modal-title').innerHTML = editMode ? '<i class="fa-solid fa-user-pen text-gold-500 mr-2"></i> Edit Personel' : '<i class="fa-solid fa-user-plus text-gold-500 mr-2"></i> Tambah Personel';
                 if(editMode) { 
                     const u = db.users[id]; 
                     document.getElementById('add-tech-user').value = u.user; 
-                    document.getElementById('add-tech-pass').value = u.pass; 
+                    document.getElementById('add-tech-pass').value = isPasswordHashed(u.pass) ? '' : (u.pass || ''); 
+                    document.getElementById('add-tech-pass').placeholder = isPasswordHashed(u.pass) ? '(kosongkan = tetap pakai password lama)' : '';
                     document.getElementById('add-tech-role').value = u.role; 
                     document.getElementById('add-tech-name').value = u.name; 
                     document.getElementById('add-tech-nik').value = u.nik||''; 
@@ -7977,6 +7995,7 @@
 
         async function submitTech(e) {
             e.preventDefault();
+            if (!tmsRequirePerm('MANAGE_PERSONNEL', 'Menyimpan data personel')) return;
             loadDB(); // Sinkronisasi sebelum menyimpan
             const userVal = document.getElementById('add-tech-user').value.trim();
             const nikVal = document.getElementById('add-tech-nik').value.trim();
@@ -8139,8 +8158,8 @@
         }
 
         function deleteItem(type, id) {
-            if (type === 'tech' && !tmsRequireRole(['owner', 'spv'], 'Menghapus personel')) return;
-            if ((type === 'tool' || type === 'demo') && !tmsRequireRole(['owner', 'tsf'], 'Menghapus aset inventori')) return;
+            if (type === 'tech' && !tmsRequirePerm('DELETE_PERSONNEL', 'Menghapus personel')) return;
+            if ((type === 'tool' || type === 'demo') && !tmsRequirePerm('DELETE_ASSET', 'Menghapus aset inventori')) return;
             if(!confirm("Hapus secara permanen? Data riwayat juga akan hilang.")) return;
             loadDB(); // Sinkronisasi sebelum menghapus
             recordDeletion(id);
@@ -8199,7 +8218,7 @@
         }
 
         function toggleUserLock(userId) {
-            if (!tmsRequireRole(['owner', 'spv'], 'Mengunci/membuka akun personel')) return;
+            if (!tmsRequirePerm('LOCK_PERSONNEL', 'Mengunci/membuka akun personel')) return;
             loadDB();
             const u = db.users[userId];
             if (!u) return;
@@ -8981,7 +9000,7 @@
         }
 
         function backupDatabase() {
-            if (!tmsRequireRole(['owner', 'spv', 'tsf'], 'Ekspor database')) return;
+            if (!tmsRequirePerm('EXPORT_DB', 'Ekspor database')) return;
             loadDB();
             const safeDb = cloneDbForCloudUpload(db);
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(safeDb, null, 2));
@@ -8996,7 +9015,7 @@
         }
 
         function restoreDatabase(event) {
-            if (!tmsRequireRole(['owner'], 'Impor database')) return;
+            if (!tmsRequirePerm('RESTORE_DB', 'Impor database')) return;
             const file = event.target.files[0];
             if (!file) return;
 
@@ -11712,7 +11731,7 @@
         }
 
         function deleteSparepart(id) {
-            if (!tmsRequireRole(['owner', 'spv', 'ts_spec', 'ts_spec_avitum', 'ts_spec_ais'], 'Menghapus sparepart')) return;
+            if (!tmsRequirePerm('DELETE_SPAREPART', 'Menghapus sparepart')) return;
             if (!confirm('Delete this sparepart from master?')) return;
             loadDB();
             const sp = (db.spareparts || []).find(x => x.id === id);
@@ -11723,7 +11742,7 @@
         }
 
         function deleteSelectedSpareparts() {
-            if (!tmsRequireRole(['owner', 'spv', 'ts_spec', 'ts_spec_avitum', 'ts_spec_ais'], 'Menghapus sparepart')) return;
+            if (!tmsRequirePerm('DELETE_SPAREPART', 'Menghapus sparepart')) return;
             const checked = document.querySelectorAll('.sparepart-checkbox:checked');
             if (!checked.length) {
                 showToast('Pilih Sparepart', 'Centang minimal satu sparepart untuk dihapus.', 'warning');
@@ -12204,6 +12223,7 @@
         }
 
         function openCustomerModal(editId) {
+            if (!tmsRequirePerm('MANAGE_CUSTOMER', 'Mengelola data customer')) return;
             loadDB();
             document.getElementById('cust-edit-id').value = editId || '';
             const errSpan = document.getElementById('customer-form-error');
@@ -12238,6 +12258,7 @@
 
         function submitCustomer(e) {
             e.preventDefault();
+            if (!tmsRequirePerm('MANAGE_CUSTOMER', 'Menyimpan data customer')) return;
             loadDB();
             if (!validateCustomerForm()) return;
 
@@ -12358,7 +12379,7 @@
         }
 
         function deleteSelectedCustomers() {
-            if (!tmsRequireRole(['owner', 'spv'], 'Menghapus customer')) return;
+            if (!tmsRequirePerm('MANAGE_CUSTOMER', 'Menghapus customer')) return;
             const checked = document.querySelectorAll('.cust-checkbox:checked');
             if (!checked.length) {
                 showToast('Pilih Customer', 'Centang minimal satu customer untuk dihapus.', 'warning');
@@ -12378,6 +12399,7 @@
         }
 
         function openCustomerUnitModal(editId) {
+            if (!tmsRequirePerm('MANAGE_CUSTOMER', 'Mengelola unit customer')) return;
             loadDB();
             const customerId = selectedCustomerId;
             if (!customerId && !editId) {
@@ -12445,13 +12467,14 @@
             list.innerHTML = history.slice(0, 5).map(s => {
                 const date = s.updatedAt ? new Date(s.updatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
                 const complaint = (s.complaint || '-').substring(0, 80) + ((s.complaint || '').length > 80 ? '…' : '');
-                return `<div class="border-b border-amber-200/50 dark:border-amber-900/30 pb-2 last:border-0"><span class="font-mono font-bold text-amber-700 dark:text-amber-400">${s.noService || '-'}</span> <span class="text-[9px] text-gray-500">· ${date}</span><p class="text-gray-600 dark:text-lux-400 mt-0.5">${complaint}</p></div>`;
+                return `<div class="border-b border-amber-200/50 dark:border-amber-900/30 pb-2 last:border-0"><span class="font-mono font-bold text-amber-700 dark:text-amber-400">${tmsEscHtml(s.noService || '-')}</span> <span class="text-[9px] text-gray-500">· ${date}</span><p class="text-gray-600 dark:text-lux-400 mt-0.5">${tmsEscHtml(complaint)}</p></div>`;
             }).join('');
             box.classList.remove('hidden');
         }
 
         function submitCustomerUnit(e) {
             e.preventDefault();
+            if (!tmsRequirePerm('MANAGE_CUSTOMER', 'Menyimpan data unit customer')) return;
             loadDB();
             if (!validateCustomerUnitForm()) return;
 
@@ -12540,7 +12563,7 @@
         }
 
         function deleteSelectedCustomerUnits() {
-            if (!tmsRequireRole(['owner', 'spv'], 'Menghapus unit customer')) return;
+            if (!tmsRequirePerm('MANAGE_CUSTOMER', 'Menghapus unit customer')) return;
             const checked = document.querySelectorAll('.cust-unit-checkbox:checked');
             if (!checked.length) {
                 showToast('Pilih Unit', 'Centang minimal satu unit untuk dihapus.', 'warning');
