@@ -145,11 +145,17 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7109():
+def test_release_version_71010():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.9' in rel
-    assert re.search(r"build:\s*131", rel)
-    assert 'tms-cache-v131' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.10' in rel
+    assert re.search(r"build:\s*132", rel)
+    assert 'tms-cache-v132' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+
+
+def test_app_version_label_present():
+    html = _html()
+    assert 'id="app-version-label"' in html
+    assert 'app-version-label' in html and "querySelector('span')" in html
 
 
 def test_no_hidden_required_quote_details():

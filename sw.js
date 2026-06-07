@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tms-cache-v131';
+const CACHE_NAME = 'tms-cache-v132';
 const CORE_ASSETS = [
   './',
   'index.html',
