@@ -145,9 +145,19 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_766():
+def test_release_version_767():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.6.6' in rel
+    assert '7.6.7' in rel
+
+
+def test_field_technician_instant_active():
+    js = _js_bundle()
+    assert "roleVal === 'ts'" in js
+    assert 'langsung bisa login' in js
+    block = js[js.find('async function submitTech'):js.find('async function submitTech') + 3500]
+    assert "roleVal === 'ts'" in block
+    assert "'active'" in block
+    assert 'pending_approval' in block
 
 
 def test_onsite_pickup_direct_confirm():

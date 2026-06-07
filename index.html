@@ -8135,7 +8135,12 @@
             }
             
             const originalStatus = editMode ? (db.users[currentEditId].status || 'active') : '';
-            const statusVal = editMode ? originalStatus : ((currentUser.role === 'owner' || currentUser.role === 'tsf') ? 'active' : 'pending_approval');
+            // Teknisi lapangan (ts): langsung aktif — SPV boleh onboard tanpa tunggu Direktur
+            const statusVal = editMode ? originalStatus : (
+                (currentUser.role === 'owner' || currentUser.role === 'tsf' || roleVal === 'ts')
+                    ? 'active'
+                    : 'pending_approval'
+            );
             
             const productsVal = [];
             if (document.getElementById('add-prod-avitum').checked) productsVal.push('Avitum');
@@ -8189,8 +8194,13 @@
                     showToast("Menunggu Persetujuan", "Registrasi personel dikirim ke Direktur.", "success");
                 } else {
                     relinkServiceTicketsForUser(data);
-                    addToHistory(`${currentUser.role.toUpperCase()} menambahkan personel aktif baru: ${data.name}.`, null);
-                    showToast("Success", "Personel baru aktif di sistem.", "success");
+                    const histRole = currentUser.role === 'spv' ? 'SPV' : currentUser.role.toUpperCase();
+                    addToHistory(`${histRole} menambahkan personel aktif baru: ${data.name}.`, null);
+                    if (roleVal === 'ts') {
+                        showToast('Teknisi Aktif', `${data.name} (@${data.user}) langsung bisa login & mengerjakan tiket sebagai PJ.`, 'success');
+                    } else {
+                        showToast('Success', 'Personel baru aktif di sistem.', 'success');
+                    }
                 }
             }
             if (editMode && isActiveFieldTsUser(data)) relinkServiceTicketsForUser(data);
