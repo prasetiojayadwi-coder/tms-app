@@ -145,31 +145,62 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_770():
+def test_release_version_7100():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.7.0' in rel
+    assert '7.10.0' in rel
 
 
-def test_repair_loc_by_technician():
+def test_pj_reassignment_flow():
+    html = _html()
     js = _js_bundle()
-    assert 'function isRepairLocSet' in js
+    assert 'reassignPjModal' in html
+    assert 'function canReassignServicePj' in js
+    assert 'function openReassignPjModal' in js
+    assert 'function submitReassignPj' in js
+    assert 'PJ dialihkan dari' in js
+    block = js[js.find('function submitReassignPj'):js.find('function getTicketPjName')]
+    assert "s.status === 'registered'" in block
+    assert 's.repairLoc = null' in block
+    assert 'canReassignServiceTicket(s)' in js
+
+
+def test_service_ticket_creator_roles():
+    js = _js_bundle()
+    assert 'function canCreateServiceTicket' in js
+    assert 'function canActAsServicePj' in js
+    assert "u.role === 'owner'" in js[js.find('function canCreateServiceTicket'):js.find('function canActAsServicePj')]
+    assert 'isServiceSpecRole(u)' in js[js.find('function canCreateServiceTicket'):js.find('function canActAsServicePj')]
+    reg_btn = js[js.find('function renderServiceTickets'):js.find('function renderServiceTickets') + 3500]
+    assert 'canCreateServiceTicket(currentUser)' in reg_btn
+
+
+def test_pj_pick_path_then_handover():
+    html = _html()
+    js = _js_bundle()
+    assert 'repairLocPickModal' in html
     assert 'function openRepairLocPickModal' in js
     assert 'function submitRepairLocPickup' in js
-    assert 'repairLocPickModal' in js
-    assert 'svc-repair-loc' not in js
+    assert 'svc-repair-loc' not in html
     reg_block = js[js.find('async function submitServiceTicket'):js.find('async function submitServiceTicket') + 4500]
     assert 'repairLoc: null' in reg_block
+    loc_block = js[js.find('function submitRepairLocPickup'):js.find('function actionServiceTicket')]
+    assert 'openHandoverSignatureModal(id' in loc_block
     pickup_block = js[js.find('function actionServiceTicket'):js.find('function actionServiceTicket') + 2400]
     assert 'openRepairLocPickModal(id)' in pickup_block
+    assert 'openHandoverSignatureModal(id, action)' in pickup_block
+    assert 'executeWorkshopPickup' not in js
 
 
-def test_workshop_pickup_one_click():
+def test_pickup_via_handover_signature():
     js = _js_bundle()
-    assert 'function executeWorkshopPickup' in js
-    block = js[js.find('function actionServiceTicket'):js.find('function actionServiceTicket') + 2200]
-    assert 'executeWorkshopPickup(id)' in block
     sig_block = js[js.find('function submitHandoverSignature'):js.find('function openAnalysisModal')]
+    assert "action === 'pickup'" in sig_block
+    assert 'signaturePickupGiver' in sig_block
+    assert 'signaturePickupReceiver' in sig_block
     assert 'renderServiceTickets(true)' in sig_block
+    handover_block = js[js.find('function openHandoverSignatureModal'):js.find('function submitHandoverSignature')]
+    assert 'handoverOnsiteOnly' in handover_block
+    assert 'handoverSigStep = 1' in handover_block
 
 
 def test_technician_creator_is_pj():
@@ -193,15 +224,15 @@ def test_field_technician_instant_active():
     assert 'pending_approval' in block
 
 
-def test_onsite_pickup_direct_confirm():
+def test_field_tech_creator_is_pj_only():
     js = _js_bundle()
-    assert 'function executeOnsitePickup' in js
-    assert 'window.tmsOnsitePickup' in js
-    assert 'renderServiceTickets(true)' in js
-    assert 'alignTicketPjToUserIfNamed' in js
-    assert "tmsOnsitePickup: () => window.tmsOnsitePickup(id)" in js
-    assert "svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit'" in js
-    assert "executeOnsitePickup(id)" in js[js.find('function submitRepairLocPickup'):js.find('function executeWorkshopPickup')]
+    match = js[js.find('function ticketPjMatchesCurrentUser'):js.find('function formatServiceTicketActionFallback')]
+    assert 'isServiceFieldUser(currentUser)' in match
+    assert 'registeredById' in match
+    relink = js[js.find('function relinkServiceTicketsForUser'):js.find('function healAllServiceTicketPj')]
+    assert 'creatorFieldPj' in relink
+    assert 'Mulai Pekerjaan' in js
+    assert 'Saya kerjakan sendiri' in _html()
     assert 'function healServiceTicketsForCurrentUser' in js
     assert 'function relinkServiceTicketsForUser' in js
     assert 'function healAllServiceTicketPj' in js
@@ -622,7 +653,8 @@ def test_service_pj_strict_designated_technician():
     resolve = js[js.find('function resolveTicketAssignedTsId'):js.find('function syncCurrentUserFromDb')]
     assert 'userConflict' in resolve
     assert 'byName.length === 1' in resolve
-    assert 'isActiveFieldTsUser(assignedTs)' in js
+    assert 'canActAsServicePj(assignedTs)' in js
+    assert 'creatorFieldPj' in js
 
 
 def test_onsite_repair_pj_guard():

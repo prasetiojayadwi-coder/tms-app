@@ -1275,7 +1275,7 @@
                 </div>
 
                 <div id="svc-ts-pj-hint" class="hidden bg-amber-50/80 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 mb-0">
-                    <p class="text-[10px] text-amber-800 dark:text-amber-300 font-bold leading-relaxed"><i class="fa-solid fa-circle-info text-amber-500 mr-1.5"></i> <strong>Teknisi lapangan hanya dapat mengerjakan tiket di mana Anda adalah PJ (Teknisi PJ).</strong> Tiket milik teknisi lain menampilkan label <em>PJ: [nama]</em> — bukan error, melainkan penugasan SPV.</p>
+                    <p class="text-[10px] text-amber-800 dark:text-amber-300 font-bold leading-relaxed"><i class="fa-solid fa-circle-info text-amber-500 mr-1.5"></i> <strong>Hanya PJ tiket yang dapat mengerjakan alur perbaikan.</strong> Klik <em>Mulai Pekerjaan</em> → pilih jalur (Lapangan / TSF) → TTD. Tiket PJ lain menampilkan label <em>PJ: [nama]</em>.</p>
                 </div>
 
                 <!-- Filters & Search -->
@@ -2178,17 +2178,19 @@
                     <div class="tms-suggest-wrap"><label class="input-label">Equipment Name / Unit Description <span class="text-gold-500">*</span></label><input type="text" id="svc-unit-name" required class="input-field" placeholder="Ketik nama unit..." autocomplete="off" oninput="onSvcUnitNameInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'unit')" onblur="setTimeout(() => hideSvcSuggest('unit'), 180)"><div id="svc-suggest-unit" class="tms-suggest-dropdown hidden"></div></div>
                     <div class="tms-suggest-wrap"><label class="input-label">Serial Number (SN)</label><input type="text" id="svc-unit-sn" class="input-field font-mono" placeholder="Ketik SN..." autocomplete="off" oninput="onSvcSnInput(this.value)" onkeydown="handleSvcSuggestKeydown(event, 'sn')" onblur="setTimeout(() => hideSvcSuggest('sn'), 180)"><div id="svc-suggest-sn" class="tms-suggest-dropdown hidden"></div></div>
                     <div class="md:col-span-2"><label class="input-label">Complaint / Equipment Issue Description <span class="text-gold-500">*</span></label><textarea id="svc-complaint" required rows="3" class="input-field" placeholder="Describe the issue or equipment damage complaint..."></textarea></div>
-                    <div class="md:col-span-2"><label class="input-label">Select Field Technician for Pickup <span class="text-gold-500">*</span></label>
+                    <div class="md:col-span-2" id="svc-ts-picker-wrap">
+                        <label class="input-label">Teknisi PJ (Penanggung Jawab) <span class="text-gold-500">*</span></label>
                         <select id="svc-assigned-ts" required class="input-field">
-                            <!-- Populated with 'ts' role technicians -->
+                            <!-- Populated: teknisi lapangan atau kerjakan sendiri -->
                         </select>
+                        <p id="svc-ts-self-hint" class="text-[10px] text-gray-500 dark:text-lux-400 mt-1.5 hidden"></p>
                     </div>
                     <div class="md:col-span-2">
                         <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/40 p-4 rounded-xl flex items-start gap-3">
-                            <i class="fa-solid fa-circle-info text-blue-500 mt-0.5 text-base"></i>
+                            <i class="fa-solid fa-route text-blue-500 mt-0.5 text-base"></i>
                             <div>
-                                <p class="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">Lokasi Perbaikan</p>
-                                <p class="text-[11px] text-gray-600 dark:text-lux-300 mt-1 leading-relaxed">Ditentukan oleh <strong>Teknisi PJ</strong> saat pickup unit — pilih <strong>TSF Workshop</strong> atau <strong>On-Site</strong> di lokasi customer.</p>
+                                <p class="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300">Jalur Perbaikan</p>
+                                <p class="text-[11px] text-gray-600 dark:text-lux-300 mt-1 leading-relaxed"><strong>PJ menentukan saat Mulai Pekerjaan:</strong> perbaikan <strong>di lapangan</strong> (SPH/PO/Quick Repair gratis) atau <strong>kirim ke TSF</strong> (TTD Customer→PJ, PJ→TSF, SPH, PO, perbaikan, kembali ke PJ, serah ke customer).</p>
                             </div>
                         </div>
                     </div>
@@ -2629,11 +2631,11 @@
         </div>
     </div>
 
-    <!-- Modal: Repair Location — ditentukan Teknisi PJ saat pickup -->
+    <!-- Modal: PJ pilih jalur perbaikan sebelum TTD -->
     <div id="repairLocPickModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[450] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
         <div class="bg-white dark:bg-lux-900 border border-gold-300 dark:border-gold-500/40 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
             <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
-                <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-map-location-dot mr-2"></i> Pilih Lokasi Perbaikan</h3>
+                <h3 class="font-black text-[13px] uppercase tracking-widest text-gold-600 dark:text-gold-500"><i class="fa-solid fa-route mr-2"></i> Pilih Jalur Perbaikan</h3>
                 <button type="button" onclick="closeModal('repairLocPickModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form onsubmit="submitRepairLocPickup(event)" class="p-6 sm:p-8 flex flex-col gap-5">
@@ -2643,26 +2645,61 @@
                     <p class="text-sm font-black text-gray-900 dark:text-white" id="repair-loc-pick-unit-name">-</p>
                     <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1 uppercase" id="repair-loc-pick-cust-info">-</p>
                 </div>
-                <p class="text-[11px] text-gray-600 dark:text-lux-300 leading-relaxed">Sebagai <strong>Teknisi PJ</strong>, tentukan jalur perbaikan untuk unit ini:</p>
+                <p class="text-[11px] text-gray-600 dark:text-lux-300 leading-relaxed">Sebagai <strong>PJ</strong>, tentukan cara menangani unit ini. Pilihan ini mengunci alur tiket.</p>
                 <div class="space-y-3">
-                    <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-lux-700 hover:border-gold-500/60 cursor-pointer transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-500/5">
-                        <input type="radio" name="repair-loc-pick" value="tsf" class="mt-1 accent-gold-500" checked>
-                        <div>
-                            <p class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-wide"><i class="fa-solid fa-warehouse text-gold-500 mr-1.5"></i> TSF Workshop</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">Unit dibawa ke workshop TSF untuk analisa &amp; perbaikan.</p>
-                        </div>
-                    </label>
                     <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-lux-700 hover:border-emerald-500/60 cursor-pointer transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/5">
                         <input type="radio" name="repair-loc-pick" value="onsite" class="mt-1 accent-emerald-500">
                         <div>
-                            <p class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-wide"><i class="fa-solid fa-location-dot text-emerald-500 mr-1.5"></i> On-Site</p>
-                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">Perbaikan langsung di lokasi customer (RS/klinik).</p>
+                            <p class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-wide"><i class="fa-solid fa-location-dot text-emerald-500 mr-1.5"></i> Perbaikan di Lapangan</p>
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">On-Site SPH → tunggu PO → perbaikan, atau <strong>Quick Repair gratis</strong> tanpa SPH/PO.</p>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3 p-4 rounded-xl border-2 border-gray-200 dark:border-lux-700 hover:border-gold-500/60 cursor-pointer transition has-[:checked]:border-gold-500 has-[:checked]:bg-gold-500/5">
+                        <input type="radio" name="repair-loc-pick" value="tsf" class="mt-1 accent-gold-500" checked>
+                        <div>
+                            <p class="text-[12px] font-black text-gray-900 dark:text-white uppercase tracking-wide"><i class="fa-solid fa-warehouse text-gold-500 mr-1.5"></i> Kirim ke TSF Workshop</p>
+                            <p class="text-[10px] text-gray-500 dark:text-lux-400 mt-1">TTD Customer→PJ, Analisa→TTD PJ→TSF, inspeksi TSF, SPH, PO, perbaikan, kembali ke PJ, serah customer.</p>
                         </div>
                     </label>
                 </div>
                 <div class="flex gap-3 pt-2 border-t border-gray-200 dark:border-lux-800">
                     <button type="button" onclick="closeModal('repairLocPickModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
-                    <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.12em] rounded-xl shadow-lg hover:bg-gold-600 transition">Konfirmasi &amp; Pickup</button>
+                    <button type="submit" class="flex-1 px-6 py-4 bg-gradient-to-r from-gold-500 to-gold-600 text-white dark:text-black font-black text-[12px] uppercase tracking-[0.12em] rounded-xl shadow-lg hover:bg-gold-600 transition">Lanjut TTD</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Alihkan PJ tiket service -->
+    <div id="reassignPjModal" class="fixed inset-0 bg-black/80 dark:bg-black/85 backdrop-blur-md z-[460] hidden items-start justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white dark:bg-lux-900 border border-indigo-300 dark:border-indigo-500/40 rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 my-auto">
+            <div class="border-b border-gray-200 dark:border-lux-800 p-6 flex justify-between items-center bg-gray-50 dark:bg-[#09090b]">
+                <h3 class="font-black text-[13px] uppercase tracking-widest text-indigo-600 dark:text-indigo-400"><i class="fa-solid fa-people-arrows mr-2"></i> Alihkan PJ Tiket</h3>
+                <button type="button" onclick="closeModal('reassignPjModal')" class="text-gray-500 dark:text-lux-400 hover:text-gray-900 dark:hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="submitReassignPj(event)" class="p-6 sm:p-8 flex flex-col gap-5">
+                <input type="hidden" id="reassign-pj-ticket-id">
+                <div class="bg-gray-50 dark:bg-[#131316] border border-gray-200 dark:border-lux-700 p-4 rounded-xl text-[11px]">
+                    <p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase mb-1">Tiket</p>
+                    <p class="font-black text-gray-900 dark:text-white" id="reassign-pj-ticket-no">-</p>
+                    <p class="text-gray-500 dark:text-lux-400 mt-1" id="reassign-pj-unit-info">-</p>
+                    <p class="mt-2"><span class="text-gray-400 font-bold uppercase text-[9px]">PJ saat ini:</span> <span class="font-bold text-indigo-600 dark:text-indigo-400" id="reassign-pj-current">-</span></p>
+                    <p class="mt-1"><span class="text-gray-400 font-bold uppercase text-[9px]">Status:</span> <span class="font-bold" id="reassign-pj-status">-</span></p>
+                </div>
+                <div id="reassign-pj-active-warning" class="hidden bg-amber-50/80 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-800/40 p-3 rounded-xl text-[10px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Tiket sudah berjalan. PJ baru <strong>mengambil alih</strong> langkah lapangan/BAST. Data TSF, SPH, dan PO tetap utuh. Pastikan serah terima fisik unit ke PJ baru.
+                </div>
+                <div>
+                    <label class="input-label">PJ Baru <span class="text-gold-500">*</span></label>
+                    <select id="reassign-pj-new" required class="input-field"></select>
+                </div>
+                <div>
+                    <label class="input-label">Alasan pergantian <span class="text-gold-500" id="reassign-pj-reason-req">*</span></label>
+                    <textarea id="reassign-pj-reason" rows="2" class="input-field" placeholder="Mis. teknisi cuti, wilayah diganti, beban kerja..."></textarea>
+                </div>
+                <div class="flex gap-3 pt-2 border-t border-gray-200 dark:border-lux-800">
+                    <button type="button" onclick="closeModal('reassignPjModal')" class="flex-1 px-6 py-4 border border-gray-300 dark:border-lux-700 rounded-xl text-[11px] font-black text-gray-700 dark:text-white uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-lux-800 transition">Batal</button>
+                    <button type="submit" class="flex-1 px-6 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[12px] uppercase tracking-[0.12em] rounded-xl shadow-lg transition">Alihkan PJ</button>
                 </div>
             </form>
         </div>
@@ -2736,6 +2773,8 @@
                     <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Equipment Description</p><p class="text-sm font-bold text-gray-900 dark:text-white" id="svc-det-unit-name">-</p></div>
                     <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Serial Number (SN)</p><p class="text-sm font-bold text-gray-950 dark:text-white font-mono" id="svc-det-unit-sn">-</p></div>
                     <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Damage Complaint</p><p class="text-sm font-medium text-gray-700 dark:text-lux-300" id="svc-det-complaint">-</p></div>
+                    <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Teknisi PJ</p><p class="text-sm font-bold text-indigo-600 dark:text-indigo-400" id="svc-det-pj-name">-</p></div>
+                    <div><p class="text-[9px] text-gray-400 dark:text-lux-500 font-black uppercase">Jalur Perbaikan</p><p class="text-sm font-bold text-gray-900 dark:text-white" id="svc-det-repair-loc">-</p></div>
                     
                     <div class="sm:col-span-2 pt-3 border-t border-gray-200/50 dark:border-lux-800" id="svc-det-quoted-info-wrapper">
                         <p class="text-[9px] text-emerald-600 dark:text-emerald-500 font-black uppercase tracking-wider">SPH — Sparepart Quotation</p>
@@ -2784,8 +2823,11 @@
                     </div>
                 </div>
 
-                <!-- WA Notification Button -->
-                <div class="mt-4 flex justify-end">
+                <!-- Actions -->
+                <div class="mt-4 flex flex-wrap justify-end gap-2">
+                    <button type="button" id="svc-det-reassign-pj-btn" class="hidden items-center gap-2 px-4 py-2.5 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-600 hover:text-white font-black rounded-xl text-[10px] uppercase tracking-widest transition shadow-md">
+                        <i class="fa-solid fa-people-arrows"></i> Alihkan PJ
+                    </button>
                     <button id="svc-det-wa-btn" class="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-500 hover:text-white dark:hover:text-black font-black rounded-xl text-[10px] uppercase tracking-widest transition shadow-md">
                         <i class="fa-brands fa-whatsapp text-base"></i> Send WA Notification to Customer
                     </button>
@@ -10125,6 +10167,147 @@
             return j.includes('technical service') || j.includes('teknisi lapangan') || j === 'teknisi';
         }
 
+        function isServiceSpecRole(u) {
+            return u && ['ts_spec', 'ts_spec_avitum', 'ts_spec_ais'].includes(u.role);
+        }
+
+        function canCreateServiceTicket(u) {
+            if (!u || u.status !== 'active') return false;
+            return u.role === 'owner' || u.role === 'spv' || u.role === 'ts' || isServiceSpecRole(u);
+        }
+
+        function canActAsServicePj(u) {
+            if (!u || u.status !== 'active') return false;
+            if (isServiceFieldUser(u)) return true;
+            return u.role === 'owner' || u.role === 'spv' || isServiceSpecRole(u);
+        }
+
+        function isServicePjUser(u) {
+            return canActAsServicePj(u);
+        }
+
+        function canReassignServicePj(u) {
+            if (!u || u.status !== 'active') return false;
+            return u.role === 'owner' || u.role === 'spv' || isServiceSpecRole(u);
+        }
+
+        const SERVICE_PJ_FINAL_STATUSES = ['completed', 'cancelled', 'returned_cust'];
+
+        function canReassignServiceTicket(s) {
+            if (!s || !currentUser || !canReassignServicePj(currentUser)) return false;
+            return s.status && !SERVICE_PJ_FINAL_STATUSES.includes(s.status);
+        }
+
+        function getServicePjCandidateList(excludeId) {
+            loadDB();
+            const ex = excludeId != null ? Number(excludeId) : null;
+            const candidates = Object.values(db.users || {}).filter(u => {
+                if (!u || !canActAsServicePj(u)) return false;
+                if (ex != null && Number(u.id) === ex) return false;
+                return true;
+            });
+            return candidates.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'id'));
+        }
+
+        function populateReassignPjSelect(excludeId) {
+            const sel = document.getElementById('reassign-pj-new');
+            if (!sel) return;
+            let html = '<option value="" disabled selected>-- Pilih PJ baru --</option>';
+            getServicePjCandidateList(excludeId).forEach(u => {
+                const roleTag = u.role === 'ts' ? 'TS' : (isServiceSpecRole(u) ? 'SPEC' : (u.role === 'spv' ? 'SPV' : 'OWNER'));
+                const label = `${u.name || u.user} (@${u.user}) [${roleTag}]`;
+                html += `<option value="${u.id}">${tmsEscHtml(label)}</option>`;
+            });
+            sel.innerHTML = html;
+        }
+
+        function openReassignPjModal(id) {
+            loadDB();
+            syncCurrentUserFromDb({ logoutOnInvalid: false });
+            const s = findServiceTicket(id);
+            if (!s) {
+                showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                return;
+            }
+            if (!canReassignServiceTicket(s)) {
+                showToast('Akses ditolak', 'Hanya Owner/SPV/Specialist dapat mengalihkan PJ tiket aktif.', 'error');
+                return;
+            }
+            const curId = resolveTicketAssignedTsId(s) || s.assignedTsId;
+            document.getElementById('reassign-pj-ticket-id').value = id;
+            document.getElementById('reassign-pj-ticket-no').innerText = s.noService || '-';
+            document.getElementById('reassign-pj-unit-info').innerText = `${s.customerName} · ${formatServiceUnitTitle(s)}`;
+            document.getElementById('reassign-pj-current').innerText = getTicketPjName(s) || 'Belum ditunjuk';
+            document.getElementById('reassign-pj-status').innerText = (s.status || '-').replace(/_/g, ' ').toUpperCase();
+            const warn = document.getElementById('reassign-pj-active-warning');
+            const reasonEl = document.getElementById('reassign-pj-reason');
+            const reasonReq = document.getElementById('reassign-pj-reason-req');
+            if (warn) warn.classList.toggle('hidden', s.status === 'registered');
+            if (reasonEl) {
+                reasonEl.required = s.status !== 'registered';
+                reasonEl.value = '';
+            }
+            if (reasonReq) reasonReq.classList.toggle('hidden', s.status === 'registered');
+            populateReassignPjSelect(curId);
+            openModal('reassignPjModal');
+        }
+        window.openReassignPjModal = openReassignPjModal;
+
+        function submitReassignPj(e) {
+            e.preventDefault();
+            loadDB();
+            syncCurrentUserFromDb({ logoutOnInvalid: false });
+            const id = parseInt(document.getElementById('reassign-pj-ticket-id').value, 10);
+            const newId = parseInt(document.getElementById('reassign-pj-new').value, 10);
+            const reason = (document.getElementById('reassign-pj-reason').value || '').trim();
+            const s = findServiceTicket(id);
+            if (!s || !canReassignServiceTicket(s)) {
+                showToast('Akses ditolak', 'Tidak dapat mengalihkan PJ tiket ini.', 'error');
+                return;
+            }
+            const newPj = getDbUser(newId);
+            if (!newPj || !canActAsServicePj(newPj)) {
+                showToast('PJ tidak valid', 'Pilih PJ aktif yang berwenang mengerjakan tiket.', 'error');
+                return;
+            }
+            const oldId = resolveTicketAssignedTsId(s) || s.assignedTsId;
+            if (oldId != null && Number(oldId) === Number(newId)) {
+                showToast('PJ sama', 'PJ baru harus berbeda dari PJ saat ini.', 'error');
+                return;
+            }
+            if (s.status !== 'registered' && !reason) {
+                showToast('Alasan wajib', 'Isi alasan pergantian PJ untuk tiket yang sudah berjalan.', 'error');
+                return;
+            }
+            const oldName = getTicketPjName(s) || s.assignedTsName || 'Belum ditunjuk';
+            const now = new Date().toISOString();
+            const prevStatus = s.status;
+            s.assignedTsId = Number(newPj.id);
+            s.assignedTsName = newPj.name || '';
+            s.assignedTsUser = newPj.user || '';
+            s.pjReassignedAt = now;
+            s.pjReassignedBy = currentUser.user;
+            if (s.status === 'registered') {
+                s.repairLoc = null;
+                delete s.repairLocSetAt;
+                delete s.repairLocSetBy;
+            }
+            const reasonTxt = reason ? ` Alasan: ${reason}` : '';
+            s.history.unshift({
+                t: now,
+                m: `PJ dialihkan dari ${oldName} ke ${newPj.name} (@${newPj.user}) oleh ${currentUser.name}.${reasonTxt} Status tiket tetap ${prevStatus.replace(/_/g, ' ')}.`
+            });
+            addToHistory(`PJ Tiket ${s.noService}: ${oldName} → ${newPj.name} (${currentUser.name}).`);
+            notifyServiceUpdate(s, s.status);
+            playNotificationSound();
+            saveDB();
+            closeModal('reassignPjModal');
+            if (activeTab === 'customer-service') renderServiceTickets(true);
+            else updateData();
+            showToast('PJ Dialihkan', `${newPj.name} sekarang PJ tiket ${s.noService}.`, 'success');
+        }
+        window.submitReassignPj = submitReassignPj;
+
         function getTicketPjName(s) {
             if (!s) return '';
             const tsUser = getDbUser(resolveTicketAssignedTsId(s) || s.assignedTsId);
@@ -10147,7 +10330,7 @@
         }
 
         function ticketPjMatchesCurrentUser(s) {
-            if (!currentUser || !s || !isServiceFieldUser(currentUser)) return false;
+            if (!currentUser || !s || !canActAsServicePj(currentUser)) return false;
             syncCurrentUserFromDb({ logoutOnInvalid: false });
             syncTicketPjFields(s);
             alignTicketPjToUserIfNamed(s);
@@ -10155,19 +10338,21 @@
             if (!uid) return false;
             const cuUser = normUserKey(currentUser.user);
             const cuName = normUserKey(currentUser.name);
-            if (cuUser && normUserKey(s.assignedTsUser) === cuUser) return true;
-            if (s.registeredByUser && normUserKey(s.registeredByUser) === cuUser) return true;
-            if (s.registeredById != null && Number(s.registeredById) === uid) return true;
             const resolved = resolveTicketAssignedTsId(s);
             if (resolved != null && Number(resolved) === uid) return true;
+            if (cuUser && normUserKey(s.assignedTsUser) === cuUser) return true;
             if (s.assignedTsName && cuName && normUserKey(s.assignedTsName) === cuName) return true;
+            if (isServiceFieldUser(currentUser)) {
+                if (s.registeredByUser && normUserKey(s.registeredByUser) === cuUser) return true;
+                if (s.registeredById != null && Number(s.registeredById) === uid) return true;
+            }
             return false;
         }
 
         function formatServiceTicketActionFallback(s) {
-            if (isServiceFieldUser(currentUser)) {
+            if (canActAsServicePj(currentUser)) {
                 const pj = getTicketPjName(s) || s.assignedTsName || 'belum ditunjuk';
-                return `<span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide" title="Hanya PJ yang ditunjuk SPV yang dapat mengerjakan tiket ini"><i class="fa-solid fa-user-lock mr-1"></i>PJ: ${tmsEscHtml(pj)}</span>`;
+                return `<span class="text-[9px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wide" title="Hanya PJ tiket yang dapat mengerjakan alur ini"><i class="fa-solid fa-user-lock mr-1"></i>PJ: ${tmsEscHtml(pj)}</span>`;
             }
             return `<span class="text-[10px] text-gray-500 dark:text-lux-500 italic font-bold">Menunggu Giliran</span>`;
         }
@@ -10209,16 +10394,31 @@
                 const pjName = normUserKey(s.assignedTsName);
                 const pjUser = normUserKey(s.assignedTsUser);
                 const regUser = normUserKey(s.registeredByUser);
+                const creatorFieldPj = isServiceFieldUser(u) && (
+                    (regUser && regUser === userKey) ||
+                    (s.registeredById != null && Number(s.registeredById) === uid)
+                );
                 const pointsToUser = (pjUser && pjUser === userKey) ||
                     (pjName && (pjName === nameKey || pjName === userKey)) ||
-                    (regUser && regUser === userKey) ||
-                    (s.registeredById != null && Number(s.registeredById) === uid);
+                    creatorFieldPj;
                 if (!pointsToUser) return;
                 if (Number(s.assignedTsId) !== uid) { s.assignedTsId = uid; changed = true; }
                 if (s.assignedTsName !== u.name) { s.assignedTsName = u.name; changed = true; }
                 if (s.assignedTsUser !== u.user) { s.assignedTsUser = u.user; changed = true; }
             });
             return changed;
+        }
+
+        function healServiceTicketRepairLoc(s) {
+            if (!s || isRepairLocSet(s)) return false;
+            if (s.status === 'registered') return false;
+            s.repairLoc = 'tsf';
+            s.history = s.history || [];
+            s.history.unshift({
+                t: new Date().toISOString(),
+                m: 'Jalur perbaikan diselaraskan ke TSF Workshop (tiket lama tanpa repairLoc).'
+            });
+            return true;
         }
 
         function healAllServiceTicketPj(tickets, users) {
@@ -10231,18 +10431,20 @@
             list.forEach(s => {
                 if (!s) return;
                 if (syncTicketPjFields(s, map)) changed = true;
+                if (healServiceTicketRepairLoc(s)) changed = true;
             });
             return changed;
         }
 
         function healServiceTicketsForCurrentUser() {
-            if (!currentUser || !isServiceFieldUser(currentUser)) return false;
+            if (!currentUser || !canActAsServicePj(currentUser)) return false;
             loadDB();
             let changed = relinkServiceTicketsForUser(currentUser);
             (db.serviceTickets || []).forEach(s => {
                 if (!s) return;
                 if (alignTicketPjToUserIfNamed(s)) changed = true;
                 if (syncTicketPjFields(s)) changed = true;
+                if (healServiceTicketRepairLoc(s)) changed = true;
             });
             if (changed) {
                 safeSaveLocalStorage();
@@ -10272,8 +10474,13 @@
         function populateServiceTsSelect() {
             const select = document.getElementById('svc-assigned-ts');
             if (!select) return;
-            let options = '<option value="" disabled>-- Pilih Teknisi Lapangan --</option>';
+            let options = '<option value="" disabled selected>-- Pilih PJ / Teknisi Lapangan --</option>';
+            if (currentUser && canActAsServicePj(currentUser) && !isServiceFieldUser(currentUser)) {
+                const selfLabel = `Saya kerjakan sendiri — ${currentUser.name || currentUser.user}`;
+                options += `<option value="${currentUser.id}">${tmsEscHtml(selfLabel)}</option>`;
+            }
             getActiveFieldTsList().forEach(u => {
+                if (currentUser && Number(u.id) === Number(currentUser.id)) return;
                 const label = (u.name || u.user) + (u.group ? ` (${u.group})` : '');
                 options += `<option value="${u.id}">${tmsEscHtml(label)}</option>`;
             });
@@ -10282,6 +10489,8 @@
 
         function applyServiceModalTsPicker() {
             const tsSelect = document.getElementById('svc-assigned-ts');
+            const tsPickerWrap = document.getElementById('svc-ts-picker-wrap');
+            const tsSelfHint = document.getElementById('svc-ts-self-hint');
             if (!tsSelect) return;
             populateServiceTsSelect();
             if (currentUser && isServiceFieldUser(currentUser)) {
@@ -10295,10 +10504,19 @@
                     tsSelect.value = uid;
                 }
                 tsSelect.disabled = true;
+                if (tsSelfHint) {
+                    tsSelfHint.textContent = 'Anda otomatis menjadi PJ karena membuat tiket ini.';
+                    tsSelfHint.classList.remove('hidden');
+                }
             } else {
                 tsSelect.value = '';
                 tsSelect.disabled = false;
+                if (tsSelfHint) {
+                    tsSelfHint.textContent = 'Tunjuk teknisi lapangan PJ atau pilih "Saya kerjakan sendiri".';
+                    tsSelfHint.classList.remove('hidden');
+                }
             }
+            if (tsPickerWrap) tsPickerWrap.classList.remove('hidden');
         }
 
         function resolveServiceTicketAssignedTs() {
@@ -10306,11 +10524,16 @@
                 syncCurrentUserFromDb({ logoutOnInvalid: false });
                 const fresh = getDbUser(currentUser.id);
                 const u = fresh || currentUser;
-                if (u && isActiveFieldTsUser(u)) return u;
+                if (u && canActAsServicePj(u)) return u;
             }
             const tsSelect = document.getElementById('svc-assigned-ts');
             const assignedTsId = tsSelect ? (parseInt(tsSelect.value, 10) || null) : null;
-            return assignedTsId ? getDbUser(assignedTsId) : null;
+            const picked = assignedTsId ? getDbUser(assignedTsId) : null;
+            if (picked && canActAsServicePj(picked)) return picked;
+            if (assignedTsId && currentUser && Number(assignedTsId) === Number(currentUser.id) && canActAsServicePj(currentUser)) {
+                return getDbUser(currentUser.id) || currentUser;
+            }
+            return null;
         }
 
         function svcTicketBtn(id, handler, label, icon, primary, extra) {
@@ -10351,6 +10574,7 @@
                     showServiceDetail: () => showServiceDetail(id),
                     openServiceReceiptModal: () => openServiceReceiptModal(id),
                     deleteServiceTicket: () => deleteServiceTicket(id),
+                    openReassignPjModal: () => openReassignPjModal(id),
                     tmsOnsitePickup: () => window.tmsOnsitePickup(id)
                 };
                 if (runners[handler]) runners[handler]();
@@ -10366,7 +10590,7 @@
             if (document._svcGlobalActionBound) return;
             document._svcGlobalActionBound = true;
             document.addEventListener('click', (e) => {
-                const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete');
+                const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete, .svc-ticket-reassign');
                 if (!btn || !btn.dataset.svcHandler) return;
                 e.preventDefault();
                 e.stopPropagation();
@@ -10379,7 +10603,7 @@
         }
 
         function isAssignedServiceTs(s) {
-            if (!currentUser || !isServiceFieldUser(currentUser)) return false;
+            if (!currentUser || !canActAsServicePj(currentUser)) return false;
             ensureServiceTicketPjReady(s);
             const match = ticketPjMatchesCurrentUser(s);
             if (match && (Number(s.assignedTsId) !== Number(currentUser.id) || s.assignedTsUser !== currentUser.user)) {
@@ -10400,13 +10624,17 @@
             let statusBadge = '';
             let actionBtn = '';
             let ownerDeleteBtn = '';
+            let reassignPjBtn = '';
             if (currentUser.role === 'owner') {
                 ownerDeleteBtn = `<button type="button" data-svc-id="${s.id}" data-svc-handler="deleteServiceTicket" class="tms-icon-btn tms-icon-btn--danger svc-ticket-delete" title="Hapus Tiket"><i class="fa-solid fa-trash text-[10px]"></i></button>`;
+            }
+            if (canReassignServiceTicket(s)) {
+                reassignPjBtn = `<button type="button" data-svc-id="${s.id}" data-svc-handler="openReassignPjModal" class="tms-icon-btn svc-ticket-reassign" title="Alihkan PJ"><i class="fa-solid fa-people-arrows text-[10px]"></i></button>`;
             }
             if (s.status === 'registered') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
                 if (isAssignedServiceTs(s)) {
-                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
+                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Mulai Pekerjaan', 'fa-play', pri, 'pickup');
                 }
             } else if (s.status === 'picked_up') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
@@ -10433,7 +10661,7 @@
                 }
             } else if (s.status === 'quoted') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-indigo-50 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 whitespace-nowrap">Penawaran Dikirim</span>`;
-                if (currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
+                if (currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner' || isServiceSpecRole(currentUser)) {
                     actionBtn = svcTicketBtn(s.id, 'openPoModal', 'Input PO', 'fa-file-circle-check', pri);
                 }
             } else if (s.status === 'po_issued') {
@@ -10461,12 +10689,12 @@
             const prodBadge = s.unitProduct ? `<span class="px-2 py-0.5 rounded border text-[8px] font-black uppercase text-gray-500 dark:text-lux-400 border-gray-200 dark:border-lux-700 mt-1 inline-block whitespace-nowrap">${tmsEscHtml(s.unitProduct)}</span>` : '';
             if (!actionBtn) actionBtn = formatServiceTicketActionFallback(s);
             const isMine = isAssignedServiceTs(s);
-            return { ts, date, statusBadge, actionBtn, ownerDeleteBtn, descStr, prodBadge, isMine };
+            return { ts, date, statusBadge, actionBtn, ownerDeleteBtn, reassignPjBtn, descStr, prodBadge, isMine };
         }
 
         function renderServiceTickets(skipReload) {
             if (skipReload !== true) loadDB();
-            if (currentUser && isServiceFieldUser(currentUser)) healServiceTicketsForCurrentUser();
+            if (currentUser && canActAsServicePj(currentUser)) healServiceTicketsForCurrentUser();
             const container = document.getElementById('service-tickets-container');
             const cardsMobile = document.getElementById('service-tickets-cards-mobile');
             if (!container) return;
@@ -10474,7 +10702,7 @@
 
             const regBtn = document.getElementById('btn-register-service');
             if (regBtn) {
-                if (currentUser.role === 'ts' || currentUser.role === 'tsf' || currentUser.role === 'spv' || currentUser.role === 'owner') {
+                if (canCreateServiceTicket(currentUser)) {
                     regBtn.classList.remove('hidden');
                 } else {
                     regBtn.classList.add('hidden');
@@ -10522,10 +10750,10 @@
             const pjFilter = pjFilterEl ? pjFilterEl.value : 'all';
             const pjHint = document.getElementById('svc-ts-pj-hint');
             if (pjHint) {
-                if (currentUser && isServiceFieldUser(currentUser)) pjHint.classList.remove('hidden');
+                if (currentUser && canActAsServicePj(currentUser)) pjHint.classList.remove('hidden');
                 else pjHint.classList.add('hidden');
             }
-            if (pjFilterEl && currentUser && isServiceFieldUser(currentUser)) {
+            if (pjFilterEl && currentUser && canActAsServicePj(currentUser)) {
                 pjFilterEl.classList.remove('hidden');
             } else if (pjFilterEl) {
                 pjFilterEl.classList.add('hidden');
@@ -10576,7 +10804,7 @@
                                      unitSn.toLowerCase().includes(query) ||
                                      ts.toLowerCase().includes(query);
                 const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
-                const matchesPj = pjFilter !== 'mine' || !isServiceFieldUser(currentUser) || ticketPjMatchesCurrentUser(s);
+                const matchesPj = pjFilter !== 'mine' || !canActAsServicePj(currentUser) || ticketPjMatchesCurrentUser(s);
                 return matchesQuery && matchesStatus && matchesPj;
             });
 
@@ -10636,6 +10864,7 @@
                         <td class="p-5 text-center whitespace-nowrap">
                             <div class="flex justify-center items-center gap-2 flex-wrap">
                                 ${actionCell}
+                                ${row.reassignPjBtn}
                                 ${row.ownerDeleteBtn}
                             </div>
                         </td>
@@ -11646,7 +11875,7 @@
         function getRepairLocLabel(loc) {
             if (loc === 'onsite') return 'On-Site (Perbaikan di Lokasi Customer)';
             if (loc === 'tsf') return 'TSF Workshop (Bawa ke Workshop)';
-            return 'Belum ditentukan — PJ pilih saat pickup';
+            return 'Belum ditentukan — PJ pilih saat mulai pekerjaan';
         }
 
         function isOnsiteRepairTicket(s) {
@@ -13724,8 +13953,8 @@
             const noSvc = generateServiceNumber();
             
             const assignedTs = resolveServiceTicketAssignedTs();
-            if (!assignedTs || !isActiveFieldTsUser(assignedTs)) {
-                showToast('Teknisi wajib', 'Pilih teknisi lapangan (PJ) yang ditugaskan menangani tiket ini.', 'error');
+            if (!assignedTs || !canActAsServicePj(assignedTs)) {
+                showToast('PJ wajib', 'Pilih teknisi PJ yang menangani tiket ini, atau "Saya kerjakan sendiri".', 'error');
                 return;
             }
             // Read photo before (multiple)
@@ -13783,7 +14012,7 @@
                 status: 'registered',
                 history: [{
                     t: new Date().toISOString(),
-                    m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) dan ditugaskan ke PJ ${assignedTs.name} (@${assignedTs.user}). Lokasi perbaikan ditentukan PJ saat pickup.`
+                    m: `Unit didaftarkan oleh ${currentUser.name} (${currentUser.jabatan || currentUser.role.toUpperCase()}) → PJ ${assignedTs.name} (@${assignedTs.user}). Jalur perbaikan ditentukan PJ saat mulai pekerjaan.`
                 }],
                 updatedAt: new Date().toISOString()
             };
@@ -14224,6 +14453,10 @@
             });
         }
 
+        window.tmsOnsitePickup = function(id) {
+            actionServiceTicket(id, 'pickup');
+        };
+
         function openRepairLocPickModal(id) {
             loadDB();
             syncCurrentUserFromDb({ logoutOnInvalid: false });
@@ -14233,7 +14466,7 @@
                 return;
             }
             if (!isAssignedServiceTs(s)) {
-                showToast('Akses ditolak', `Hanya PJ (${getTicketPjName(s)}) yang dapat menentukan lokasi perbaikan.`, 'error');
+                showToast('Akses ditolak', `Hanya PJ (${getTicketPjName(s)}) yang dapat memilih jalur perbaikan.`, 'error');
                 return;
             }
             document.getElementById('repair-loc-pick-ticket-id').value = id;
@@ -14257,7 +14490,7 @@
             const locInput = document.querySelector('input[name="repair-loc-pick"]:checked');
             const loc = locInput ? locInput.value : '';
             if (!loc || !['tsf', 'onsite'].includes(loc)) {
-                showToast('Pilih lokasi', 'Tentukan TSF Workshop atau On-Site sebelum pickup.', 'error');
+                showToast('Pilih jalur', 'Tentukan perbaikan di lapangan atau kirim ke TSF.', 'error');
                 return;
             }
             const s = findServiceTicket(id);
@@ -14266,11 +14499,11 @@
                 return;
             }
             if (!isAssignedServiceTs(s)) {
-                showToast('Akses ditolak', `Hanya PJ (${getTicketPjName(s)}) yang dapat menentukan lokasi perbaikan.`, 'error');
+                showToast('Akses ditolak', `Hanya PJ (${getTicketPjName(s)}) yang dapat memilih jalur.`, 'error');
                 return;
             }
             if (s.status !== 'registered') {
-                showToast('Status tidak valid', 'Lokasi perbaikan hanya ditentukan saat pickup (status Terdaftar).', 'error');
+                showToast('Status tidak valid', 'Jalur hanya dipilih saat status Terdaftar.', 'error');
                 closeModal('repairLocPickModal');
                 return;
             }
@@ -14279,95 +14512,13 @@
             s.repairLocSetBy = currentUser.user;
             s.history.unshift({
                 t: s.repairLocSetAt,
-                m: `Lokasi perbaikan ditentukan oleh PJ ${currentUser.name}: ${getRepairLocLabel(loc)}.`
+                m: `PJ ${currentUser.name} memilih jalur: ${getRepairLocLabel(loc)}.`
             });
             saveDB();
             closeModal('repairLocPickModal');
-            if (loc === 'onsite') executeOnsitePickup(id);
-            else executeWorkshopPickup(id);
+            openHandoverSignatureModal(id, 'pickup');
         }
         window.submitRepairLocPickup = submitRepairLocPickup;
-
-        function executeWorkshopPickup(id) {
-            const s = findServiceTicket(id);
-            if (!s || !currentUser) return false;
-            const now = new Date().toISOString();
-            s.status = 'picked_up';
-            s.updatedAt = now;
-            s.pickupConfirmedAt = now;
-            s.pickupConfirmedBy = currentUser.user;
-            s.history.unshift({
-                t: now,
-                m: `Unit diambil oleh PJ ${currentUser.name} (@${currentUser.user}). TTD PIC dapat dilengkapi via menu Tanda Terima bila diperlukan.`
-            });
-            addToHistory(`Service Unit Pickup: ${s.noService} diambil oleh ${currentUser.name}.`);
-            notifyServiceUpdate(s, 'picked_up');
-            db.version = Math.max(db.version || 0, Date.now()) + 1;
-            invalidateServiceHistoryIndex();
-            const saved = safeSaveLocalStorage();
-            if (supabaseClient) scheduleSyncWithCloud(true);
-            renderServiceTickets(true);
-            playNotificationSound();
-            showToast('Unit Di-pickup', `Tiket ${s.noService} aktif. Klik Analisa Awal untuk lanjut.`, 'success');
-            if (!saved) {
-                showToast('Peringatan', 'Penyimpanan lokal penuh — pastikan CLOUD LIVE aktif.', 'error');
-            }
-            return true;
-        }
-
-        window.executeWorkshopPickup = executeWorkshopPickup;
-
-        function executeOnsitePickup(id) {
-            const s = findServiceTicket(id);
-            if (!s || !currentUser) return false;
-            const now = new Date().toISOString();
-            s.status = 'picked_up';
-            s.updatedAt = now;
-            s.onsiteConfirmedAt = now;
-            s.onsiteConfirmedBy = currentUser.user;
-            s.history.unshift({
-                t: now,
-                m: `On-site repair dikonfirmasi oleh PJ ${currentUser.name} (@${currentUser.user}) di ${s.customerName}.`
-            });
-            addToHistory(`On-Site Confirm: ${s.noService} dikonfirmasi oleh ${currentUser.name}.`);
-            notifyServiceUpdate(s, 'picked_up');
-            db.version = Math.max(db.version || 0, Date.now()) + 1;
-            invalidateServiceHistoryIndex();
-            const saved = safeSaveLocalStorage();
-            if (supabaseClient) scheduleSyncWithCloud(true);
-            renderServiceTickets(true);
-            playNotificationSound();
-            showToast('On-Site Dikonfirmasi', `Tiket ${s.noService} aktif. Klik Quick Repair untuk mulai perbaikan.`, 'success');
-            if (!saved) {
-                showToast('Peringatan', 'Penyimpanan lokal penuh — data disimpan sementara. Pastikan CLOUD LIVE aktif.', 'error');
-            }
-            return true;
-        }
-
-        window.tmsOnsitePickup = function(id) {
-            try {
-                loadDB();
-                syncCurrentUserFromDb({ logoutOnInvalid: false });
-                if (!currentUser) {
-                    showToast('Sesi habis', 'Silakan login ulang.', 'error');
-                    return;
-                }
-                const s = findServiceTicket(id);
-                if (!s) {
-                    showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
-                    return;
-                }
-                if (alignTicketPjToUserIfNamed(s)) safeSaveLocalStorage();
-                if (!ticketPjMatchesCurrentUser(s)) {
-                    showToast('Akses ditolak', `PJ tiket: ${getTicketPjName(s)}. Anda: ${currentUser.name} (@${currentUser.user})`, 'error');
-                    return;
-                }
-                executeOnsitePickup(id);
-            } catch (err) {
-                console.error('tmsOnsitePickup:', err);
-                showToast('Error', (err.message || err) + ' — muat ulang halaman.', 'error');
-            }
-        };
 
         function actionServiceTicket(id, action) {
             loadDB();
@@ -14398,12 +14549,6 @@
                     openRepairLocPickModal(id);
                     return;
                 }
-                if (s.repairLoc === 'onsite') {
-                    executeOnsitePickup(id);
-                    return;
-                }
-                executeWorkshopPickup(id);
-                return;
             }
             if (action === 'receive_field' && !isAssignedServiceTs(s)) {
                 showToast('Akses ditolak', 'Hanya teknisi PJ tiket ini yang dapat menerima unit di lapangan.', 'error');
@@ -15808,6 +15953,21 @@
             document.getElementById('svc-det-unit-name').innerText = formatServiceUnitTitle(s);
             document.getElementById('svc-det-unit-sn').innerText = s.unitSn || '-';
             document.getElementById('svc-det-complaint').innerText = s.complaint || '-';
+            const pjDet = document.getElementById('svc-det-pj-name');
+            if (pjDet) pjDet.innerText = getTicketPjName(s) || s.assignedTsName || 'Belum ditunjuk';
+            const locDet = document.getElementById('svc-det-repair-loc');
+            if (locDet) locDet.innerText = isRepairLocSet(s) ? getRepairLocLabel(s.repairLoc) : 'Belum dipilih (PJ saat mulai pekerjaan)';
+            const reassignBtn = document.getElementById('svc-det-reassign-pj-btn');
+            if (reassignBtn) {
+                if (canReassignServiceTicket(s)) {
+                    reassignBtn.classList.remove('hidden');
+                    reassignBtn.classList.add('flex');
+                    reassignBtn.onclick = () => openReassignPjModal(s.id);
+                } else {
+                    reassignBtn.classList.add('hidden');
+                    reassignBtn.classList.remove('flex');
+                }
+            }
             
             const quoteWrapper = document.getElementById('svc-det-quoted-info-wrapper');
             const sphTableEl = document.getElementById('svc-det-sph-table');
