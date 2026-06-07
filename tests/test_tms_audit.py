@@ -145,16 +145,17 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_755():
+def test_release_version_756():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.5.5' in rel
+    assert '7.5.6' in rel
 
 
 def test_onsite_pickup_direct_confirm():
     js = _js_bundle()
     assert 'function executeOnsitePickup' in js
-    assert "s.repairLoc === 'onsite'" in js
-    assert 'executeOnsitePickup(id)' in js
+    assert 'window.tmsOnsitePickup' in js
+    assert 'renderServiceTickets(true)' in js
+    assert 'alignTicketPjToUserIfNamed' in js
 
 
 def test_pwa_files():
@@ -530,7 +531,7 @@ def test_pickup_shows_login_username_hint():
 
 def test_service_pj_strict_designated_technician():
     js = _js_bundle()
-    match = js[js.find('function ticketPjMatchesCurrentUser'):js.find('function ticketPjMatchesCurrentUser') + 600]
+    match = js[js.find('function ticketPjMatchesCurrentUser'):js.find('function syncTicketPjFields')]
     assert 'resolveTicketAssignedTsId(s)' in match
     assert 'assignedTsUser' in match
     assert 'Number(resolved) === uid' in match

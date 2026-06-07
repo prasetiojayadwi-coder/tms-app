@@ -3795,6 +3795,10 @@
                 localTime = localTime || getRTime(localRec);
                 cloudTime = cloudTime || getRTime(cloudRec);
             } else if (type === 'serviceTicket') {
+                const rank = { registered: 1, picked_up: 2, initial_analyzed: 3, received_tsf: 4, quoted: 5, po_issued: 6, repaired: 7, received_field: 8, completed: 9 };
+                const localRank = rank[localRec.status] || 0;
+                const cloudRank = rank[cloudRec.status] || 0;
+                if (localRank !== cloudRank) return localRank > cloudRank ? localRec : cloudRec;
                 const getSTime = (x) => (x.history && x.history[0] ? new Date(x.history[0].t).getTime() : (x.id || 0));
                 localTime = localTime || getSTime(localRec);
                 cloudTime = cloudTime || getSTime(cloudRec);
@@ -6299,7 +6303,7 @@
 
             if (!lite) updateOwnerDropdown();
             if(activeTab === 'tickets-log') renderTicketsLog();
-            if(activeTab === 'customer-service') renderServiceTickets();
+            if(activeTab === 'customer-service') renderServiceTickets(false);
             
             if(currentUser.role === 'ts') { 
                 if(activeTab === 'ts-dash') renderTsDash(); if(activeTab === 'ts-toolbox') renderTsToolbox(); if(activeTab === 'ts-radar') renderTsRadar(); if(activeTab === 'customer-master') renderCustomerMaster(); if(activeTab === 'sparepart-master') renderSparepartMaster(); if(activeTab === 'sph-log') renderSphLog(); if(activeTab === 'ts-handover') renderTsHandover();
@@ -9980,9 +9984,25 @@
             return tsUser ? tsUser.name : (s.assignedTsName || '');
         }
 
+        function alignTicketPjToUserIfNamed(s) {
+            if (!s || !currentUser) return false;
+            const cuName = normUserKey(currentUser.name);
+            const cuUser = normUserKey(currentUser.user);
+            const pjName = normUserKey(s.assignedTsName);
+            if (!pjName || (pjName !== cuName && pjName !== cuUser)) return false;
+            const uid = Number(currentUser.id);
+            if (!uid) return false;
+            let changed = false;
+            if (Number(s.assignedTsId) !== uid) { s.assignedTsId = uid; changed = true; }
+            if (s.assignedTsUser !== currentUser.user) { s.assignedTsUser = currentUser.user; changed = true; }
+            if (s.assignedTsName !== currentUser.name) { s.assignedTsName = currentUser.name; changed = true; }
+            return changed;
+        }
+
         function ticketPjMatchesCurrentUser(s) {
             if (!currentUser || !s || !isServiceFieldUser(currentUser)) return false;
             syncCurrentUserFromDb({ logoutOnInvalid: false });
+            alignTicketPjToUserIfNamed(s);
             const uid = Number(currentUser.id);
             if (!uid) return false;
             const cuUser = normUserKey(currentUser.user);
@@ -10122,9 +10142,11 @@
             if (s.status === 'registered') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-gray-100 text-gray-700 dark:bg-lux-800 dark:text-lux-300 border border-gray-300 dark:border-lux-700 whitespace-nowrap">Terdaftar</span>`;
                 if (isAssignedServiceTs(s)) {
-                    const pickupLabel = s.repairLoc === 'onsite' ? 'Konfirmasi On-Site' : 'Pickup Unit';
-                    const pickupIcon = s.repairLoc === 'onsite' ? 'fa-location-dot' : 'fa-truck-pickup';
-                    actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', pickupLabel, pickupIcon, pri, 'pickup');
+                    if (s.repairLoc === 'onsite') {
+                        actionBtn = `<button type="button" class="tms-svc-btn tms-svc-btn--primary svc-ticket-action" onclick="event.stopPropagation();window.tmsOnsitePickup(${s.id});return false;"><i class="fa-solid fa-location-dot mr-1"></i>Konfirmasi On-Site</button>`;
+                    } else {
+                        actionBtn = svcTicketBtn(s.id, 'actionServiceTicket', 'Pickup Unit', 'fa-truck-pickup', pri, 'pickup');
+                    }
                 }
             } else if (s.status === 'picked_up') {
                 statusBadge = `<span class="px-2.5 py-1 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 whitespace-nowrap">Dipegang Teknisi</span>`;
@@ -10180,8 +10202,8 @@
             return { ts, date, statusBadge, actionBtn, ownerDeleteBtn, descStr, prodBadge };
         }
 
-        function renderServiceTickets() {
-            loadDB();
+        function renderServiceTickets(skipReload) {
+            if (skipReload !== true) loadDB();
             const container = document.getElementById('service-tickets-container');
             const cardsMobile = document.getElementById('service-tickets-cards-mobile');
             if (!container) return;
@@ -13582,22 +13604,55 @@
 
         function executeOnsitePickup(id) {
             const s = findServiceTicket(id);
-            if (!s) return false;
+            if (!s || !currentUser) return false;
+            const now = new Date().toISOString();
             s.status = 'picked_up';
-            s.onsiteConfirmedAt = new Date().toISOString();
-            s.onsiteConfirmedBy = currentUser ? currentUser.user : '';
+            s.updatedAt = now;
+            s.onsiteConfirmedAt = now;
+            s.onsiteConfirmedBy = currentUser.user;
             s.history.unshift({
-                t: new Date().toISOString(),
+                t: now,
                 m: `On-site repair dikonfirmasi oleh PJ ${currentUser.name} (@${currentUser.user}) di ${s.customerName}.`
             });
             addToHistory(`On-Site Confirm: ${s.noService} dikonfirmasi oleh ${currentUser.name}.`);
             notifyServiceUpdate(s, 'picked_up');
-            saveDB();
-            updateData();
+            db.version = Math.max(db.version || 0, Date.now()) + 1;
+            invalidateServiceHistoryIndex();
+            const saved = safeSaveLocalStorage();
+            if (supabaseClient) scheduleSyncWithCloud(true);
+            renderServiceTickets(true);
             playNotificationSound();
             showToast('On-Site Dikonfirmasi', `Tiket ${s.noService} aktif. Klik Quick Repair untuk mulai perbaikan.`, 'success');
+            if (!saved) {
+                showToast('Peringatan', 'Penyimpanan lokal penuh — data disimpan sementara. Pastikan CLOUD LIVE aktif.', 'error');
+            }
             return true;
         }
+
+        window.tmsOnsitePickup = function(id) {
+            try {
+                loadDB();
+                syncCurrentUserFromDb({ logoutOnInvalid: false });
+                if (!currentUser) {
+                    showToast('Sesi habis', 'Silakan login ulang.', 'error');
+                    return;
+                }
+                const s = findServiceTicket(id);
+                if (!s) {
+                    showToast('Tiket tidak ditemukan', 'Muat ulang halaman lalu coba lagi.', 'error');
+                    return;
+                }
+                if (alignTicketPjToUserIfNamed(s)) safeSaveLocalStorage();
+                if (!ticketPjMatchesCurrentUser(s)) {
+                    showToast('Akses ditolak', `PJ tiket: ${getTicketPjName(s)}. Anda: ${currentUser.name} (@${currentUser.user})`, 'error');
+                    return;
+                }
+                executeOnsitePickup(id);
+            } catch (err) {
+                console.error('tmsOnsitePickup:', err);
+                showToast('Error', (err.message || err) + ' — muat ulang halaman.', 'error');
+            }
+        };
 
         function actionServiceTicket(id, action) {
             loadDB();
