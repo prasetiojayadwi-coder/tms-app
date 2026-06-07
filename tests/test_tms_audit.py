@@ -145,11 +145,11 @@ def test_config_sync_secret_template():
     assert 'syncSecret' in cfg
 
 
-def test_release_version_7102():
+def test_release_version_7103():
     rel = (ROOT / 'release.js').read_text(encoding='utf-8')
-    assert '7.10.2' in rel
-    assert re.search(r"build:\s*124", rel)
-    assert 'tms-cache-v124' in (ROOT / 'sw.js').read_text(encoding='utf-8')
+    assert '7.10.3' in rel
+    assert re.search(r"build:\s*125", rel)
+    assert 'tms-cache-v125' in (ROOT / 'sw.js').read_text(encoding='utf-8')
 
 
 def test_index_html_not_truncated():
@@ -213,9 +213,15 @@ def test_service_ticket_creator_roles():
 
 def test_svc_ticket_btn_has_direct_onclick():
     js = _js_bundle()
-    block = js[js.find('function svcTicketBtn'):js.find('function svcTicketBtn') + 600]
-    assert 'onclick="runServiceTicketAction(this)' in block
-    assert 'bindServiceTicketGlobalActions();' in js[js.find('function bindServiceTicketGlobalActions'):js.find('function bindServiceTicketGlobalActions') + 800]
+    block = js[js.find('function svcTicketBtn'):js.find('function svcTicketBtn') + 800]
+    # Buttons must invoke the direct dispatcher with embedded id/handler (no DOM/dataset dependency).
+    assert "onclick=\"runSvcAction('" in block
+    assert 'function runSvcAction' in js
+    assert 'window.runSvcAction = runSvcAction' in js
+    # Delegated fallback must NOT use capture-phase stopPropagation (which can swallow inline clicks).
+    bind = js[js.find('function bindServiceTicketGlobalActions'):js.find('function bindServiceTicketGlobalActions') + 900]
+    assert 'stopPropagation' not in bind
+    assert "addEventListener('click'" in bind
 
 
 def test_pj_pick_path_then_handover():

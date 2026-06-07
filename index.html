@@ -10545,62 +10545,68 @@
             const cls = primary ? 'tms-svc-btn tms-svc-btn--primary svc-ticket-action' : 'tms-svc-btn svc-ticket-action';
             const sid = String(id);
             const ex = extra ? ` data-svc-extra="${extra}"` : '';
-            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="runServiceTicketAction(this); return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
+            const exArg = extra ? `'${extra}'` : "''";
+            return `<button type="button" data-svc-id="${sid}" data-svc-handler="${handler}"${ex} class="${cls}" onclick="runSvcAction('${sid}','${handler}',${exArg});return false;"><i class="fa-solid ${icon} mr-1"></i>${label}</button>`;
         }
 
+        // Single source of truth for service-ticket actions. Direct, no DOM/dataset/closest dependency.
         let _svcActionBusyUntil = 0;
-
-        function runServiceTicketAction(btn) {
+        function runSvcAction(rawId, handler, extra) {
             const now = Date.now();
             if (now < _svcActionBusyUntil) return;
-            _svcActionBusyUntil = now + 600;
-            if (!btn || !btn.dataset) {
-                showToast('Tombol error', 'Elemen aksi tidak valid. Refresh halaman.', 'error');
-                return;
-            }
-            const rawId = btn.dataset.svcId;
-            const handler = btn.dataset.svcHandler;
-            const extra = btn.dataset.svcExtra || '';
+            _svcActionBusyUntil = now + 350;
             if (!rawId || !handler) {
-                showToast('Tombol error', 'Data tiket tidak lengkap. Refresh halaman.', 'error');
+                showToast('Tombol error', 'Data tiket tidak lengkap. Muat ulang halaman.', 'error');
                 return;
             }
-            const id = /^\d+$/.test(rawId) ? Number(rawId) : rawId;
+            const id = /^\d+$/.test(String(rawId)) ? Number(rawId) : rawId;
+            const ex = extra || '';
+            const runners = {
+                actionServiceTicket: () => actionServiceTicket(id, ex),
+                openQuotationModal: () => openQuotationModal(id),
+                openAnalysisModal: () => openAnalysisModal(id),
+                openOnsiteRepair: () => openOnsiteRepair(id),
+                openTsfQuickRepair: () => openTsfQuickRepair(id),
+                openPoModal: () => openPoModal(id),
+                openServiceRepairModal: () => openServiceRepairModal(id),
+                openServiceDeliveryModal: () => openServiceDeliveryModal(id),
+                showServiceDetail: () => showServiceDetail(id),
+                openServiceReceiptModal: () => openServiceReceiptModal(id),
+                deleteServiceTicket: () => deleteServiceTicket(id),
+                openReassignPjModal: () => openReassignPjModal(id),
+                tmsOnsitePickup: () => actionServiceTicket(id, 'pickup')
+            };
             try {
-                const runners = {
-                    actionServiceTicket: () => actionServiceTicket(id, extra),
-                    openQuotationModal: () => openQuotationModal(id),
-                    openAnalysisModal: () => openAnalysisModal(id),
-                    openOnsiteRepair: () => openOnsiteRepair(id),
-                    openTsfQuickRepair: () => openTsfQuickRepair(id),
-                    openPoModal: () => openPoModal(id),
-                    openServiceRepairModal: () => openServiceRepairModal(id),
-                    openServiceDeliveryModal: () => openServiceDeliveryModal(id),
-                    showServiceDetail: () => showServiceDetail(id),
-                    openServiceReceiptModal: () => openServiceReceiptModal(id),
-                    deleteServiceTicket: () => deleteServiceTicket(id),
-                    openReassignPjModal: () => openReassignPjModal(id),
-                    tmsOnsitePickup: () => window.tmsOnsitePickup(id)
-                };
-                if (runners[handler]) runners[handler]();
-                else showToast('Tombol error', `Handler "${handler}" tidak ditemukan.`, 'error');
+                if (typeof runners[handler] === 'function') runners[handler]();
+                else if (typeof window[handler] === 'function') window[handler](id, ex);
+                else showToast('Tombol error', `Aksi "${handler}" tidak dikenal. Muat ulang halaman.`, 'error');
             } catch (err) {
-                console.error('runServiceTicketAction:', err);
-                showToast('Error', 'Gagal menjalankan aksi: ' + (err.message || err), 'error');
+                console.error('runSvcAction:', handler, err);
+                showToast('Error', 'Gagal menjalankan aksi: ' + (err && err.message ? err.message : err), 'error');
             }
+        }
+        window.runSvcAction = runSvcAction;
+
+        // Backward-compatible delegated handler (for spans without inline onclick: track / receipt / delete / reassign).
+        function runServiceTicketAction(btn) {
+            if (!btn || !btn.dataset) {
+                showToast('Tombol error', 'Elemen aksi tidak valid. Muat ulang halaman.', 'error');
+                return;
+            }
+            runSvcAction(btn.dataset.svcId, btn.dataset.svcHandler, btn.dataset.svcExtra || '');
         }
         window.runServiceTicketAction = runServiceTicketAction;
 
         function bindServiceTicketGlobalActions() {
             if (document._svcGlobalActionBound) return;
             document._svcGlobalActionBound = true;
+            // Bubble-phase fallback for elements WITHOUT inline onclick (track/receipt/delete/reassign spans).
+            // Buttons from svcTicketBtn carry their own inline onclick; the 350ms guard prevents double-firing.
             document.addEventListener('click', (e) => {
                 const btn = e.target.closest('.svc-ticket-action, .svc-ticket-track, .svc-ticket-receipt, .svc-ticket-delete, .svc-ticket-reassign');
-                if (!btn || !btn.dataset.svcHandler) return;
-                e.preventDefault();
-                e.stopPropagation();
+                if (!btn || !btn.dataset || !btn.dataset.svcHandler) return;
                 runServiceTicketAction(btn);
-            }, true);
+            });
         }
         bindServiceTicketGlobalActions();
 
